@@ -1,5 +1,5 @@
 # Perfil del integrante 
 
-- **Nombre:** Anabel Cadena Torres
-- **Usuario de GitHub:** [anabelct29](https://github.com/anabelct29)
-- **Rol en el proyecto:** Product Owner / QA & Testing Lead
+- **Nombre:** Mayra Yuliana Toro Pino
+- **Usuario de GitHub:** [ByMayra](https://github.com/ByMayra)
+- **Rol en el proyecto:** Frontend Lead (UI/UX & React)
