@@ -217,6 +217,34 @@ export const ISSUES = [
     refs: 'Plan Nivel 4 (DRY) · Charter §8',
   },
 
+  // ───────────────────────── Autenticación ─────────────────────────
+  {
+    id: 'A01', hito: 2, prio: 'P0', area: ['backend', 'frontend'], charter: true, deps: ['D05'],
+    titulo: 'Registro solo con correo institucional (@unicesar.edu.co) y verificación de titularidad',
+    contexto: 'Requisito nuevo: la cuenta de estudiante solo puede crearse con un correo institucional del dominio `unicesar.edu.co` (cuentas de Microsoft 365 de la universidad). Hoy `POST /api/auth/registro` acepta cualquier correo (el frontend solo comprueba el formato), crea la cuenta activa al instante y devuelve el token sin comprobar que quien se registra controla ese buzón; además el endpoint no tiene límite de intentos (solo `/login` lo tiene). **Validar el dominio es trivial pero no prueba titularidad:** cualquiera puede escribir el correo de otra persona. El método de verificación queda por decidir en el spike de este issue. Restricciones ya comprobadas: Render free **bloquea el SMTP saliente** (puertos 25, 465 y 587) desde sept-2025, así que el correo debe enviarse por API HTTPS; y el inicio de sesión con Microsoft depende de la política de consentimiento del tenant de la universidad, que desconocemos (puede exigir aprobación del administrador para apps sin editor verificado). Hasta que este issue esté hecho, el registro del despliegue público acepta cualquier correo: no difundir la URL.',
+    tareas: [
+      '**Spike (1 día, límite estricto).** Opción A, código por correo con API HTTPS: enviar un código de prueba a un buzón real `@unicesar.edu.co` desde el proveedor candidato (Gmail API con la cuenta del equipo, Brevo u otro con plan gratuito vigente) y anotar si llega a Recibidos, a Correo no deseado o es rechazado por Microsoft 365; anotar los límites del plan gratuito con fecha.',
+      '**Spike.** Opción B, iniciar sesión con Microsoft (OIDC): registrar una app en Entra ID (multi-tenant), intentar entrar con una cuenta `@unicesar.edu.co` y anotar si pide aprobación del administrador; estimar el esfuerzo del flujo nativo (callback en el backend, `@capacitor/browser` y esquema de URL).',
+      '**Spike.** Opción C, sin envío de correo: dominio permitido + cuenta inactiva hasta que un administrador la apruebe en Gestión de usuarios (ya existe el campo `activo`). No prueba titularidad: solo si A y B no son viables.',
+      'Registrar la decisión (método, motivo y fecha) en este issue y en `docs/12_ruta_trabajo_semestre.md`. Criterio por defecto: A si el correo llega a Recibidos; B si el consentimiento funciona sin aprobación del administrador y el flujo nativo cuesta ≤ 2 días; C como último recurso.',
+      'Backend: validar el dominio **en el servidor** (nunca solo en el cliente): normalizar (`trim`, minúsculas), tomar el dominio tras la **última** `@` y compararlo por igualdad exacta con la variable `DOMINIOS_CORREO_PERMITIDOS` (por defecto `unicesar.edu.co`). Debe rechazar `x@unicesar.edu.co.evil.com`, `x@evilunicesar.edu.co`, `x@sub.unicesar.edu.co` (salvo que se liste) y caracteres Unicode engañosos.',
+      'Backend: `registroController` deja de devolver el token mientras el correo no esté verificado (métodos A y B): la cuenta nace sin acceso hasta completar la verificación.',
+      'Backend: límite de intentos en `/api/auth/registro` y en la verificación/reenvío de códigos (hoy solo `/login` tiene `loginRateLimit`), para que el envío de correo no sirva de vector de abuso.',
+      'Si se elige A: guardar solo el **hash** del código, con expiración de 10–15 min, máximo 5 intentos y un solo uso; endpoints de verificación y reenvío; la clave del proveedor va en variable de entorno, nunca en el repo.',
+      'Frontend (`Registro.jsx`): placeholder `usuario@unicesar.edu.co`, validación del dominio con mensaje claro («Usa tu correo institucional @unicesar.edu.co»), pantalla «Revisa tu correo» con campo de código y reenvío con espera; debe funcionar en la PWA y en el APK.',
+      'Alcance: la restricción aplica al **registro público** (estudiantes). Conductores y administradores los crea un administrador y pueden usar otro correo; confirmar este punto (el seed usa `@upc.edu.co`, que no pasaría el filtro, y no cambia).',
+      'Pruebas con `node:test` de la validación de dominio (incluidos los casos de suplantación) y del flujo de verificación; actualizar `docs/04_manual_usuario.md` y `backend/.env.example`.',
+    ],
+    aceptacion: [
+      'Un correo fuera de `unicesar.edu.co` es rechazado por el servidor con un mensaje claro aunque se salte el formulario (probado con `curl`).',
+      'No se puede iniciar sesión ni obtener token con un correo institucional sin verificar (métodos A y B).',
+      'Los casos de suplantación de dominio están cubiertos por pruebas automáticas.',
+      'El flujo completo funciona en Render + Aiven y en el APK con un buzón `@unicesar.edu.co` real.',
+      'El charter v2 recoge el requisito (ver Q01).',
+    ],
+    refs: 'Charter §4 Módulo 1 (requisito nuevo a mitad de semestre, ver R3) · Plan Nivel 1',
+  },
+
   // ───────────────────────── Backend: capas, patrones y código limpio ─────────────────────────
   {
     id: 'B01', hito: 3, prio: 'P0', area: ['backend'], nivel: 2,
@@ -582,6 +610,7 @@ export const ISSUES = [
       'Actualizar §6 (Sprint 4/5), §7.1 (servicios Render/Aiven), §8 (R4: suspensión de Render, apagado por inactividad de Aiven; nuevo riesgo: GPS con pantalla bloqueada en el APK) y §10 (criterio: APK instalable).',
       'Definir en §2.2 cómo se mide cada meta: «satisfacción ≥ 80 %» = al menos 80 % de los participantes puntúan 4 o 5 sobre 5 en la pregunta global; los tiempos se miden con el cronómetro de la sesión (Q03); el RNF de respuesta < 3 s se mide con el servicio despierto y el primer arranque en frío (~1 min) se declara excepción.',
       'Marcar el documento como «v2 — cambios propuestos, pendiente de aprobación del docente» y listar en el control de cambios qué se desvía del v1.',
+      'Módulo 1 (Autenticación): añadir el registro restringido a correo institucional `@unicesar.edu.co` con verificación de titularidad como requisito nuevo a mitad de semestre, tratado según el riesgo R3 (A01).',
       'Reflejar en §8 R2 que el equipo activo hoy es de una persona y cómo se mitiga (recorte por prioridades, CI obligatorio).',
     ],
     aceptacion: [
