@@ -33,7 +33,8 @@ Cada ambigüedad detectada queda cerrada con una decisión, su motivo y el issue
 | D-21 | Nombre del producto | **UpcTrack** (`appId: co.edu.unicesar.upctrack`). Hoy conviven «BusUPCSA», «Monitoreo de Rutas — UPCSA» y «UpcTrack». | Un solo nombre en manifest, ícono, APK, README y charter. | M08, Q01 |
 | D-22 | Recorte | Se trabaja todo lo `Must` del hito antes de tocar un `Should`. Si el tiempo se aprieta se corta lo `Could`, luego U05/U07 y B02/B05. **Nunca** D08, M10, M11, Q01 ni Q02. | Protege el criterio de aceptación del charter. | — |
 | D-23 | Equipo y revisión | Equipo de **una persona**. Sin revisión por pares: autorrevisión con lista de verificación + revisión asistida (`/code-review`) pegada en cada PR. El charter lo declara (R2). | Es la evidencia honesta de revisión que se puede dar; no se simula un equipo. | W04, Q01 |
-| D-24 | Capacidad | 40 issues, de los cuales **23 Must** son el compromiso real; los 16 `Should` y 1 `Could` son *stretch*. | 30 días para una persona. | todos |
+| D-24 | Capacidad | 41 issues, de los cuales **24 Must** son el compromiso real; los 16 `Should` y 1 `Could` son *stretch*. | 30 días para una persona. | todos |
+| D-25 | Registro institucional | El registro público solo acepta correos `@unicesar.edu.co` (igualdad exacta del dominio, validada **en el servidor**). La verificación de titularidad se decide en un spike de 1 día entre: **A** código por correo vía API HTTPS, **B** inicio de sesión con Microsoft, **C** aprobación manual por el administrador (último recurso). | El dominio por sí solo no prueba titularidad. Render free bloquea el SMTP saliente desde sept-2025 y el consentimiento de Microsoft depende del tenant de la universidad. | A01 |
 
 ### Supuestos asumidos (ya no hay decisiones abiertas)
 1. **Responsables:** todos los issues se asignan a la persona que ejecuta el plan; si se suma alguien, se reasigna por área.
@@ -58,6 +59,7 @@ Cada ambigüedad detectada queda cerrada con una decisión, su motivo y el issue
 | Obj. Específico 4 · Módulo 4 · §9 · Sprint 4 | Vercel + **Ngrok** | Vercel + **Render** + **Aiven**; ngrok contingencia |
 | Módulo 3 · §4.1 | Capacitor **Out-of-Scope** | **APK Android In-Scope**; tiendas e iOS Out-of-Scope |
 | §9 Gestión ágil | Jira Software | GitHub Projects |
+| §4 Módulo 1 | Login con roles, sin restricción de correo | Registro público solo con correo institucional `@unicesar.edu.co` y verificación (requisito nuevo, R3) |
 | §5 / §8 R2 | Célula Scrum; riesgo de deserción de un integrante | Equipo activo de una persona; mitigación por priorización y CI |
 | §7.1 / §8 R4 | Vercel/Ngrok; estabilidad de túneles | Vercel/Render/Aiven; suspensión de Render, apagado de Aiven, GPS con pantalla bloqueada |
 | §2.2 / §10 | Metas sin método de medición; sin APK | Método definido (D-20); APK instalable como criterio |
@@ -111,11 +113,11 @@ upc-track/
 | Hito | Vence | Sprint del charter | Objetivo | Must · Should · Could |
 |---|---|---|---|---|
 | **1 · Base, CI y nube** | vie 13-nov | Sprint 4 | Repo ordenado, CI, Aiven + Render + Vercel, WebSockets verificados, charter v2, auditoría de diseño | 10 · 1 · 0 |
-| **2 · Diseño móvil y base Capacitor** | vie 20-nov | Sprint 4 | Tokens, navegación móvil, pantalla del conductor, Capacitor con login y GPS | 6 · 4 · 0 |
+| **2 · Diseño móvil y base Capacitor** | vie 20-nov | Sprint 4 | Tokens, navegación móvil, pantalla del conductor, Capacitor con login y GPS, registro institucional | 7 · 4 · 0 |
 | **3 · APK, capas y pulido** | vie 27-nov | Sprint 5 | APK firmado, pruebas en dispositivos, refactor de capas, accesibilidad, usabilidad de la PWA | 3 · 10 · 1 |
 | **4 · QA, docs y entrega** | sáb 05-dic | Sprint 5 | **Congelamiento 01-dic.** QA, manuales, release v1.0.0, sustentación | 4 · 1 · 0 |
 
-**Total: 40 issues (23 Must, 16 Should, 1 Could).** Solo los Must son el compromiso; los Should son *stretch* (D-24).
+**Total: 41 issues (24 Must, 16 Should, 1 Could).** Solo los Must son el compromiso; los Should son *stretch* (D-24).
 **Ruta crítica:** `D01 → D02 → D05 → D07 → D08` (nube) y `W01 → M01 → M03 → M04 → M10 → M11 → Q02 → Q07` (APK). El APK necesita un backend público estable.
 
 ## 8. Auditoría de diseño (U01 → U10)
@@ -140,10 +142,11 @@ Secuencia: **U01** diagnóstico → **U02** tokens y fuentes → **U03** navegac
 | WebSockets inestables en Render free | D08 los verifica antes del 13-nov; Fly.io como alternativa (con el Dockerfile de D04) |
 | Aiven apaga la BD por inactividad | `SELECT 1` periódico, procedimiento de recuperación probado, MySQL local como plan B |
 | Un segundo servicio free en Render agota las 750 h | Regla D-07 |
-| 30 días para una sola persona | Solo 23 Must son compromiso; Should = *stretch*; congelamiento 01-dic (D-22, D-24) |
+| 30 días para una sola persona | Solo 24 Must son compromiso; Should = *stretch*; congelamiento 01-dic (D-22, D-24) |
 | Sin revisión por pares ni aprobación del docente | CI obligatorio + revisión asistida por PR; charter v2 marcado como pendiente (D-23) |
 | Conductor con pantalla bloqueada | Wake Lock + indicación en pantalla; spike M05 opcional |
 | Entornos Android distintos entre integrantes | M03 documenta requisitos (JDK 21); M10 compila en CI |
+| Registro institucional: SMTP bloqueado en Render free y consentimiento de Microsoft desconocido | Spike de 1 día en A01 con tres opciones y criterio de decisión; no difundir la URL pública antes de A01 |
 | Demo con servicios dormidos | D06 y Q06 (pre-calentar, respaldo local y video) |
 
 ## 11. Fuentes consultadas (05-nov-2026)
@@ -176,6 +179,7 @@ Prioridad: **P0** Must · **P1** Should · **P2** Could. Los cuerpos completos e
 | D07 | H1 | P0 | infra, frontend | D05, W01 | Frontend en Vercel apuntando al backend de Render |
 | D08 | H1 | P0 | infra, qa | D07 | Verificar WebSockets de extremo a extremo en Render free |
 | D09 | H2 | P1 | backend, infra | B03 | Endurecer producción: CORS estricto, helmet y secretos |
+| A01 | H2 | P0 | backend, frontend | D05 | Registro solo con correo institucional (@unicesar.edu.co) y verificación de titularidad |
 | B01 | H3 | P0 | backend | — | Extraer busService: sacar SQL de busController (SRP) |
 | B02 | H3 | P1 | backend | B01 | Extender la capa de servicios a usuario, ruta, notificación y logout |
 | B03 | H1 | P0 | backend | — | Extraer utils/cors.js (DRY) e incluir los orígenes de la app nativa |
