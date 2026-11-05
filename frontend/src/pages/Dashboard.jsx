@@ -96,7 +96,7 @@ export default function Dashboard() {
     // Respaldo de sincronización por polling
     intervaloRef.current = setInterval(cargarStats, 10_000)
     return () => clearInterval(intervaloRef.current)
-  }, []) // eslint-disable-line
+  }, [])
 
   useEffect(() => {
     function programarRefresco(delay = 300) {
@@ -131,7 +131,7 @@ export default function Dashboard() {
       socket.off('bus:estado', onBusEstado)
       socket.off('connect', onSocketConnect)
     }
-  }, []) // eslint-disable-line
+  }, [])
 
   // Centro del mapa: primer bus activo, o coordenadas de la universidad
   const centro = busesActivos.length > 0

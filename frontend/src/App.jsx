@@ -7,7 +7,6 @@ import RutaProtegida from './components/shared/RutaProtegida'
 // Pages — las iremos creando en los siguientes issues
 import Login from './pages/Login'
 import Registro from './pages/Registro'
-import Layout from './components/shared/Layout'
 import Dashboard from './pages/Dashboard'
 import MapaTiempoReal from './pages/MapaTiempoReal'
 import Rutas from './pages/Rutas'
@@ -22,17 +21,6 @@ import MiRecorrido from './pages/conductor/MiRecorrido'
 
 // La landing carga aparte para no pesar en el bundle de la app (ni en el APK).
 const LandingPage = lazy(() => import('./features/landing/LandingPage'))
-// Placeholders 
-const Placeholder = ({ nombre }) => {
-  return (
-    <Layout titulo={nombre}>
-      <div style={{ padding: 20 }}>
-        <h2>🚧 {nombre}</h2>
-        <p style={{ marginTop: 8, color: 'var(--texto-suave)' }}>Vista en construcción</p>
-      </div>
-    </Layout>
-  )
-}
 
 function InicioPorRol() {
   const { usuario } = useAuth()

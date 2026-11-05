@@ -1,5 +1,7 @@
 # Monitoreo de Buses UPC Aguachica
 
+[![CI](https://github.com/MAM-UPC-SA-TEAM/upc-track/actions/workflows/ci.yml/badge.svg)](https://github.com/MAM-UPC-SA-TEAM/upc-track/actions/workflows/ci.yml)
+
 Aplicacion web para monitoreo de buses en tiempo real con:
 - Backend Node.js + Express + Socket.IO
 - Frontend React + Vite + Leaflet

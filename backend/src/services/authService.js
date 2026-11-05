@@ -65,9 +65,9 @@ export async function registrarEstudiante({ nombre, nombre_usuario, correo, pass
   } catch (error) {
     if (error.code === 'ER_DUP_ENTRY') {
       if (error.message.includes('nombre_usuario')) {
-        throw new Error('USUARIO_YA_REGISTRADO')
+        throw new Error('USUARIO_YA_REGISTRADO', { cause: error })
       }
-      throw new Error('CORREO_YA_REGISTRADO')
+      throw new Error('CORREO_YA_REGISTRADO', { cause: error })
     }
     throw error
   }
