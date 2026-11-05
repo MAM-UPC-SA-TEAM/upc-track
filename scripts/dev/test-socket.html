@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Prueba Socket.io — Buses UPC</title>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #1a1a1a; color: #00ff00; }
+    h2 { color: #fff; }
+    button { margin: 5px; padding: 8px 16px; cursor: pointer; background: #333; color: #fff; border: 1px solid #555; border-radius: 4px; }
+    button:hover { background: #555; }
+    #log { background: #000; padding: 15px; border-radius: 8px; height: 300px; overflow-y: auto; margin-top: 20px; border: 1px solid #333; }
+    .evento  { color: #00ff00; }
+    .emitido { color: #00aaff; }
+    .error   { color: #ff4444; }
+    .info    { color: #ffaa00; }
+  </style>
+</head>
+<body>
+
+<h2>🚌 Prueba Socket.io — Monitoreo Buses UPC</h2>
+
+<!-- Simular ESTUDIANTE -->
+<div>
+  <h3 style="color:#00aaff">Estudiante (recibe ubicación)</h3>
+  <button onclick="unirseRuta(1)">Unirse a Ruta 1</button>
+  <button onclick="salirRuta(1)">Salir de Ruta 1</button>
+</div>
+
+<!-- Simular CONDUCTOR -->
+<div>
+  <h3 style="color:#ffaa00">Conductor (envía ubicación)</h3>
+  <button onclick="enviarUbicacion()">Enviar ubicación Bus 1</button>
+  <button onclick="cambiarEstado('en_recorrido')">Estado: En recorrido</button>
+  <button onclick="cambiarEstado('detenido')">Estado: Detenido</button>
+  <button onclick="cambiarEstado('fuera_de_servicio')">Estado: Fuera de servicio</button>
+</div>
+
+<div id="log"></div>
+
+<script>
+  const socket = io('http://localhost:3000')
+  const log    = document.getElementById('log')
+
+  function escribir(msg, tipo = 'evento') {
+    const time = new Date().toLocaleTimeString()
+    log.innerHTML += `<div class="${tipo}">[${time}] ${msg}</div>`
+    log.scrollTop  = log.scrollHeight
+  }
+
+  // ── Eventos del servidor ────────────────────────────────────
+  socket.on('connect', () => {
+    escribir(`✅ Conectado al servidor — ID: ${socket.id}`, 'info')
+  })
+
+  socket.on('disconnect', () => {
+    escribir('❌ Desconectado del servidor', 'error')
+  })
+
+  socket.on('join:confirmado', ({ room, id_ruta }) => {
+    escribir(`📍 Unido al room: ${room} (Ruta ${id_ruta})`, 'info')
+  })
+
+  // Evento que recibe el ESTUDIANTE cuando el bus se mueve
+  socket.on('bus:location', (data) => {
+    escribir(`🚌 Bus ${data.id_bus} → lat: ${data.lat}, lng: ${data.lng} — ${data.timestamp}`, 'evento')
+  })
+
+  // Evento que recibe el ESTUDIANTE cuando el bus cambia estado
+  socket.on('bus:estado', (data) => {
+    escribir(`🔄 Bus ${data.id_bus} → estado: ${data.estado}`, 'evento')
+  })
+
+  socket.on('error', (data) => {
+    escribir(`⚠️ Error: ${data.mensaje}`, 'error')
+  })
+
+  // ── Acciones del ESTUDIANTE ─────────────────────────────────
+  function unirseRuta(id_ruta) {
+    socket.emit('join:ruta', { id_ruta })
+    escribir(`📤 Enviado: join:ruta { id_ruta: ${id_ruta} }`, 'emitido')
+  }
+
+  function salirRuta(id_ruta) {
+    socket.emit('leave:ruta', { id_ruta })
+    escribir(`📤 Enviado: leave:ruta { id_ruta: ${id_ruta} }`, 'emitido')
+  }
+
+  // ── Acciones del CONDUCTOR ──────────────────────────────────
+  // Simula coordenadas moviéndose levemente cerca de la UPC Aguachica
+  let lat = 8.3092800
+  let lng = -73.6198500
+
+  function enviarUbicacion() {
+    // Unirse al room primero como conductor
+    socket.emit('join:ruta', { id_ruta: 1 })
+
+    // Mover levemente las coordenadas para simular movimiento
+    lat += 0.0001
+    lng += 0.0001
+
+    socket.emit('conductor:ubicacion', {
+      id_bus:  1,
+      id_ruta: 1,
+      lat:     parseFloat(lat.toFixed(7)),
+      lng:     parseFloat(lng.toFixed(7)),
+    })
+    escribir(`📤 Enviado: conductor:ubicacion → lat: ${lat.toFixed(7)}, lng: ${lng.toFixed(7)}`, 'emitido')
+  }
+
+  function cambiarEstado(estado) {
+    socket.emit('conductor:estado', {
+      id_bus:  1,
+      id_ruta: 1,
+      estado,
+    })
+    escribir(`📤 Enviado: conductor:estado → ${estado}`, 'emitido')
+  }
+</script>
+
+</body>
+</html>

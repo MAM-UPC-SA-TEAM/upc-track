@@ -1,0 +1,45 @@
+Issue Type,Summary,Epic Name,Epic Link,Description,Priority,Labels,Story Points,MoSCoW
+Epic,EP-01 Fundaciones del Proyecto,EP-01,,,,backlog;setup,,Must
+Epic,EP-02 Autenticacion y Roles,EP-02,,,,backlog;seguridad,,Must
+Epic,EP-03 Monitoreo en Tiempo Real,EP-03,,,,backlog;tiempo-real,,Must
+Epic,EP-04 Rutas Paraderos y ETA,EP-04,,,,backlog;mapa,,Must
+Epic,EP-05 Notificaciones Operativas,EP-05,,,,backlog;notificaciones,,Should
+Epic,EP-06 Administracion del Sistema,EP-06,,,,backlog;admin,,Must
+Epic,EP-07 UX Compatibilidad y Accesibilidad,EP-07,,,,backlog;ux,,Should
+Epic,EP-08 Calidad Rendimiento y Seguridad,EP-08,,,,backlog;qa,,Must
+Epic,EP-09 Despliegue y Operacion,EP-09,,,,backlog;devops,,Should
+Story,HU-01 Configurar repositorios ramas y convenciones,,EP-01,Como equipo quiero definir flujo de trabajo y estandares para desarrollar de forma consistente.,High,setup;devops,3,Must
+Story,HU-02 Configurar entorno local y variables por ambiente,,EP-01,Como desarrollador quiero levantar frontend y backend localmente con variables validas para iniciar implementacion.,High,setup;env,3,Must
+Story,HU-03 Definir modelo de datos base,,EP-01,Como equipo quiero modelar usuarios buses rutas paradas ubicaciones y notificaciones para soportar el dominio.,High,backend;database,5,Must
+Story,HU-04 Definir estrategia QA y DoD,,EP-01,Como equipo quiero acordar criterios de calidad y pruebas para asegurar entregables consistentes.,Medium,qa;proceso,3,Should
+Story,HU-05 Implementar login con usuario y contrasena RF1,,EP-02,Como usuario quiero iniciar sesion para acceder a funcionalidades segun mi rol.,Highest,auth;rf1,5,Must
+Story,HU-06 Cierre de sesion manual y por inactividad RF2 RNF8,,EP-02,Como usuario quiero cerrar sesion manualmente y de forma automatica por inactividad para proteger mi cuenta.,High,auth;rf2;seguridad,5,Must
+Story,HU-07 Gestion de roles y permisos RF7,,EP-02,Como administrador quiero asignar roles para controlar el acceso por perfil.,High,auth;roles;rf7,5,Must
+Story,HU-08 Bloqueo por intentos fallidos y politica de contrasena RNF7 RNF11,,EP-02,Como sistema quiero aplicar controles de seguridad de autenticacion para reducir accesos no autorizados.,High,seguridad;rnf7;rnf11,3,Must
+Story,HU-09 Publicar ubicacion del bus desde conductor RF8,,EP-03,Como conductor quiero enviar mi ubicacion periodicamente para que el sistema la publique.,Highest,gps;socket;rf8,8,Must
+Story,HU-10 Ver ubicacion del bus en tiempo real RF3,,EP-03,Como estudiante quiero ver en mapa la ubicacion actual del bus para planificar mi salida.,Highest,mapa;socket;rf3,8,Must
+Story,HU-11 Mostrar estado operativo del bus RF12,,EP-03,Como estudiante quiero conocer si el bus esta en recorrido detenido o fuera de servicio.,High,mapa;estado;rf12,5,Should
+Story,HU-12 Listar buses disponibles en tiempo real RF15,,EP-03,Como estudiante quiero ver buses disponibles para elegir una opcion de viaje.,High,mapa;rf15,5,Must
+Story,HU-13 Visualizar rutas disponibles RF5,,EP-04,Como estudiante quiero consultar rutas para elegir la mejor opcion antes de viajar.,Highest,rutas;rf5,5,Must
+Story,HU-14 Mostrar recorrido completo en mapa RF9,,EP-04,Como estudiante quiero ver el recorrido completo de cada bus para entender la trayectoria.,High,mapa;rutas;rf9,5,Should
+Story,HU-15 Mostrar paraderos por ruta RF10,,EP-04,Como estudiante quiero identificar paraderos en mapa para saber donde abordar.,High,mapa;paraderos;rf10,5,Must
+Story,HU-16 Calcular tiempo estimado de llegada RF11,,EP-04,Como estudiante quiero conocer el ETA a un paradero para reducir tiempos de espera.,High,eta;rf11,8,Should
+Story,HU-17 Identificar bus y ver informacion basica RF13 RF14,,EP-04,Como estudiante quiero identificar cada bus y ver sus datos para evitar confusion.,Medium,mapa;rf13;rf14,3,Should
+Story,HU-18 Enviar notificaciones por cambios de ruta y retrasos RF4,,EP-05,Como conductor quiero notificar cambios para mantener informados a estudiantes afectados.,High,notificaciones;rf4,5,Must
+Story,HU-19 Visualizar historial y estado de notificaciones,,EP-05,Como estudiante quiero ver notificaciones recibidas para conocer novedades del servicio.,Medium,notificaciones;frontend,3,Should
+Story,HU-20 Notificaciones en tiempo real via sockets,,EP-05,Como sistema quiero emitir eventos en tiempo real para entregar mensajes oportunos.,High,notificaciones;socket,5,Should
+Story,HU-21 CRUD de buses RF6,,EP-06,Como administrador quiero crear editar y desactivar buses para mantener operacion actualizada.,Highest,admin;buses;rf6,5,Must
+Story,HU-22 CRUD de rutas RF6,,EP-06,Como administrador quiero administrar rutas para controlar recorridos vigentes.,Highest,admin;rutas;rf6,5,Must
+Story,HU-23 CRUD de paraderos y horarios,,EP-06,Como administrador quiero gestionar paraderos y horarios para mejorar planificacion del servicio.,High,admin;paraderos;horarios,5,Should
+Story,HU-24 Asignar conductor a bus y ruta,,EP-06,Como administrador quiero asignar conductores para asegurar correspondencia operativa.,High,admin;usuarios,3,Should
+Story,HU-25 UI responsive RNF6,,EP-07,Como usuario quiero que la app funcione bien en movil tablet y escritorio.,High,ux;rnf6,5,Must
+Story,HU-26 Aplicar identidad institucional RNF4 RNF14,,EP-07,Como institucion quiero ver colores y logo oficiales para mantener consistencia de marca.,Medium,ux;branding;rnf4;rnf14,3,Should
+Story,HU-27 Compatibilidad con navegadores principales RNF5 RNF13,,EP-07,Como usuario quiero usar la app sin instalar software extra y en distintos navegadores.,Medium,compatibilidad;rnf5;rnf13,3,Should
+Story,HU-28 Mejoras de usabilidad RNF9,,EP-07,Como usuario quiero una navegacion simple e intuitiva para completar tareas rapido.,Medium,ux;rnf9,3,Should
+Story,HU-29 Implementar suite de pruebas unitarias integracion y caja negra,,EP-08,Como equipo quiero automatizar pruebas clave para reducir regresiones.,High,qa;testing,8,Must
+Story,HU-30 Ejecutar pruebas de carga basica de ubicaciones,,EP-08,Como equipo quiero validar estabilidad con multiples conductores enviando ubicaciones.,Medium,qa;performance,5,Should
+Story,HU-31 Manejo de errores observabilidad y logs,,EP-08,Como equipo quiero trazabilidad de fallas para diagnosticar incidentes rapido.,High,backend;observabilidad,5,Must
+Story,HU-32 Cumplir tiempo de respuesta menor a 3 segundos RNF12,,EP-08,Como usuario quiero respuestas rapidas para usar el sistema sin fricciones.,High,performance;rnf12,5,Must
+Story,HU-33 Pipeline de build y despliegue,,EP-09,Como equipo quiero automatizar build y deploy para reducir errores manuales.,Medium,devops;cicd,5,Should
+Story,HU-34 Configurar ambientes y variables para despliegue,,EP-09,Como equipo quiero configurar ambientes dev qa prod con variables controladas.,Medium,devops;env,3,Should
+Story,HU-35 Documentacion operativa y soporte,,EP-09,Como equipo quiero manual tecnico y operativo para facilitar mantenimiento.,Low,documentacion;soporte,3,Could
