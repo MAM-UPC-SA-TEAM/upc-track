@@ -68,7 +68,7 @@ export default function MapaTiempoReal() {
   const [busSeleccionado, setBusSeleccionado]   = useState(null)
   const [paradaSeleccionada, setParadaSeleccionada] = useState(null)
   const [busqueda, setBusqueda]                 = useState('')
-  const [filtro, setFiltro]                     = useState('todos')
+  const [filtro]                          = useState('todos')
   const [centro, setCentro]                     = useState([8.3086, -73.6194])
   const [panelExpandido, setPanelExpandido]     = useState(
     () => sessionStorage.getItem('mapaPanel') === 'abierto'

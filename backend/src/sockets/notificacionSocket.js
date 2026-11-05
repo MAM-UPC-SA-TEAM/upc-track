@@ -3,7 +3,7 @@
 // Las notificaciones se emiten desde el controller directamente
 // Este archivo es para eventos adicionales si se necesitan en el futuro
 
-export function notificacionSocket(io) {
+export function notificacionSocket() {
   // Las notificaciones se emiten desde notificacionController.js
   // usando io.to(`ruta_${id_ruta}`).emit('notificacion:nueva', ...)
   // No se requiere lógica adicional de socket aquí por ahora

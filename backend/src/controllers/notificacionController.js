@@ -2,7 +2,6 @@
 // Endpoints para enviar y consultar notificaciones
 
 import { Notificacion } from '../models/Notificacion.js'
-import { Bus }          from '../models/Bus.js'
 import { io }           from '../server.js'
 
 // POST /api/notificaciones — conductor envía alerta (RF-04)

@@ -14,7 +14,7 @@ const api = {
 
     const res = await fetch(`${BASE_URL}${endpoint}`, config)
 
-    let data = null
+    let data
     const contentType = res.headers.get('content-type') || ''
     if (contentType.includes('application/json')) {
       try {
