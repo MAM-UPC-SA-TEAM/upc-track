@@ -1,4 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
+import '@fontsource-variable/archivo/wdth.css'
+import '@fontsource-variable/instrument-sans'
 import {
   AUDIENCES,
   BOARD,
@@ -10,8 +13,9 @@ import {
   SPECIFIC_GOALS,
   TEAM,
   TITLE,
-} from '../../content/feria.js'
-import './feria.css'
+} from './content.js'
+import './landing-base.css'
+import './landing.css'
 
 const BASE = import.meta.env.BASE_URL
 
@@ -113,7 +117,7 @@ function AudienceTabs() {
   )
 }
 
-function FeriaPage() {
+function LandingPage() {
   const root = useRef(null)
 
   // The bus advances along the route as you scroll; stops light up once passed.
@@ -173,6 +177,9 @@ function FeriaPage() {
 
       <header className="band">
         <img className="band__fair" src={`${BASE}brand/xv-feria-emprendimiento.png`} alt="XV Feria de Emprendimiento" width="2000" height="432" />
+        <Link className="band__cta" to="/login">
+          Ingresar a la app
+        </Link>
       </header>
 
       <main id="contenido" tabIndex={-1}>
@@ -373,4 +380,4 @@ function FeriaPage() {
   )
 }
 
-export default FeriaPage
+export default LandingPage

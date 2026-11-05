@@ -1,4 +1,9 @@
-:root {
+/*
+ * Estilos base de la landing. Todo está acotado a `.feria` (o a `html:has(.feria)`)
+ * para no filtrarse a la app: este CSS se carga junto a index.css del frontend.
+ */
+
+.feria {
   --ink: #0b2c1a;
   --ink-2: #123d27;
   --green: #2f8f2a;
@@ -16,61 +21,46 @@
   --font-body: 'Instrument Sans Variable', 'Instrument Sans', system-ui, sans-serif;
 
   color-scheme: light;
-}
-
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-html {
-  scroll-behavior: smooth;
-  scrollbar-color: var(--green) var(--paper);
-  -webkit-text-size-adjust: 100%;
-}
-
-body {
-  margin: 0;
+  min-height: 100dvh;
   background: var(--paper);
   color: var(--ink);
   font-family: var(--font-body);
   font-size: 1.0625rem;
   line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
-h1,
-h2,
-h3,
-p,
-ul,
-ol,
-dl,
-dd,
-figure {
+/* La app fija html{font-size:15px}; la landing está dimensionada en rem sobre 16px. */
+html:has(.feria) {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  scrollbar-color: #2f8f2a #f6f4e9;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* :where() acota a la landing sin subir la especificidad: las reglas de clase
+   de landing.css (p. ej. .hero__lede) deben seguir ganando a estos resets. */
+:where(.feria) :is(h1, h2, h3, p, ul, ol, dl, dd, figure) {
   margin: 0;
 }
 
-ul,
-ol {
+:where(.feria) :is(ul, ol) {
   padding: 0;
   list-style: none;
 }
 
-img {
+:where(.feria) img {
   display: block;
   max-width: 100%;
   height: auto;
 }
 
-::selection {
+:where(.feria) ::selection {
   background: var(--yellow);
   color: var(--ink);
 }
 
-:focus-visible {
+:where(.feria) :focus-visible {
   outline: 3px solid var(--ink);
   outline-offset: 3px;
   border-radius: 4px;
@@ -94,7 +84,7 @@ img {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html {
+  html:has(.feria) {
     scroll-behavior: auto;
   }
 }

@@ -1,0 +1,75 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Variables por defecto (claro) para el primer render antes del JS */
+:root {
+  --bg:         #f0f4f0;
+  --superficie: #ffffff;
+  --texto:      #1a1a1a;
+  --texto-suave:#666;
+  --borde:      #e0e0e0;
+}
+
+html, body, #root {
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  background: var(--bg);
+  color: var(--texto);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  font-size: 15px;
+}
+
+/* Modo oscuro en body (hereda al html/root) */
+body[data-tema="oscuro"] {
+  --bg:         #121212;
+  --superficie: #1e1e1e;
+  --texto:      #f0f0f0;
+  --texto-suave:#aaa;
+  --borde:      #333;
+}
+
+body[data-tema="claro"] {
+  --bg:         #f0f4f0;
+  --superficie: #ffffff;
+  --texto:      #1a1a1a;
+  --texto-suave:#666;
+  --borde:      #e0e0e0;
+}
+
+/* Scrollbar sutil */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.25); }
+
+/* ── Mejoras globales táctiles para móvil ── */
+@media (max-width: 768px) {
+  html {
+    /* Evitar que iOS agrande fuentes automáticamente */
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Todo input/select/textarea no menor a 16px para evitar zoom en iOS */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  /* Área mínima táctil recomendada: 44×44px para botones interactivos */
+  button:not(.conductor-log-dot) {
+    min-height: 36px;
+  }
+
+  /* Texto más cómodo en lecturas de listas */
+  p, span, li {
+    line-height: 1.5;
+  }
+}

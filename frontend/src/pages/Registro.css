@@ -1,0 +1,273 @@
+.reg-bg {
+  min-height: 100vh;
+  background: #f0f4f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 20px;
+}
+
+.reg-deco {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: #1e6b2e;
+  opacity: 0.15;
+}
+
+.reg-deco--tl { top: -60px; left: -60px; }
+.reg-deco--br { bottom: -60px; right: -60px; }
+
+.reg-card {
+  background: #fff;
+  border-radius: 24px;
+  padding: 28px 24px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+/* Logo */
+.reg-logo img {
+  height: 50px;
+  object-fit: contain;
+}
+
+.reg-divider {
+  width: 100%;
+  height: 1px;
+  background: #e8f5e9;
+  margin: 16px 0;
+}
+
+/* Header */
+.reg-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.reg-header-icono {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: #e8f5e9;
+  color: #1e6b2e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.reg-titulo {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.2;
+}
+
+.reg-subtitulo {
+  font-size: 13px;
+  color: #666;
+  margin-top: 2px;
+}
+
+/* Formulario */
+.reg-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.reg-alerta {
+  background: #fce4e4;
+  color: #c62828;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Campos */
+.reg-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.reg-campo label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+
+.reg-input-wrap {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid #c8e6c9;
+  border-radius: 10px;
+  padding: 0 12px;
+  background: #fff;
+  transition: border-color 0.2s;
+}
+
+.reg-input-wrap:focus-within { border-color: #1e6b2e; }
+
+.reg-campo--error .reg-input-wrap { border-color: #c62828; }
+
+.reg-input-icon {
+  font-size: 14px;
+  color: #999;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.reg-input-wrap input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 11px 0;
+  font-size: 14px;
+  color: #333;
+  background: transparent;
+  font-family: inherit;
+}
+
+.reg-input-wrap input::placeholder { color: #bbb; }
+
+.reg-toggle-pass {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #999;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.reg-toggle-pass:hover { color: #1e6b2e; }
+
+.reg-error-msg {
+  font-size: 12px;
+  color: #c62828;
+}
+
+.reg-hint {
+  font-size: 12px;
+  color: #f57f17;
+}
+
+/* Botones */
+.reg-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.reg-btn--primario {
+  background: #1e6b2e;
+  color: #fff;
+}
+
+.reg-btn--primario:hover:not(:disabled) { background: #145220; }
+.reg-btn--primario:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.reg-btn--submit {
+  width: 100%;
+  margin-top: 4px;
+  letter-spacing: 0.5px;
+}
+
+/* Link */
+.reg-link {
+  font-size: 13px;
+  color: #555;
+  text-align: center;
+  margin-top: 14px;
+}
+
+.reg-link--verde {
+  color: #1e6b2e;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Footer */
+.reg-footer {
+  margin-top: 18px;
+  text-align: center;
+  color: #999;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.reg-footer-icono {
+  font-size: 20px;
+  color: #1e6b2e;
+}
+
+/* Pantalla de éxito */
+.reg-exito {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 0;
+  text-align: center;
+  width: 100%;
+}
+
+.reg-exito-icono {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: #e8f5e9;
+  color: #1e6b2e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+}
+
+.reg-exito h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.reg-exito p {
+  font-size: 14px;
+  color: #666;
+  max-width: 300px;
+  line-height: 1.6;
+}
+
+@media (max-width: 440px) {
+  .reg-card { padding: 24px 18px; border-radius: 18px; }
+  .reg-titulo { font-size: 18px; }
+}

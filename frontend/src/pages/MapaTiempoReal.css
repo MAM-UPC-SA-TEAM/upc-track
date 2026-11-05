@@ -1,0 +1,575 @@
+/* ── Página de mapa: ocupa todo el espacio disponible ── */
+.mapa-page {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Mapa Leaflet: fondo que ocupa todo ── */
+.mapa-leaflet {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+/* ── Chips de ruta ── */
+.mapa-rutas-chips {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  flex-wrap: nowrap;
+}
+
+.mapa-ruta-chip {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(30, 107, 46, 0.35);
+  background: rgba(255, 255, 255, 0.95);
+  color: #1e6b2e;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.18s ease;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.12);
+  backdrop-filter: blur(8px);
+}
+
+.mapa-ruta-chip:hover {
+  background: rgba(232, 245, 233, 0.97);
+  border-color: #1e6b2e;
+}
+
+.mapa-ruta-chip--activo {
+  background: #1e6b2e;
+  color: #fff;
+  border-color: #1e6b2e;
+}
+
+body[data-tema="oscuro"] .mapa-ruta-chip {
+  background: rgba(30, 30, 30, 0.92);
+  color: #a5d6a7;
+  border-color: rgba(100, 180, 120, 0.3);
+}
+
+body[data-tema="oscuro"] .mapa-ruta-chip--activo {
+  background: #1e6b2e;
+  color: #fff;
+}
+
+/* Spinner inline dentro de los chips */
+.mapa-ruta-spinner-inline {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #c8e6c9;
+  border-top-color: #1e6b2e;
+  border-radius: 50%;
+  animation: spin-ruta 0.7s linear infinite;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+@keyframes spin-ruta {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Toolbar flotante compacta ── */
+.mapa-toolbar {
+  position: absolute;
+  top: 10px;
+  left: 54px;
+  right: 12px;
+  z-index: 10;
+  display: flex;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.mapa-toolbar > * {
+  pointer-events: auto;
+}
+
+.mapa-buscador {
+  flex: 0 1 220px;   /* no crece más de 220px en desktop */
+  min-width: 120px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.97);
+  border: none;
+  border-radius: 24px;
+  padding: 0 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  backdrop-filter: blur(8px);
+  height: 36px;
+}
+
+body[data-tema="oscuro"] .mapa-buscador {
+  background: rgba(30, 30, 30, 0.95);
+}
+
+.mapa-buscador-icono {
+  color: #aaa;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.mapa-buscador input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 13px;
+  color: var(--texto);
+  min-width: 0;
+}
+
+.mapa-filtro {
+  background: rgba(255, 255, 255, 0.97);
+  border: none;
+  border-radius: 24px;
+  padding: 0 12px;
+  font-size: 13px;
+  color: var(--texto);
+  cursor: pointer;
+  outline: none;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  backdrop-filter: blur(8px);
+  height: 38px;
+  max-width: 140px;
+}
+
+body[data-tema="oscuro"] .mapa-filtro {
+  background: rgba(30, 30, 30, 0.95);
+}
+
+/* ── Contenido: mapa + panel ── */
+.mapa-contenido {
+  position: absolute;
+  inset: 0;
+  display: flex;
+}
+
+/* ── Panel lateral (desktop) / bottom sheet (móvil) ── */
+.mapa-panel {
+  position: absolute;
+  top: 60px;
+  right: 10px;
+  bottom: 10px;
+  width: 220px;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.97);
+  border-radius: 14px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.13);
+  backdrop-filter: blur(8px);
+  overflow-y: auto;
+  transition: transform 0.24s ease, opacity 0.2s ease;
+}
+
+body[data-tema="oscuro"] .mapa-panel {
+  background: rgba(26, 26, 26, 0.97);
+}
+
+.mapa-panel--abierto {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+.mapa-panel--oculto {
+  opacity: 0;
+  transform: translateX(calc(100% + 24px));
+  pointer-events: none;
+}
+
+.mapa-panel-toggle {
+  position: absolute;
+  right: 12px;
+  bottom: 22px;
+  z-index: 11;
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  border: none;
+  background: #1e6b2e;
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.mapa-panel-toggle:hover {
+  transform: translateY(-1px);
+  background: #145220;
+}
+
+.mapa-panel-toggle--abierto {
+  background: #2f3b4a;
+}
+
+/* Panel compacto de buses */
+.mapa-panel-compacto {
+  width: 100%;
+}
+
+.mapa-panel-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0 8px;
+  color: var(--texto);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.mapa-panel-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #1e6b2e;
+}
+
+.mapa-panel-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.mapa-leyenda-rutas {
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: var(--bg);
+  padding: 8px;
+  margin-bottom: 8px;
+}
+
+.mapa-leyenda-titulo {
+  margin: 0 0 6px;
+  font-size: 12px;
+  color: var(--texto-suave);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.mapa-leyenda-item {
+  display: grid;
+  grid-template-columns: 24px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.mapa-leyenda-trazo {
+  width: 24px;
+  height: 0;
+  border-top: 4px solid var(--line-color);
+  border-radius: 999px;
+}
+
+.mapa-leyenda-nombre {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--texto);
+}
+
+.mapa-leyenda-tipo {
+  font-size: 10px;
+  color: var(--texto-suave);
+}
+
+.mapa-bus-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  background: var(--bg);
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid var(--borde);
+  transition: background 0.15s;
+}
+
+.mapa-bus-item:hover {
+  background: var(--borde);
+}
+
+.mapa-bus-nombre {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--texto);
+}
+
+.mapa-bus-ruta {
+  font-size: 11px;
+  color: var(--texto-suave);
+  margin-top: 1px;
+}
+
+.mapa-panel-sin-buses {
+  font-size: 12px;
+  color: var(--texto-suave);
+  text-align: center;
+  padding: 8px 0;
+}
+
+/* Panel compacto: tipografía reducida */
+.mapa-panel-header {
+  font-size: 12px !important;
+}
+
+.mapa-panel-header-left {
+  font-size: 12px;
+}
+
+.mapa-bus-nombre {
+  font-size: 12px !important;
+}
+
+.mapa-bus-ruta {
+  font-size: 11px !important;
+}
+
+.mapa-info-badge {
+  font-size: 11px !important;
+  padding: 2px 8px !important;
+}
+
+/* Info bus / parada */
+.mapa-info-bus {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.mapa-info-titulo {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--texto);
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--borde);
+}
+
+.mapa-info-fila {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-bottom: 9px;
+}
+
+.mapa-info-label {
+  font-size: 10px;
+  color: var(--texto-suave);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.mapa-info-valor {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--texto);
+}
+
+.mapa-info-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  width: fit-content;
+  margin-top: 2px;
+}
+
+.mapa-info-btn {
+  margin-top: auto;
+  width: 100%;
+  padding: 10px;
+  background: #1e6b2e;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.mapa-info-btn:hover { background: #145220; }
+
+/* ── Marcadores ── */
+.marcador-bus {
+  font-size: 28px;
+  line-height: 1;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.35));
+}
+
+.marcador-parada {
+  width: 14px;
+  height: 14px;
+  background: #1e6b2e;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.marcador-parada--inactiva {
+  background: #95a5a6;
+}
+
+.marcador-parada--seleccionada {
+  width: 20px;
+  height: 20px;
+  background: #e74c3c;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(231,76,60,0.5);
+}
+
+/* ── Cargando ── */
+.mapa-cargando {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  gap: 16px;
+  color: var(--texto-suave);
+}
+
+.mapa-cargando-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--borde);
+  border-top-color: #1e6b2e;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Móvil: panel bottom sheet ── */
+@media (max-width: 768px) {
+  /* Toolbar: dos filas en móvil para no colapsar */
+  .mapa-toolbar {
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    gap: 6px;
+    flex-wrap: wrap;  /* buscador en primera fila, chips en segunda */
+  }
+
+  .mapa-buscador {
+    max-width: none;
+    flex: 1 1 100%;   /* ocupa toda la primera fila */
+    min-width: 0;
+    height: 38px;
+  }
+
+  .mapa-buscador input {
+    font-size: 16px; /* evita zoom en iOS */
+  }
+
+  /* Chips de ruta: segunda fila, scroll horizontal si son muchos */
+  .mapa-rutas-chips {
+    flex: 1 1 100%;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .mapa-rutas-chips::-webkit-scrollbar { display: none; }
+
+  .mapa-ruta-chip {
+    height: 30px;
+    font-size: 12px;
+    padding: 0 10px;
+  }
+
+  /* Panel: bottom sheet con handle y scroll */
+  .mapa-panel {
+    top: auto;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    max-height: 42vh;
+    border-radius: 20px 20px 0 0;
+    padding: 0 14px 20px;
+    overflow-y: auto;
+    z-index: 10;
+    transition: transform 0.28s ease, opacity 0.2s ease;
+  }
+
+  .mapa-panel--oculto {
+    transform: translateY(calc(100% + 16px));
+    opacity: 0;
+  }
+
+  .mapa-panel-toggle {
+    right: 12px;
+    bottom: 80px;
+    width: 48px;
+    height: 48px;
+    font-size: 18px;
+  }
+
+  /* Handle visual drag */
+  .mapa-panel::before {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 4px;
+    background: var(--borde);
+    border-radius: 2px;
+    margin: 10px auto 12px;
+    flex-shrink: 0;
+  }
+
+  .mapa-info-btn {
+    margin-top: 12px;
+    min-height: 44px; /* touch target */
+  }
+
+  /* Lista de buses: items más grandes para touch */
+  .mapa-bus-item {
+    padding: 10px 12px;
+    min-height: 48px;
+  }
+
+  .mapa-bus-nombre { font-size: 14px; }
+  .mapa-bus-ruta   { font-size: 12px; }
+
+  .mapa-leyenda-item {
+    grid-template-columns: 22px 1fr auto;
+  }
+
+  .mapa-leyenda-nombre {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 420px) {
+  .mapa-buscador {
+    height: 34px;
+  }
+
+  .mapa-ruta-chip {
+    height: 28px;
+    font-size: 11px;
+    padding: 0 9px;
+  }
+}
