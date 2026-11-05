@@ -1,0 +1,68 @@
+.admin-page {
+  max-width: 800px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.admin-titulo {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--texto);
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.admin-card {
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: 16px;
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.admin-card:hover {
+  border-color: #1e6b2e;
+  box-shadow: 0 4px 20px rgba(30,107,46,0.12);
+  transform: translateY(-2px);
+}
+
+.admin-card-icono {
+  width: 72px;
+  height: 72px;
+  background: #e8f5e9;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  color: #1e6b2e;
+}
+
+.admin-card-titulo {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--texto);
+}
+
+.admin-card-desc {
+  font-size: 14px;
+  color: var(--texto-suave);
+}
+
+@media (max-width: 600px) {
+  .admin-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Fondo verde completo (ocupa todo el área incluyendo safe-zone) -->
+  <rect width="512" height="512" fill="#1e6b2e"/>
+  <!-- Bus centrado con padding 20% para safe-zone maskable -->
+  <!-- Cuerpo del bus (equivalente a las coordenadas originales escaladas con padding) -->
+  <rect x="102" y="168" width="308" height="200" rx="32" fill="#ffffff"/>
+  <!-- Ventanas -->
+  <rect x="128" y="200" width="68" height="60" rx="12" fill="#1e6b2e"/>
+  <rect x="222" y="200" width="68" height="60" rx="12" fill="#1e6b2e"/>
+  <rect x="316" y="200" width="68" height="60" rx="12" fill="#1e6b2e"/>
+  <!-- Puerta -->
+  <rect x="222" y="264" width="68" height="104" rx="8" fill="#cce8d0"/>
+  <!-- Ruedas -->
+  <circle cx="156" cy="384" r="44" fill="#1e6b2e"/>
+  <circle cx="156" cy="384" r="22" fill="#ffffff"/>
+  <circle cx="356" cy="384" r="44" fill="#1e6b2e"/>
+  <circle cx="356" cy="384" r="22" fill="#ffffff"/>
+  <!-- Franja delantera -->
+  <rect x="102" y="168" width="40" height="200" rx="32" fill="#145220"/>
+  <!-- Línea de ruta superior -->
+  <rect x="110" y="148" width="292" height="24" rx="12" fill="#a5d6a7"/>
+</svg>

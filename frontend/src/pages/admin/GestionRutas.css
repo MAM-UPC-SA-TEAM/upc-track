@@ -1,0 +1,283 @@
+@import './GestionUsuarios.css';
+
+.btn-accion--rutas {
+	background: #e3f2fd;
+	color: #1565c0;
+}
+
+.paradas-panel {
+	margin-top: 22px;
+	background: var(--superficie);
+	border: 1px solid var(--borde);
+	border-radius: 12px;
+	padding: 16px;
+}
+
+.paradas-panel-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
+	margin-bottom: 12px;
+}
+
+.paradas-panel-header h3 {
+	margin: 0;
+	font-size: 18px;
+}
+
+.paradas-panel-header p {
+	margin: 2px 0 0;
+	color: var(--texto-suave);
+	font-size: 13px;
+}
+
+.modal-grid-2 {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 10px;
+}
+
+.modal-cerrar {
+	min-height: 34px;
+	padding: 0 10px;
+	border-radius: 999px;
+	border: 1px solid var(--borde);
+	background: var(--bg);
+	color: var(--texto);
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	font-size: 16px;
+	cursor: pointer;
+	font-weight: 600;
+}
+
+.modal-cerrar:hover {
+	border-color: #1e6b2e;
+	color: #1e6b2e;
+}
+
+.modal-cerrar-texto {
+	font-size: 12px;
+	line-height: 1;
+}
+
+.modal-card {
+	max-height: calc(100vh - 40px);
+	overflow: auto;
+}
+
+.modal-overlay {
+	z-index: 2500;
+}
+
+.modal-card--parada {
+	max-width: 980px;
+}
+
+.modal-body--parada {
+	display: grid;
+	grid-template-columns: minmax(280px, 1fr) minmax(360px, 1.15fr);
+	gap: 16px;
+	align-items: start;
+}
+
+.modal-parada-columna {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+
+.modal-parada-columna--mapa {
+	min-width: 0;
+}
+
+.modal-header {
+	position: sticky;
+	top: 0;
+	z-index: 3;
+	background: var(--superficie);
+}
+
+.parada-mapa-toolbar {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 10px;
+	margin: 8px 0;
+}
+
+.parada-direccion-busqueda {
+	display: flex;
+	gap: 8px;
+	margin: 8px 0;
+}
+
+.parada-direccion-busqueda input {
+	flex: 1;
+}
+
+.parada-btn-buscar {
+	padding: 8px 12px;
+	font-size: 13px;
+}
+
+.parada-direccion-resultados {
+	border: 1px solid var(--borde);
+	border-radius: 10px;
+	max-height: 130px;
+	overflow-y: auto;
+	margin-bottom: 8px;
+	background: var(--superficie);
+}
+
+.parada-direccion-item {
+	width: 100%;
+	text-align: left;
+	padding: 8px 10px;
+	border: none;
+	background: transparent;
+	border-bottom: 1px solid var(--borde);
+	font-size: 12px;
+	color: var(--texto);
+	cursor: pointer;
+}
+
+.parada-direccion-item:last-child {
+	border-bottom: none;
+}
+
+.parada-direccion-item:hover {
+	background: color-mix(in srgb, var(--superficie), #1e6b2e 6%);
+}
+
+/* ══════════════════════════════════════════════════
+   RESPONSIVE MÓVIL — GestionRutas
+══════════════════════════════════════════════════ */
+@media (max-width: 700px) {
+  /* Modal de parada: de 2 columnas a 1 columna */
+  .modal-card--parada {
+    max-width: 100%;
+  }
+
+  .modal-body--parada {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-parada-columna--mapa {
+    /* El mapa va al final en móvil, o se puede mostrar primero */
+    order: -1;
+    height: 220px;
+  }
+
+  /* El mapa de la parada necesita altura fija */
+  .modal-parada-columna--mapa .leaflet-container {
+    height: 220px !important;
+    border-radius: 10px;
+  }
+
+  .modal-grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  /* Panel de paradas en la lista de rutas */
+  .paradas-panel-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.parada-btn-ubicacion {
+	padding: 8px 12px;
+	font-size: 13px;
+}
+
+.parada-mapa-ayuda {
+	font-size: 12px;
+	color: var(--texto-suave);
+}
+
+.parada-mapa-picker {
+	height: 360px;
+	border: 1px solid var(--borde);
+	border-radius: 10px;
+	overflow: hidden;
+	background: var(--superficie);
+}
+
+@media (max-width: 768px) {
+	.modal-overlay {
+		padding: 0;
+		align-items: flex-end;
+	}
+
+	.modal-card {
+		width: 100%;
+		max-width: none;
+		max-height: 92dvh;
+		border-radius: 16px 16px 0 0;
+	}
+
+	.paradas-panel-header {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.modal-grid-2 {
+		grid-template-columns: 1fr;
+	}
+
+	.modal-card--parada {
+		max-width: none;
+	}
+
+	.modal-body--parada {
+		grid-template-columns: 1fr;
+		gap: 14px;
+		padding-bottom: 8px;
+	}
+
+	.modal-body {
+		padding: 16px;
+	}
+
+	.modal-header {
+		padding: 14px 16px;
+	}
+
+	.modal-footer {
+		position: sticky;
+		bottom: 0;
+		z-index: 4;
+		background: var(--superficie);
+		padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+	}
+
+	.modal-btn {
+		min-height: 42px;
+	}
+
+	.modal-campo input,
+	.modal-campo select {
+		min-height: 42px;
+	}
+
+	.parada-mapa-toolbar {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.parada-direccion-busqueda {
+		flex-direction: column;
+	}
+
+	.parada-direccion-resultados {
+		max-height: 110px;
+	}
+
+	.parada-mapa-picker {
+		height: 240px;
+	}
+}

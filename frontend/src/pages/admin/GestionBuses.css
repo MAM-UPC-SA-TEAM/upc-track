@@ -1,0 +1,6 @@
+@import './GestionUsuarios.css';
+
+.estado--detenido {
+  background: #fff8e1;
+  color: #f57f17;
+}
