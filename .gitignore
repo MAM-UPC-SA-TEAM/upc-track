@@ -147,3 +147,8 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# Herramientas locales de asistentes (no son parte del producto)
+.agents/
+.claude/
+skills-lock.json
