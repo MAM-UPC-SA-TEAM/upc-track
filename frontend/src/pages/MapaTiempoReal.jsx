@@ -423,7 +423,7 @@ export default function MapaTiempoReal() {
 
   if (cargando) {
     return (
-      <Layout titulo="Mapa en tiempo real" sinPadding>
+      <Layout titulo="Mapa" sinPadding>
         <div className="mapa-cargando">
           <div className="mapa-cargando-spinner" />
           <p>Cargando mapa...</p>
@@ -433,7 +433,7 @@ export default function MapaTiempoReal() {
   }
 
   return (
-    <Layout titulo="Mapa en tiempo real" sinPadding>
+    <Layout titulo="Mapa" sinPadding>
       <div className="mapa-page">
 
         {/* ── Barra superior ── */}

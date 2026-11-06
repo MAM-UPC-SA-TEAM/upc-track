@@ -14,7 +14,8 @@
 }
 
 .layout-contenido { flex: 1; min-width: 0; padding: var(--e4); }
-.layout-contenido--sin-padding { padding: 0; }
+/* Pantallas que ocupan todo el espacio (mapa, conductor): el hijo usa flex:1 y necesita una columna flex */
+.layout-contenido--sin-padding { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
 
 /* ── Barra superior ── */
 .topbar {

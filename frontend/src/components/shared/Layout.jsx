@@ -453,10 +453,12 @@ export default function Layout({ children, titulo, sinPadding = false }) {
         </main>
 
         {/* El logo de la universidad también se ve en móvil y tablet, donde el panel lateral no existe */}
-        <footer className="layout-pie">
-          <img src={logoUpc} alt="Universidad Popular del Cesar" />
-          <span>Seccional Aguachica</span>
-        </footer>
+        {!sinPadding && (
+          <footer className="layout-pie">
+            <img src={logoUpc} alt="Universidad Popular del Cesar" />
+            <span>Seccional Aguachica</span>
+          </footer>
+        )}
       </div>
 
       {/* ── Navegación inferior: al alcance del pulgar (móvil y tablet) ── */}
