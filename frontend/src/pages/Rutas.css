@@ -1,8 +1,6 @@
 /* Rutas: cada ruta es un talón. Horarios en mono (son datos que se miden); sin chips de color por turno. */
 
 .ruta-icono { font-size: 1.125rem; } /* en tinta: el verde no es acento decorativo */
-/* Suspendida: contorno discontinuo (el estado no depende del color) */
-.ruta-suspendida { box-shadow: none; outline: 2px dashed var(--trazo); outline-offset: -2px; }
 
 .ruta-horarios { padding: var(--e3) var(--e4) var(--e2); }
 .ruta-horarios-titulo { font-size: var(--t-md); font-weight: 700; }

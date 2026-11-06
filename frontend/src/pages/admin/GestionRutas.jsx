@@ -1,759 +1,403 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { MapContainer, TileLayer, CircleMarker, useMap, useMapEvents } from 'react-leaflet'
-import {
-  faPlus,
-  faPen,
-  faTrash,
-  faXmark,
-  faFloppyDisk,
-  faLocationDot,
-  faClock,
-} from '@fortawesome/free-solid-svg-icons'
+import { faPlus, faFloppyDisk, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons'
 import Layout from '../../components/shared/Layout'
+import EstadoLista from '../../components/listas/EstadoLista'
+import Campo from '../../components/acceso/Campo'
+import TablaAdmin from '../../components/admin/TablaAdmin'
+import DialogoForm from '../../components/admin/DialogoForm'
+import ConfirmarEliminar from '../../components/admin/ConfirmarEliminar'
+import FormParada from '../../components/admin/FormParada'
 import api from '../../services/api'
-import './GestionRutas.css'
+import '../../components/mapa/Mapa.css'
+import '../../components/listas/Listas.css'
 
-function MapaClickHandler({ onPick }) {
-  useMapEvents({
-    click(e) {
-      onPick(e.latlng.lat, e.latlng.lng)
-    },
-  })
-  return null
+const hora = h => String(h || '').slice(0, 5)
+const esActiva = r => r.activa === 1 || r.activa === true
+const ENDPOINT = { ruta: 'rutas', parada: 'paradas', horario: 'horarios' }
+
+// Botones de pie comunes de los formularios de esta pantalla
+function Pie({ onCerrar, guardando, texto = 'Guardar' }) {
+  return (
+    <div className="dialogo-pie">
+      <button type="button" className="boton-contorno" onClick={onCerrar}>Cancelar</button>
+      <button type="submit" className="boton-verde" aria-disabled={guardando}>
+        <FontAwesomeIcon icon={faFloppyDisk} /> {guardando ? 'Guardando…' : texto}
+      </button>
+    </div>
+  )
 }
 
-function MapaRecentrar({ center }) {
-  const map = useMap()
-  useEffect(() => {
-    map.setView(center)
-  }, [center, map])
-  return null
+function ErrorServidor({ texto }) {
+  if (!texto) return null
+  return (
+    <p className="acceso-aviso" role="alert">
+      <FontAwesomeIcon icon={faTriangleExclamation} /> <span>{texto}</span>
+    </p>
+  )
 }
 
-export default function GestionRutas() {
-  const [rutas, setRutas] = useState([])
-  const [cargando, setCargando] = useState(true)
-  const [modal, setModal] = useState(null)
-  const [form, setForm] = useState({ nombre: '', descripcion: '', activa: true })
-  const [editandoId, setEditandoId] = useState(null)
-  const [rutaSeleccionada, setRutaSeleccionada] = useState(null)
-  const [paradas, setParadas] = useState([])
-  const [cargandoParadas, setCargandoParadas] = useState(false)
-  const [modalParada, setModalParada] = useState(null)
-  const [editandoParadaId, setEditandoParadaId] = useState(null)
-  const [formParada, setFormParada] = useState({
-    nombre: '',
-    lat: '',
-    lng: '',
-    orden: '',
-    activa: true,
-  })
-  const [horarios, setHorarios] = useState([])
-  const [cargandoHorarios, setCargandoHorarios] = useState(false)
-  const [modalHorario, setModalHorario] = useState(null)
-  const [editandoHorarioId, setEditandoHorarioId] = useState(null)
-  const [formHorario, setFormHorario] = useState({ hora_salida: '', hora_llegada: '' })
-  const [direccionBusqueda, setDireccionBusqueda] = useState('')
-  const [buscandoDireccion, setBuscandoDireccion] = useState(false)
-  const [resultadosDireccion, setResultadosDireccion] = useState([])
+function FormRuta({ inicial, onGuardar, onCerrar }) {
+  const [form, setForm] = useState(inicial)
+  const [errores, setErrores] = useState({})
+  const [errorServidor, setErrorServidor] = useState('')
+  const [guardando, setGuardando] = useState(false)
 
-  const latParada = Number(formParada.lat)
-  const lngParada = Number(formParada.lng)
-  const tieneCoordenadasParada = Number.isFinite(latParada) && Number.isFinite(lngParada)
-  const centroMapaParada = tieneCoordenadasParada ? [latParada, lngParada] : [8.3086, -73.6194]
-
-  async function cargar() {
-    try {
-      const data = await api.get('/api/rutas')
-      setRutas(data.rutas || [])
-    } catch {
-      console.error('Error cargando rutas')
-    } finally {
-      setCargando(false)
-    }
-  }
-
-  useEffect(() => {
-    cargar()
-  }, [])
-
-  function abrirCrear() {
-    setForm({ nombre: '', descripcion: '', activa: true })
-    setEditandoId(null)
-    setModal('crear')
-  }
-
-  function abrirEditar(ruta) {
-    setForm({
-      nombre: ruta.nombre,
-      descripcion: ruta.descripcion || '',
-      activa: ruta.activa,
-    })
-    setEditandoId(ruta.id_ruta)
-    setModal('editar')
-  }
-
-  function cerrarModal() {
-    setModal(null)
-    setEditandoId(null)
-  }
-
-  async function guardar() {
-    if (!form.nombre) return
-
-    try {
-      if (modal === 'crear') {
-        await api.post('/api/rutas', form)
-      } else {
-        await api.patch(`/api/rutas/${editandoId}`, form)
-      }
-      cerrarModal()
-      cargar()
-    } catch (err) {
-      alert(err.message || 'Error al guardar')
-    }
-  }
-
-  async function eliminar(id) {
-    if (!confirm('¿Estás seguro de eliminar esta ruta?')) return
-    try {
-      await api.delete(`/api/rutas/${id}`)
-      cargar()
-    } catch (err) {
-      alert(err.message || 'Error al eliminar')
-    }
-  }
-
-  async function cargarParadas(idRuta) {
-    if (!idRuta) return
-    setCargandoParadas(true)
-    try {
-      const data = await api.get(`/api/paradas?ruta_id=${idRuta}`)
-      setParadas(data.paradas || [])
-    } catch {
-      setParadas([])
-      alert('Error cargando paradas')
-    } finally {
-      setCargandoParadas(false)
-    }
-  }
-
-  async function cargarHorarios(idRuta) {
-    if (!idRuta) return
-    setCargandoHorarios(true)
-    try {
-      const data = await api.get(`/api/horarios?ruta_id=${idRuta}`)
-      setHorarios(data.horarios || [])
-    } catch {
-      setHorarios([])
-      alert('Error cargando horarios')
-    } finally {
-      setCargandoHorarios(false)
-    }
-  }
-
-  function abrirGestionParadas(ruta) {
-    setRutaSeleccionada(ruta)
-    setModalParada(null)
-    setModalHorario(null)
-    setEditandoParadaId(null)
-    setEditandoHorarioId(null)
-    cargarParadas(ruta.id_ruta)
-    cargarHorarios(ruta.id_ruta)
-  }
-
-  function abrirCrearParada() {
-    setFormParada({ nombre: '', lat: '', lng: '', orden: paradas.length + 1, activa: true })
-    setEditandoParadaId(null)
-    setDireccionBusqueda('')
-    setResultadosDireccion([])
-    setModalParada('crear')
-  }
-
-  function abrirEditarParada(parada) {
-    setFormParada({
-      nombre: parada.nombre,
-      lat: parada.lat,
-      lng: parada.lng,
-      orden: parada.orden,
-      activa: Boolean(parada.activa),
-    })
-    setEditandoParadaId(parada.id_parada)
-    setDireccionBusqueda('')
-    setResultadosDireccion([])
-    setModalParada('editar')
-  }
-
-  function cerrarModalParada() {
-    setModalParada(null)
-    setEditandoParadaId(null)
-    setDireccionBusqueda('')
-    setResultadosDireccion([])
-  }
-
-  function seleccionarPuntoParada(lat, lng) {
-    setFormParada(prev => ({
-      ...prev,
-      lat: Number(lat).toFixed(6),
-      lng: Number(lng).toFixed(6),
-    }))
-  }
-
-  function usarUbicacionActual() {
-    if (!navigator.geolocation) {
-      alert('Tu navegador no soporta geolocalizacion')
+  async function enviar(e) {
+    e.preventDefault()
+    if (guardando) return
+    if (!form.nombre.trim()) {
+      setErrores({ nombre: 'El nombre de la ruta es obligatorio.' })
+      document.getElementById('rut-nombre')?.focus()
       return
     }
-
-    navigator.geolocation.getCurrentPosition(
-      pos => {
-        seleccionarPuntoParada(pos.coords.latitude, pos.coords.longitude)
-      },
-      () => {
-        alert('No se pudo obtener tu ubicacion. Verifica permisos del navegador.')
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    )
-  }
-
-  async function buscarDireccion() {
-    const query = direccionBusqueda.trim()
-    if (query.length < 3) {
-      alert('Escribe al menos 3 caracteres para buscar una direccion')
-      return
-    }
-
+    setGuardando(true)
+    setErrorServidor('')
     try {
-      setBuscandoDireccion(true)
-      const q = encodeURIComponent(`${query}, Oruro, Bolivia`)
-      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=bo&q=${q}`)
-      const data = await response.json()
-      setResultadosDireccion(Array.isArray(data) ? data : [])
-      if (!data || data.length === 0) {
-        alert('No se encontraron resultados para esa direccion')
-      }
-    } catch {
-      alert('No se pudo buscar la direccion. Intenta nuevamente.')
-    } finally {
-      setBuscandoDireccion(false)
-    }
-  }
-
-  function seleccionarResultadoDireccion(item) {
-    seleccionarPuntoParada(item.lat, item.lon)
-  }
-
-  async function guardarParada() {
-    if (!rutaSeleccionada) return
-    if (!formParada.nombre || formParada.lat === '' || formParada.lng === '' || formParada.orden === '') {
-      alert('Completa todos los campos de la parada')
-      return
-    }
-
-    const payload = {
-      ...formParada,
-      ruta_id: rutaSeleccionada.id_ruta,
-    }
-
-    try {
-      if (modalParada === 'crear') {
-        await api.post('/api/paradas', payload)
-      } else {
-        await api.patch(`/api/paradas/${editandoParadaId}`, payload)
-      }
-      cerrarModalParada()
-      cargarParadas(rutaSeleccionada.id_ruta)
-      cargar()
+      await onGuardar(form)
     } catch (err) {
-      alert(err.message || 'Error guardando parada')
-    }
-  }
-
-  async function eliminarParada(idParada) {
-    if (!confirm('¿Eliminar esta parada?')) return
-    try {
-      await api.delete(`/api/paradas/${idParada}`)
-      if (rutaSeleccionada) {
-        cargarParadas(rutaSeleccionada.id_ruta)
-      }
-      cargar()
-    } catch (err) {
-      alert(err.message || 'Error eliminando parada')
-    }
-  }
-
-  function abrirCrearHorario() {
-    setFormHorario({ hora_salida: '', hora_llegada: '' })
-    setEditandoHorarioId(null)
-    setModalHorario('crear')
-  }
-
-  function abrirEditarHorario(horario) {
-    setFormHorario({
-      hora_salida: String(horario.hora_salida).slice(0, 5),
-      hora_llegada: String(horario.hora_llegada).slice(0, 5),
-    })
-    setEditandoHorarioId(horario.id_horario)
-    setModalHorario('editar')
-  }
-
-  function cerrarModalHorario() {
-    setModalHorario(null)
-    setEditandoHorarioId(null)
-  }
-
-  async function guardarHorario() {
-    if (!rutaSeleccionada) return
-    if (!formHorario.hora_salida || !formHorario.hora_llegada) {
-      alert('Debes definir hora de salida y regreso')
-      return
-    }
-
-    try {
-      if (modalHorario === 'crear') {
-        await api.post('/api/horarios', {
-          ruta_id: rutaSeleccionada.id_ruta,
-          hora_salida: formHorario.hora_salida,
-          hora_llegada: formHorario.hora_llegada,
-        })
-      } else {
-        await api.patch(`/api/horarios/${editandoHorarioId}`, {
-          hora_salida: formHorario.hora_salida,
-          hora_llegada: formHorario.hora_llegada,
-        })
-      }
-
-      cerrarModalHorario()
-      cargarHorarios(rutaSeleccionada.id_ruta)
-    } catch (err) {
-      alert(err.message || 'Error guardando horario')
-    }
-  }
-
-  async function eliminarHorario(idHorario) {
-    if (!confirm('¿Eliminar este horario?')) return
-    try {
-      await api.delete(`/api/horarios/${idHorario}`)
-      if (rutaSeleccionada) {
-        cargarHorarios(rutaSeleccionada.id_ruta)
-      }
-    } catch (err) {
-      alert(err.message || 'Error eliminando horario')
+      setErrorServidor(err.message || 'No se pudo guardar. Intenta de nuevo.')
+      setGuardando(false)
     }
   }
 
   return (
+    <form className="dialogo-form" onSubmit={enviar} noValidate>
+      <div className="dialogo-cuerpo">
+        <ErrorServidor texto={errorServidor} />
+        <Campo id="rut-nombre" label="Nombre de la ruta" value={form.nombre} error={errores.nombre} autoComplete="off"
+          onChange={ev => { setForm(p => ({ ...p, nombre: ev.target.value })); setErrores({}) }} />
+        <Campo id="rut-descripcion" label="Descripción" value={form.descripcion} autoComplete="off"
+          onChange={ev => setForm(p => ({ ...p, descripcion: ev.target.value }))} />
+        <Campo id="rut-estado" label="Estado" control="select" value={form.activa ? 'true' : 'false'}
+          onChange={ev => setForm(p => ({ ...p, activa: ev.target.value === 'true' }))}>
+          <option value="true">Activa</option>
+          <option value="false">Suspendida</option>
+        </Campo>
+      </div>
+      <Pie onCerrar={onCerrar} guardando={guardando} />
+    </form>
+  )
+}
+
+function FormHorario({ inicial, onGuardar, onCerrar }) {
+  const [form, setForm] = useState(inicial)
+  const [errores, setErrores] = useState({})
+  const [errorServidor, setErrorServidor] = useState('')
+  const [guardando, setGuardando] = useState(false)
+
+  async function enviar(e) {
+    e.preventDefault()
+    if (guardando) return
+    const fallos = {}
+    if (!form.hora_salida) fallos.hora_salida = 'Indica la hora de salida.'
+    if (!form.hora_llegada) fallos.hora_llegada = 'Indica la hora de regreso.'
+    setErrores(fallos)
+    const primero = ['hora_salida', 'hora_llegada'].find(k => fallos[k])
+    if (primero) { document.getElementById(`hor-${primero}`)?.focus(); return }
+    setGuardando(true)
+    setErrorServidor('')
+    try {
+      await onGuardar(form)
+    } catch (err) {
+      setErrorServidor(err.message || 'No se pudo guardar el horario. Intenta de nuevo.')
+      setGuardando(false)
+    }
+  }
+
+  const cambiar = key => ev => { setForm(p => ({ ...p, [key]: ev.target.value })); setErrores(p => ({ ...p, [key]: '' })) }
+
+  return (
+    <form className="dialogo-form" onSubmit={enviar} noValidate>
+      <div className="dialogo-cuerpo">
+        <ErrorServidor texto={errorServidor} />
+        <div className="dialogo-fila">
+          <Campo id="hor-hora_salida" label="Hora de salida" type="time" value={form.hora_salida} error={errores.hora_salida} onChange={cambiar('hora_salida')} />
+          <Campo id="hor-hora_llegada" label="Hora de regreso" type="time" value={form.hora_llegada} error={errores.hora_llegada} onChange={cambiar('hora_llegada')} />
+        </div>
+      </div>
+      <Pie onCerrar={onCerrar} guardando={guardando} />
+    </form>
+  )
+}
+
+export default function GestionRutas() {
+  const [rutas, setRutas] = useState([])
+  const [fase, setFase] = useState('cargando') // cargando | error | ok
+  const [seleccion, setSeleccion] = useState(null)
+  const [paradas, setParadas] = useState([])
+  const [faseParadas, setFaseParadas] = useState('cargando')
+  const [horarios, setHorarios] = useState([])
+  const [faseHorarios, setFaseHorarios] = useState('cargando')
+  const [dRuta, setDRuta] = useState(null) // { modo: 'crear' | 'editar', ruta? }
+  const [dParada, setDParada] = useState(null)
+  const [dHorario, setDHorario] = useState(null)
+  const [porEliminar, setPorEliminar] = useState(null) // { tipo, id, texto }
+  const [errorEliminar, setErrorEliminar] = useState('')
+  const [eliminando, setEliminando] = useState(false)
+  const encabezadoRef = useRef(null)
+
+  const cargarRutas = useCallback(async () => {
+    try {
+      const data = await api.get('/api/rutas')
+      const lista = data.rutas || []
+      setRutas(lista)
+      // La ruta elegida se refresca con sus datos nuevos; si se eliminó, el panel se cierra
+      setSeleccion(prev => (prev ? lista.find(r => r.id_ruta === prev.id_ruta) || null : null))
+      setFase('ok')
+    } catch {
+      setFase('error') // un fallo de red no se disfraza de «no hay rutas»
+    }
+  }, [])
+
+  const cargarParadas = useCallback(async idRuta => {
+    setFaseParadas('cargando')
+    try {
+      const data = await api.get(`/api/paradas?ruta_id=${idRuta}`)
+      setParadas([...(data.paradas || [])].sort((a, b) => (a.orden || 0) - (b.orden || 0)))
+      setFaseParadas('ok')
+    } catch {
+      setFaseParadas('error')
+    }
+  }, [])
+
+  const cargarHorarios = useCallback(async idRuta => {
+    setFaseHorarios('cargando')
+    try {
+      const data = await api.get(`/api/horarios?ruta_id=${idRuta}`)
+      setHorarios(data.horarios || [])
+      setFaseHorarios('ok')
+    } catch {
+      setFaseHorarios('error')
+    }
+  }, [])
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial de datos remotos
+    cargarRutas()
+  }, [cargarRutas])
+
+  const idSeleccion = seleccion?.id_ruta
+  // Al elegir una ruta se llevan sus paradas y horarios a la vista y el foco al encabezado
+  useEffect(() => {
+    if (idSeleccion == null) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga de datos remotos al elegir la ruta
+    cargarParadas(idSeleccion)
+    cargarHorarios(idSeleccion)
+  }, [idSeleccion, cargarParadas, cargarHorarios])
+
+  function elegirRuta(ruta) {
+    setSeleccion(ruta)
+    // el panel se monta tras este render
+    setTimeout(() => {
+      encabezadoRef.current?.scrollIntoView({ block: 'start' })
+      encabezadoRef.current?.focus()
+    }, 0)
+  }
+
+  function reintentar() {
+    setFase('cargando')
+    cargarRutas()
+  }
+
+  // ── Guardar ──
+  async function guardarRuta(form) {
+    if (dRuta.modo === 'crear') await api.post('/api/rutas', form)
+    else await api.patch(`/api/rutas/${dRuta.ruta.id_ruta}`, form)
+    setDRuta(null)
+    cargarRutas()
+  }
+
+  async function guardarParada(form) {
+    const payload = { ...form, ruta_id: seleccion.id_ruta }
+    if (dParada.modo === 'crear') await api.post('/api/paradas', payload)
+    else await api.patch(`/api/paradas/${dParada.parada.id_parada}`, payload)
+    setDParada(null)
+    cargarParadas(seleccion.id_ruta)
+    cargarRutas()
+  }
+
+  async function guardarHorario(form) {
+    const cuerpo = { hora_salida: form.hora_salida, hora_llegada: form.hora_llegada }
+    if (dHorario.modo === 'crear') await api.post('/api/horarios', { ruta_id: seleccion.id_ruta, ...cuerpo })
+    else await api.patch(`/api/horarios/${dHorario.horario.id_horario}`, cuerpo)
+    setDHorario(null)
+    cargarHorarios(seleccion.id_ruta)
+  }
+
+  // ── Eliminar (ruta, parada u horario) ──
+  async function confirmarEliminar() {
+    if (eliminando) return
+    setEliminando(true)
+    setErrorEliminar('')
+    try {
+      await api.delete(`/api/${ENDPOINT[porEliminar.tipo]}/${porEliminar.id}`)
+      const { tipo } = porEliminar
+      setPorEliminar(null)
+      if (tipo === 'ruta') cargarRutas()
+      if (tipo === 'parada') { cargarParadas(seleccion.id_ruta); cargarRutas() }
+      if (tipo === 'horario') cargarHorarios(seleccion.id_ruta)
+    } catch (err) {
+      setErrorEliminar(err.message || 'No se pudo eliminar. Intenta de nuevo.')
+    } finally {
+      setEliminando(false)
+    }
+  }
+
+  const pedirEliminar = (tipo, id, texto) => { setErrorEliminar(''); setPorEliminar({ tipo, id, texto }) }
+
+  // ── Tablas ──
+  const columnasRutas = [
+    { titulo: 'Ruta', celda: r => r.nombre },
+    { titulo: 'Paradas', celda: r => <span className="mono-celda">{r.num_paradas}</span> },
+    {
+      titulo: 'Estado',
+      celda: r => (
+        <span className={`etiqueta etiqueta--neutro ${esActiva(r) ? '' : 'etiqueta--apagada'}`}>{esActiva(r) ? 'Activa' : 'Suspendida'}</span>
+      ),
+    },
+  ]
+  const accionesRuta = r => (
+    <>
+      <button type="button" className="boton-contorno" aria-label={`Paradas y horarios de ${r.nombre}`} onClick={() => elegirRuta(r)}>Paradas y horarios</button>
+      <button type="button" className="boton-contorno" aria-label={`Editar ${r.nombre}`} onClick={() => setDRuta({ modo: 'editar', ruta: r })}>Editar</button>
+      <button type="button" className="boton-contorno" aria-label={`Eliminar ${r.nombre}`} onClick={() => pedirEliminar('ruta', r.id_ruta, `la ruta ${r.nombre}`)}>Eliminar</button>
+    </>
+  )
+
+  const columnasParadas = [
+    { titulo: 'Parada', celda: p => p.nombre },
+    { titulo: 'Coordenadas', celda: p => <span className="mono-celda">{Number(p.lat).toFixed(5)}, {Number(p.lng).toFixed(5)}</span> },
+    { titulo: 'Orden', celda: p => <span className="mono-celda">{p.orden}</span> },
+    {
+      titulo: 'Estado',
+      celda: p => (
+        <span className={`etiqueta etiqueta--neutro ${p.activa ? '' : 'etiqueta--apagada'}`}>{p.activa ? 'Activa' : 'Inactiva'}</span>
+      ),
+    },
+  ]
+  const accionesParada = p => (
+    <>
+      <button type="button" className="boton-contorno" aria-label={`Editar la parada ${p.nombre}`} onClick={() => setDParada({ modo: 'editar', parada: p })}>Editar</button>
+      <button type="button" className="boton-contorno" aria-label={`Eliminar la parada ${p.nombre}`} onClick={() => pedirEliminar('parada', p.id_parada, `la parada ${p.nombre}`)}>Eliminar</button>
+    </>
+  )
+
+  const columnasHorarios = [
+    { titulo: 'Hora de salida', celda: h => <span className="mono-celda">{hora(h.hora_salida)}</span> },
+    { titulo: 'Hora de regreso', celda: h => <span className="mono-celda">{hora(h.hora_llegada)}</span> },
+  ]
+  const accionesHorario = h => (
+    <>
+      <button type="button" className="boton-contorno" aria-label={`Editar el horario de las ${hora(h.hora_salida)}`} onClick={() => setDHorario({ modo: 'editar', horario: h })}>Editar</button>
+      <button type="button" className="boton-contorno" aria-label={`Eliminar el horario de las ${hora(h.hora_salida)}`}
+        onClick={() => pedirEliminar('horario', h.id_horario, `el horario de las ${hora(h.hora_salida)}`)}>Eliminar</button>
+    </>
+  )
+
+  const hayRutas = fase === 'ok' && rutas.length > 0
+
+  return (
     <Layout titulo="Gestión de rutas">
-      <div className="gestion-page">
-        <div className="gestion-header">
-          <h2 className="gestion-titulo">Gestión de rutas</h2>
-          <button className="gestion-btn-agregar" onClick={abrirCrear}>
+      <div className="adm-pagina">
+        <div className="adm-barra">
+          <h2 className="lista-titulo">{fase === 'ok' ? `${rutas.length} ${rutas.length === 1 ? 'ruta' : 'rutas'}` : 'Rutas'}</h2>
+          <button type="button" className="boton-verde" onClick={() => setDRuta({ modo: 'crear' })}>
             <FontAwesomeIcon icon={faPlus} /> Agregar ruta
           </button>
         </div>
 
-        {cargando ? (
-          <p className="gestion-cargando">Cargando rutas...</p>
+        {hayRutas ? (
+          <TablaAdmin etiqueta="Rutas" columnas={columnasRutas} filas={rutas} idDe={r => r.id_ruta} acciones={accionesRuta} />
         ) : (
+          <EstadoLista
+            fase={fase === 'ok' ? 'vacio' : fase}
+            etiquetaCarga="Buscando rutas…"
+            vacio={{ titulo: 'Sin rutas', texto: 'Todavía no hay rutas. Agrega la primera.' }}
+            onReintentar={reintentar}
+          />
+        )}
+
+        {seleccion && (
           <>
-            <div className="gestion-tabla-wrap">
-              <table className="gestion-tabla">
-                <thead>
-                  <tr>
-                    <th>Ruta</th>
-                    <th>Paradas</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rutas.map(r => (
-                    <tr key={r.id_ruta}>
-                      <td className="celda-nombre">{r.nombre}</td>
-                      <td>{r.num_paradas}</td>
-                      <td>
-                        <span className={`estado-badge ${r.activa ? 'estado--activo' : 'estado--inactivo'}`}>
-                          {r.activa ? 'Activa' : 'Suspendida'}
-                        </span>
-                      </td>
-                      <td className="celda-acciones">
-                        <button className="btn-accion btn-accion--rutas" onClick={() => abrirGestionParadas(r)}>
-                          <FontAwesomeIcon icon={faLocationDot} />
-                        </button>
-                        <button className="btn-accion btn-accion--editar" onClick={() => abrirEditar(r)}>
-                          <FontAwesomeIcon icon={faPen} />
-                        </button>
-                        <button className="btn-accion btn-accion--eliminar" onClick={() => eliminar(r.id_ruta)}>
-                          <FontAwesomeIcon icon={faTrash} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <p className="gestion-conteo">Mostrando 1 a {rutas.length} de {rutas.length} rutas</p>
-
-            {rutaSeleccionada && (
-              <div className="paradas-panel">
-                <div className="paradas-panel-header">
-                  <div>
-                    <h3>Paradas de {rutaSeleccionada.nombre}</h3>
-                    <p>{paradas.length} parada(s)</p>
-                  </div>
-                  <button className="gestion-btn-agregar" onClick={abrirCrearParada}>
-                    <FontAwesomeIcon icon={faPlus} /> Agregar parada
-                  </button>
-                </div>
-
-                {cargandoParadas ? (
-                  <p className="gestion-cargando">Cargando paradas...</p>
-                ) : paradas.length === 0 ? (
-                  <p className="gestion-cargando">Esta ruta no tiene paradas registradas.</p>
-                ) : (
-                  <div className="gestion-tabla-wrap">
-                    <table className="gestion-tabla">
-                      <thead>
-                        <tr>
-                          <th>Parada</th>
-                          <th>Coordenadas</th>
-                          <th>Orden</th>
-                          <th>Estado</th>
-                          <th>Acciones</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {paradas.map(p => (
-                          <tr key={p.id_parada}>
-                            <td className="celda-nombre">{p.nombre}</td>
-                            <td>{Number(p.lat).toFixed(5)}, {Number(p.lng).toFixed(5)}</td>
-                            <td>{p.orden}</td>
-                            <td>
-                              <span className={`estado-badge ${p.activa ? 'estado--activo' : 'estado--inactivo'}`}>
-                                {p.activa ? 'Activa' : 'Inactiva'}
-                              </span>
-                            </td>
-                            <td className="celda-acciones">
-                              <button className="btn-accion btn-accion--editar" onClick={() => abrirEditarParada(p)}>
-                                <FontAwesomeIcon icon={faPen} />
-                              </button>
-                              <button className="btn-accion btn-accion--eliminar" onClick={() => eliminarParada(p.id_parada)}>
-                                <FontAwesomeIcon icon={faTrash} />
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+            <section className="adm-seccion" aria-labelledby="sec-paradas">
+              <div className="adm-seccion-barra">
+                <h2 id="sec-paradas" ref={encabezadoRef} tabIndex={-1} className="adm-seccion-titulo">Paradas de {seleccion.nombre}</h2>
+                <button type="button" className="boton-contorno" onClick={() => setDParada({ modo: 'crear' })}>
+                  <FontAwesomeIcon icon={faPlus} /> Agregar parada
+                </button>
               </div>
-            )}
+              {faseParadas === 'ok' && paradas.length > 0 ? (
+                <TablaAdmin etiqueta={`Paradas de ${seleccion.nombre}`} columnas={columnasParadas} filas={paradas} idDe={p => p.id_parada} acciones={accionesParada} />
+              ) : faseParadas === 'ok' ? (
+                <p className="adm-seccion-vacio">Esta ruta no tiene paradas registradas.</p>
+              ) : (
+                <EstadoLista fase={faseParadas} etiquetaCarga="Buscando paradas…" onReintentar={() => cargarParadas(seleccion.id_ruta)} />
+              )}
+            </section>
 
-            {rutaSeleccionada && (
-              <div className="paradas-panel">
-                <div className="paradas-panel-header">
-                  <div>
-                    <h3>Horarios de {rutaSeleccionada.nombre}</h3>
-                    <p>{horarios.length} turno(s) configurado(s)</p>
-                  </div>
-                  <button className="gestion-btn-agregar" onClick={abrirCrearHorario}>
-                    <FontAwesomeIcon icon={faPlus} /> Agregar horario
-                  </button>
-                </div>
-
-                {cargandoHorarios ? (
-                  <p className="gestion-cargando">Cargando horarios...</p>
-                ) : horarios.length === 0 ? (
-                  <p className="gestion-cargando">No hay horarios registrados para esta ruta.</p>
-                ) : (
-                  <div className="gestion-tabla-wrap">
-                    <table className="gestion-tabla">
-                      <thead>
-                        <tr>
-                          <th>Hora de salida</th>
-                          <th>Hora de regreso</th>
-                          <th>Acciones</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {horarios.map(h => (
-                          <tr key={h.id_horario}>
-                            <td>{String(h.hora_salida).slice(0, 5)}</td>
-                            <td>{String(h.hora_llegada).slice(0, 5)}</td>
-                            <td className="celda-acciones">
-                              <button className="btn-accion btn-accion--editar" onClick={() => abrirEditarHorario(h)}>
-                                <FontAwesomeIcon icon={faPen} />
-                              </button>
-                              <button className="btn-accion btn-accion--eliminar" onClick={() => eliminarHorario(h.id_horario)}>
-                                <FontAwesomeIcon icon={faTrash} />
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+            <section className="adm-seccion" aria-labelledby="sec-horarios">
+              <div className="adm-seccion-barra">
+                <h2 id="sec-horarios" className="adm-seccion-titulo">Horarios de {seleccion.nombre}</h2>
+                <button type="button" className="boton-contorno" onClick={() => setDHorario({ modo: 'crear' })}>
+                  <FontAwesomeIcon icon={faPlus} /> Agregar horario
+                </button>
               </div>
-            )}
+              {faseHorarios === 'ok' && horarios.length > 0 ? (
+                <TablaAdmin etiqueta={`Horarios de ${seleccion.nombre}`} columnas={columnasHorarios} filas={horarios} idDe={h => h.id_horario} acciones={accionesHorario} />
+              ) : faseHorarios === 'ok' ? (
+                <p className="adm-seccion-vacio">No hay horarios registrados para esta ruta.</p>
+              ) : (
+                <EstadoLista fase={faseHorarios} etiquetaCarga="Buscando horarios…" onReintentar={() => cargarHorarios(seleccion.id_ruta)} />
+              )}
+            </section>
           </>
         )}
 
-        {modal && (
-          <div className="modal-overlay" onClick={cerrarModal}>
-            <div className="modal-card" onClick={e => e.stopPropagation()}>
-              <div className="modal-header">
-                <h3>{modal === 'crear' ? 'Agregar ruta' : 'Editar ruta'}</h3>
-                <button className="modal-cerrar" onClick={cerrarModal} aria-label="Cerrar" title="Cerrar">
-                  <span className="modal-cerrar-texto">Cerrar</span>
-                  <FontAwesomeIcon icon={faXmark} />
-                </button>
-              </div>
+        <DialogoForm abierto={Boolean(dRuta)} titulo={dRuta?.modo === 'crear' ? 'Agregar ruta' : 'Editar ruta'} onCerrar={() => setDRuta(null)}>
+          {dRuta && (
+            <FormRuta
+              inicial={dRuta.modo === 'editar'
+                ? { nombre: dRuta.ruta.nombre, descripcion: dRuta.ruta.descripcion || '', activa: esActiva(dRuta.ruta) }
+                : { nombre: '', descripcion: '', activa: true }}
+              onGuardar={guardarRuta}
+              onCerrar={() => setDRuta(null)}
+            />
+          )}
+        </DialogoForm>
 
-              <div className="modal-body">
-                <div className="modal-campo">
-                  <label>Nombre de la ruta</label>
-                  <input
-                    type="text"
-                    value={form.nombre}
-                    onChange={e => setForm({ ...form, nombre: e.target.value })}
-                    placeholder="Ej: Centro"
-                  />
-                </div>
-                <div className="modal-campo">
-                  <label>Descripción</label>
-                  <input
-                    type="text"
-                    value={form.descripcion}
-                    onChange={e => setForm({ ...form, descripcion: e.target.value })}
-                    placeholder="Descripción de la ruta"
-                  />
-                </div>
-                <div className="modal-campo">
-                  <label>Estado</label>
-                  <select
-                    value={form.activa ? 'true' : 'false'}
-                    onChange={e => setForm({ ...form, activa: e.target.value === 'true' })}
-                  >
-                    <option value="true">Activa</option>
-                    <option value="false">Suspendida</option>
-                  </select>
-                </div>
-              </div>
+        <DialogoForm ancho abierto={Boolean(dParada)} titulo={dParada?.modo === 'crear' ? 'Agregar parada' : 'Editar parada'} onCerrar={() => setDParada(null)}>
+          {dParada && (
+            <FormParada
+              modo={dParada.modo}
+              inicial={dParada.modo === 'editar'
+                ? { nombre: dParada.parada.nombre, lat: String(dParada.parada.lat), lng: String(dParada.parada.lng), orden: String(dParada.parada.orden), activa: Boolean(dParada.parada.activa) }
+                : { nombre: '', lat: '', lng: '', orden: String(paradas.length + 1), activa: true }}
+              onGuardar={guardarParada}
+              onCerrar={() => setDParada(null)}
+            />
+          )}
+        </DialogoForm>
 
-              <div className="modal-footer">
-                <button className="modal-btn modal-btn--cancelar" onClick={cerrarModal}>
-                  Cancelar
-                </button>
-                <button className="modal-btn modal-btn--guardar" onClick={guardar}>
-                  <FontAwesomeIcon icon={faFloppyDisk} /> Guardar
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <DialogoForm abierto={Boolean(dHorario)} titulo={dHorario?.modo === 'crear' ? 'Agregar horario' : 'Editar horario'} onCerrar={() => setDHorario(null)}>
+          {dHorario && (
+            <FormHorario
+              inicial={dHorario.modo === 'editar'
+                ? { hora_salida: hora(dHorario.horario.hora_salida), hora_llegada: hora(dHorario.horario.hora_llegada) }
+                : { hora_salida: '', hora_llegada: '' }}
+              onGuardar={guardarHorario}
+              onCerrar={() => setDHorario(null)}
+            />
+          )}
+        </DialogoForm>
 
-        {modalParada && (
-          <div className="modal-overlay">
-            <div className="modal-card modal-card--parada" onClick={e => e.stopPropagation()}>
-              <div className="modal-header">
-                <h3>{modalParada === 'crear' ? 'Agregar parada' : 'Editar parada'}</h3>
-                <button className="modal-cerrar" onClick={cerrarModalParada} aria-label="Cerrar" title="Cerrar">
-                  <span className="modal-cerrar-texto">Cerrar</span>
-                  <FontAwesomeIcon icon={faXmark} />
-                </button>
-              </div>
-
-              <div className="modal-body modal-body--parada">
-                <div className="modal-parada-columna modal-parada-columna--form">
-                  <div className="modal-campo">
-                    <label>Nombre de la parada</label>
-                    <input
-                      type="text"
-                      value={formParada.nombre}
-                      onChange={e => setFormParada({ ...formParada, nombre: e.target.value })}
-                      placeholder="Ej: Bloque A"
-                    />
-                  </div>
-
-                  <div className="modal-grid-2">
-                    <div className="modal-campo">
-                      <label>Latitud</label>
-                      <input
-                        type="number"
-                        step="any"
-                        value={formParada.lat}
-                        onChange={e => setFormParada({ ...formParada, lat: e.target.value })}
-                      />
-                    </div>
-                    <div className="modal-campo">
-                      <label>Longitud</label>
-                      <input
-                        type="number"
-                        step="any"
-                        value={formParada.lng}
-                        onChange={e => setFormParada({ ...formParada, lng: e.target.value })}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="modal-grid-2">
-                    <div className="modal-campo">
-                      <label>Orden en la ruta</label>
-                      <input
-                        type="number"
-                        min="1"
-                        value={formParada.orden}
-                        onChange={e => setFormParada({ ...formParada, orden: e.target.value })}
-                      />
-                    </div>
-                    <div className="modal-campo">
-                      <label>Estado</label>
-                      <select
-                        value={formParada.activa ? 'true' : 'false'}
-                        onChange={e => setFormParada({ ...formParada, activa: e.target.value === 'true' })}
-                      >
-                        <option value="true">Activa</option>
-                        <option value="false">Inactiva</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="modal-parada-columna modal-parada-columna--mapa">
-                  <div className="modal-campo">
-                    <label>Seleccionar en mapa</label>
-                    <div className="parada-direccion-busqueda">
-                      <input
-                        type="text"
-                        value={direccionBusqueda}
-                        onChange={e => setDireccionBusqueda(e.target.value)}
-                        placeholder="Buscar direccion o referencia"
-                        onKeyDown={e => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault()
-                            buscarDireccion()
-                          }
-                        }}
-                      />
-                      <button
-                        type="button"
-                        className="modal-btn modal-btn--guardar parada-btn-buscar"
-                        onClick={buscarDireccion}
-                        disabled={buscandoDireccion}
-                      >
-                        {buscandoDireccion ? 'Buscando...' : 'Buscar'}
-                      </button>
-                    </div>
-
-                    {resultadosDireccion.length > 0 && (
-                      <div className="parada-direccion-resultados">
-                        {resultadosDireccion.map(item => (
-                          <button
-                            key={`${item.place_id}-${item.lat}-${item.lon}`}
-                            type="button"
-                            className="parada-direccion-item"
-                            onClick={() => seleccionarResultadoDireccion(item)}
-                          >
-                            {item.display_name}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-
-                    <div className="parada-mapa-toolbar">
-                      <button
-                        type="button"
-                        className="modal-btn modal-btn--cancelar parada-btn-ubicacion"
-                        onClick={usarUbicacionActual}
-                      >
-                        Usar mi ubicacion actual
-                      </button>
-                      <span className="parada-mapa-ayuda">Haz clic en el mapa para fijar la parada</span>
-                    </div>
-                    <div className="parada-mapa-picker">
-                      <MapContainer center={centroMapaParada} zoom={16} style={{ width: '100%', height: '100%' }}>
-                        <TileLayer
-                          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                          attribution="© OpenStreetMap"
-                        />
-                        <MapaClickHandler onPick={seleccionarPuntoParada} />
-                        <MapaRecentrar center={centroMapaParada} />
-                        {tieneCoordenadasParada && (
-                          <CircleMarker
-                            center={[latParada, lngParada]}
-                            radius={8}
-                            pathOptions={{ color: '#fff', weight: 2, fillColor: '#1e6b2e', fillOpacity: 1 }}
-                          />
-                        )}
-                      </MapContainer>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="modal-footer">
-                <button className="modal-btn modal-btn--cancelar" onClick={cerrarModalParada}>
-                  Cancelar
-                </button>
-                <button className="modal-btn modal-btn--guardar" onClick={guardarParada}>
-                  <FontAwesomeIcon icon={faFloppyDisk} /> Guardar
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {modalHorario && (
-          <div className="modal-overlay" onClick={cerrarModalHorario}>
-            <div className="modal-card" onClick={e => e.stopPropagation()}>
-              <div className="modal-header">
-                <h3>{modalHorario === 'crear' ? 'Agregar horario' : 'Editar horario'}</h3>
-                <button className="modal-cerrar" onClick={cerrarModalHorario} aria-label="Cerrar" title="Cerrar">
-                  <span className="modal-cerrar-texto">Cerrar</span>
-                  <FontAwesomeIcon icon={faXmark} />
-                </button>
-              </div>
-
-              <div className="modal-body">
-                <div className="modal-grid-2">
-                  <div className="modal-campo">
-                    <label>
-                      <FontAwesomeIcon icon={faClock} /> Hora de salida
-                    </label>
-                    <input
-                      type="time"
-                      value={formHorario.hora_salida}
-                      onChange={e => setFormHorario({ ...formHorario, hora_salida: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="modal-campo">
-                    <label>
-                      <FontAwesomeIcon icon={faClock} /> Hora de regreso
-                    </label>
-                    <input
-                      type="time"
-                      value={formHorario.hora_llegada}
-                      onChange={e => setFormHorario({ ...formHorario, hora_llegada: e.target.value })}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="modal-footer">
-                <button className="modal-btn modal-btn--cancelar" onClick={cerrarModalHorario}>
-                  Cancelar
-                </button>
-                <button className="modal-btn modal-btn--guardar" onClick={guardarHorario}>
-                  <FontAwesomeIcon icon={faFloppyDisk} /> Guardar
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <ConfirmarEliminar
+          objetivo={porEliminar?.texto}
+          error={errorEliminar}
+          enviando={eliminando}
+          onCancelar={() => setPorEliminar(null)}
+          onConfirmar={confirmarEliminar}
+        />
       </div>
     </Layout>
   )

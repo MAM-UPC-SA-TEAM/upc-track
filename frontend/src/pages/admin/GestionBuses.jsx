@@ -1,22 +1,38 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faPen, faTrash, faXmark, faFloppyDisk } from '@fortawesome/free-solid-svg-icons'
+import { faPlus, faFloppyDisk, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons'
 import Layout from '../../components/shared/Layout'
+import EstadoLista from '../../components/listas/EstadoLista'
+import Campo from '../../components/acceso/Campo'
+import TablaAdmin from '../../components/admin/TablaAdmin'
+import DialogoForm from '../../components/admin/DialogoForm'
+import ConfirmarEliminar from '../../components/admin/ConfirmarEliminar'
 import api from '../../services/api'
-import './GestionBuses.css'
+import '../../components/mapa/Mapa.css'
+import '../../components/listas/Listas.css'
+
+// Un bus nuevo nace fuera de servicio: todavía no transmite ni tiene posición.
+const FORM_VACIO = { nombre: '', placa: '', id_ruta: '', id_conductor: '', estado: 'fuera_de_servicio' }
+const ESTADOS = { en_recorrido: 'En servicio', detenido: 'Detenido', fuera_de_servicio: 'Fuera de servicio' }
 
 export default function GestionBuses() {
   const [buses, setBuses] = useState([])
   const [rutas, setRutas] = useState([])
   const [usuarios, setUsuarios] = useState([])
-  const [cargando, setCargando] = useState(true)
-  const [modal, setModal] = useState(null)
-  const [form, setForm] = useState({ nombre: '', placa: '', id_ruta: '', id_conductor: '', estado: 'en_recorrido' })
+  const [fase, setFase] = useState('cargando') // cargando | error | ok
+  const [dialogo, setDialogo] = useState(null) // null | 'crear' | 'editar'
   const [editandoId, setEditandoId] = useState(null)
+  const [form, setForm] = useState(FORM_VACIO)
+  const [errores, setErrores] = useState({})
+  const [errorServidor, setErrorServidor] = useState('')
+  const [guardando, setGuardando] = useState(false)
+  const [porEliminar, setPorEliminar] = useState(null)
+  const [errorEliminar, setErrorEliminar] = useState('')
+  const [eliminando, setEliminando] = useState(false)
 
   const conductores = usuarios.filter(u => u.tipo_usuario === 'conductor' && u.activo)
 
-  async function cargar() {
+  const cargar = useCallback(async () => {
     try {
       const [dataBuses, dataRutas, dataUsuarios] = await Promise.all([
         api.get('/api/buses'),
@@ -26,21 +42,28 @@ export default function GestionBuses() {
       setBuses(dataBuses.buses || [])
       setRutas(dataRutas.rutas || [])
       setUsuarios(dataUsuarios.usuarios || [])
+      setFase('ok')
     } catch {
-      console.error('Error cargando datos')
-    } finally {
-      setCargando(false)
+      setFase('error') // un fallo de red no se disfraza de «no hay buses»
     }
-  }
-
-  useEffect(() => {
-    cargar()
   }, [])
 
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial de datos remotos
+    cargar()
+  }, [cargar])
+
+  function reintentar() {
+    setFase('cargando')
+    cargar()
+  }
+
   function abrirCrear() {
-    setForm({ nombre: '', placa: '', id_ruta: '', id_conductor: '', estado: 'en_recorrido' })
+    setForm(FORM_VACIO)
     setEditandoId(null)
-    setModal('crear')
+    setErrores({})
+    setErrorServidor('')
+    setDialogo('crear')
   }
 
   function abrirEditar(bus) {
@@ -52,182 +75,147 @@ export default function GestionBuses() {
       estado: bus.estado,
     })
     setEditandoId(bus.id_bus)
-    setModal('editar')
+    setErrores({})
+    setErrorServidor('')
+    setDialogo('editar')
   }
 
-  function cerrarModal() {
-    setModal(null)
+  function cerrar() {
+    setDialogo(null)
     setEditandoId(null)
   }
 
-  async function guardar() {
-    if (!form.nombre || !form.placa) return
+  async function guardar(e) {
+    e.preventDefault()
+    if (guardando) return
+    const fallos = {}
+    if (!form.nombre.trim()) fallos.nombre = 'El nombre del bus es obligatorio.'
+    if (!form.placa.trim()) fallos.placa = 'La placa es obligatoria.'
+    setErrores(fallos)
+    const primero = ['nombre', 'placa'].find(k => fallos[k])
+    if (primero) { document.getElementById(`bus-${primero}`)?.focus(); return }
 
+    setGuardando(true)
+    setErrorServidor('')
     try {
-      if (modal === 'crear') {
-        await api.post('/api/buses', form)
-      } else {
-        await api.patch(`/api/buses/${editandoId}`, form)
-      }
-      cerrarModal()
+      if (dialogo === 'crear') await api.post('/api/buses', form)
+      else await api.patch(`/api/buses/${editandoId}`, form)
+      cerrar()
       cargar()
     } catch (err) {
-      alert(err.message || 'Error al guardar')
+      setErrorServidor(err.message || 'No se pudo guardar. Intenta de nuevo.')
+    } finally {
+      setGuardando(false)
     }
   }
 
-  async function eliminar(id) {
-    if (!confirm('¿Estás seguro de eliminar este bus?')) return
+  async function confirmarEliminar() {
+    if (eliminando) return
+    setEliminando(true)
+    setErrorEliminar('')
     try {
-      await api.delete(`/api/buses/${id}`)
+      await api.delete(`/api/buses/${porEliminar.id_bus}`)
+      setPorEliminar(null)
       cargar()
     } catch (err) {
-      alert(err.message || 'Error al eliminar')
+      setErrorEliminar(err.message || 'No se pudo eliminar. Intenta de nuevo.')
+    } finally {
+      setEliminando(false)
     }
   }
 
-  function textoEstado(estado) {
-    if (estado === 'en_recorrido') return 'En servicio'
-    if (estado === 'detenido') return 'Detenido'
-    return 'Fuera de servicio'
+  const cambiar = key => ev => {
+    setForm(p => ({ ...p, [key]: ev.target.value }))
+    if (errores[key]) setErrores(p => ({ ...p, [key]: '' }))
   }
 
-  function claseEstado(estado) {
-    if (estado === 'en_recorrido') return 'estado--activo'
-    if (estado === 'detenido') return 'estado--detenido'
-    return 'estado--inactivo'
-  }
+  const columnas = [
+    { titulo: 'Bus', celda: b => b.nombre },
+    { titulo: 'Placa', celda: b => <span className="mono-celda">{b.placa}</span> },
+    { titulo: 'Ruta asignada', celda: b => b.nombre_ruta || 'Sin ruta' },
+    { titulo: 'Conductor', celda: b => b.nombre_conductor || 'Sin conductor' },
+    {
+      titulo: 'Estado',
+      celda: b => (
+        <span className={`etiqueta etiqueta--neutro ${b.estado === 'fuera_de_servicio' ? 'etiqueta--apagada' : ''}`}>
+          {ESTADOS[b.estado] || 'Fuera de servicio'}
+        </span>
+      ),
+    },
+  ]
+
+  const acciones = b => (
+    <>
+      <button type="button" className="boton-contorno" aria-label={`Editar ${b.nombre}`} onClick={() => abrirEditar(b)}>Editar</button>
+      <button type="button" className="boton-contorno" aria-label={`Eliminar ${b.nombre}`}
+        onClick={() => { setErrorEliminar(''); setPorEliminar(b) }}>Eliminar</button>
+    </>
+  )
+
+  const hayLista = fase === 'ok' && buses.length > 0
 
   return (
     <Layout titulo="Gestión de buses">
-      <div className="gestion-page">
-        <div className="gestion-header">
-          <h2 className="gestion-titulo">Gestión de buses</h2>
-          <button className="gestion-btn-agregar" onClick={abrirCrear}>
+      <div className="adm-pagina">
+        <div className="adm-barra">
+          <h2 className="lista-titulo">{fase === 'ok' ? `${buses.length} ${buses.length === 1 ? 'bus' : 'buses'}` : 'Buses'}</h2>
+          <button type="button" className="boton-verde" onClick={abrirCrear}>
             <FontAwesomeIcon icon={faPlus} /> Agregar bus
           </button>
         </div>
 
-        {cargando ? (
-          <p className="gestion-cargando">Cargando buses...</p>
+        {hayLista ? (
+          <TablaAdmin etiqueta="Buses" columnas={columnas} filas={buses} idDe={b => b.id_bus} acciones={acciones} />
         ) : (
-          <>
-            <div className="gestion-tabla-wrap">
-              <table className="gestion-tabla">
-                <thead>
-                  <tr>
-                    <th>Bus</th>
-                    <th>Ruta asignada</th>
-                    <th>Conductor</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {buses.map(b => (
-                    <tr key={b.id_bus}>
-                      <td className="celda-nombre">{b.nombre}</td>
-                      <td>{b.nombre_ruta || 'Sin ruta'}</td>
-                      <td>{b.nombre_conductor || 'Sin conductor'}</td>
-                      <td>
-                        <span className={`estado-badge ${claseEstado(b.estado)}`}>
-                          {textoEstado(b.estado)}
-                        </span>
-                      </td>
-                      <td className="celda-acciones">
-                        <button className="btn-accion btn-accion--editar" onClick={() => abrirEditar(b)}>
-                          <FontAwesomeIcon icon={faPen} />
-                        </button>
-                        <button className="btn-accion btn-accion--eliminar" onClick={() => eliminar(b.id_bus)}>
-                          <FontAwesomeIcon icon={faTrash} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <p className="gestion-conteo">Mostrando 1 a {buses.length} de {buses.length} buses</p>
-          </>
+          <EstadoLista
+            fase={fase === 'ok' ? 'vacio' : fase}
+            etiquetaCarga="Buscando buses…"
+            vacio={{ titulo: 'Sin buses', texto: 'Todavía no hay buses. Agrega el primero.' }}
+            onReintentar={reintentar}
+          />
         )}
 
-        {modal && (
-          <div className="modal-overlay" onClick={cerrarModal}>
-            <div className="modal-card" onClick={e => e.stopPropagation()}>
-              <div className="modal-header">
-                <h3>{modal === 'crear' ? 'Agregar bus' : 'Editar bus'}</h3>
-                <button className="modal-cerrar" onClick={cerrarModal}>
-                  <FontAwesomeIcon icon={faXmark} />
-                </button>
-              </div>
-
-              <div className="modal-body">
-                <div className="modal-campo">
-                  <label>Nombre del bus</label>
-                  <input
-                    type="text"
-                    value={form.nombre}
-                    onChange={e => setForm({ ...form, nombre: e.target.value })}
-                    placeholder="Ej: Bus #05"
-                  />
-                </div>
-                <div className="modal-campo">
-                  <label>Placa</label>
-                  <input
-                    type="text"
-                    value={form.placa}
-                    onChange={e => setForm({ ...form, placa: e.target.value })}
-                    placeholder="Ej: ABC-123"
-                  />
-                </div>
-                <div className="modal-campo">
-                  <label>Ruta asignada</label>
-                  <select
-                    value={form.id_ruta}
-                    onChange={e => setForm({ ...form, id_ruta: e.target.value })}
-                  >
-                    <option value="">Seleccionar ruta</option>
-                    {rutas.map(r => (
-                      <option key={r.id_ruta} value={r.id_ruta}>{r.nombre}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="modal-campo">
-                  <label>Conductor asignado</label>
-                  <select
-                    value={form.id_conductor}
-                    onChange={e => setForm({ ...form, id_conductor: e.target.value })}
-                  >
-                    <option value="">Sin conductor</option>
-                    {conductores.map(c => (
-                      <option key={c.id_usuario} value={c.id_usuario}>{c.nombre}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="modal-campo">
-                  <label>Estado</label>
-                  <select
-                    value={form.estado}
-                    onChange={e => setForm({ ...form, estado: e.target.value })}
-                  >
-                    <option value="en_recorrido">En servicio</option>
-                    <option value="detenido">Detenido</option>
-                    <option value="fuera_de_servicio">Fuera de servicio</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="modal-footer">
-                <button className="modal-btn modal-btn--cancelar" onClick={cerrarModal}>
-                  Cancelar
-                </button>
-                <button className="modal-btn modal-btn--guardar" onClick={guardar}>
-                  <FontAwesomeIcon icon={faFloppyDisk} /> Guardar
-                </button>
-              </div>
+        <DialogoForm abierto={Boolean(dialogo)} titulo={dialogo === 'crear' ? 'Agregar bus' : 'Editar bus'} onCerrar={cerrar}>
+          <form className="dialogo-form" onSubmit={guardar} noValidate>
+            <div className="dialogo-cuerpo">
+              {errorServidor && (
+                <p className="acceso-aviso" role="alert">
+                  <FontAwesomeIcon icon={faTriangleExclamation} /> <span>{errorServidor}</span>
+                </p>
+              )}
+              <Campo id="bus-nombre" label="Nombre del bus" value={form.nombre} error={errores.nombre} autoComplete="off" onChange={cambiar('nombre')} />
+              <Campo id="bus-placa" label="Placa" value={form.placa} error={errores.placa} autoComplete="off" autoCapitalize="characters"
+                spellCheck={false} onChange={cambiar('placa')} />
+              <Campo id="bus-ruta" label="Ruta asignada" control="select" value={form.id_ruta} onChange={cambiar('id_ruta')}>
+                <option value="">Sin ruta</option>
+                {rutas.map(r => <option key={r.id_ruta} value={r.id_ruta}>{r.nombre}</option>)}
+              </Campo>
+              <Campo id="bus-conductor" label="Conductor asignado" control="select" value={form.id_conductor} onChange={cambiar('id_conductor')}>
+                <option value="">Sin conductor</option>
+                {conductores.map(c => <option key={c.id_usuario} value={c.id_usuario}>{c.nombre}</option>)}
+              </Campo>
+              <Campo id="bus-estado" label="Estado" control="select" value={form.estado} onChange={cambiar('estado')}>
+                <option value="en_recorrido">En servicio</option>
+                <option value="detenido">Detenido</option>
+                <option value="fuera_de_servicio">Fuera de servicio</option>
+              </Campo>
             </div>
-          </div>
-        )}
+            <div className="dialogo-pie">
+              <button type="button" className="boton-contorno" onClick={cerrar}>Cancelar</button>
+              <button type="submit" className="boton-verde" aria-disabled={guardando}>
+                <FontAwesomeIcon icon={faFloppyDisk} /> {guardando ? 'Guardando…' : 'Guardar'}
+              </button>
+            </div>
+          </form>
+        </DialogoForm>
+
+        <ConfirmarEliminar
+          objetivo={porEliminar?.nombre}
+          error={errorEliminar}
+          enviando={eliminando}
+          onCancelar={() => setPorEliminar(null)}
+          onConfirmar={confirmarEliminar}
+        />
       </div>
     </Layout>
   )
