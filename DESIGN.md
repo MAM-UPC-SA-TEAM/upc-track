@@ -166,7 +166,7 @@ components:
 
 # Design System: UpcTrack
 
-Alcance honesto: este sistema esta construido y verificado en el shell de la app (barra superior, navegacion inferior, panel lateral, paneles desplegables, avisos y toasts), en la pantalla de Inicio del estudiante y en la pantalla Mapa en tiempo real. Rutas, buses, notificaciones, perfil, login, registro, conductor y administracion solo heredan los tokens y el shell; **todavia no estan en este mundo** (ver "Brecha conocida" al final).
+Alcance honesto: este sistema esta construido y verificado en el shell de la app (barra superior, navegacion inferior, panel lateral, paneles desplegables, avisos y toasts), en la pantalla de Inicio del estudiante, en la pantalla Mapa en tiempo real y en la pantalla del conductor (Mi recorrido). Rutas, buses, notificaciones, perfil, login, registro y administracion solo heredan los tokens y el shell; **todavia no estan en este mundo** (ver "Brecha conocida" al final).
 
 ## Overview
 
@@ -302,6 +302,13 @@ Banda de papel con borde inferior de 2px. Los chips miden 44px, tienen borde de 
 ### Hoja del Mapa y su talon
 Superficie blanca con borde de 2px. Sin seleccion lista **Buses** y **Paradas** (la lista de paradas es tambien el camino accesible a las paradas); los encabezados de grupo son h3 reales a 1rem, 700, en tinta, no rotulos pequenos. Cada fila mide 60px o mas. Al tocar una parada muestra su talon con el ETA del bus mas cercano **de la misma ruta**; al tocar un bus, su talon con el ETA a su proxima parada. Es el mismo talon de Inicio sin marco propio (cifra algo menor, clamp(4rem, 22vw, 5.25rem), franja amarilla que se vacia en 30 s, perforacion, fila mono, sello "Sin senal"/"Sin conexion" y nota de linea recta), con titulo en 1.5rem y boton de cerrar de 44px. Estados disenados: sin buses ("Ningun bus transmite ahora": ruta y paradas se quedan), bus sin senal, sin conexion, carga inicial fallida (sello "Sin conexion" y boton "Reintentar ahora", nunca una pantalla vacia) y carga.
 
+### Talon del conductor (Mi recorrido)
+La misma hoja del Mapa (mapa de calles calmadas a sangre; talon abajo en movil, tarjeta de 440px a la izquierda desde 1024px) con otro dato: su "cifra" es el estado de **este telefono**, una palabra en 2.25rem/800/ancho 76% ("Transmitiendo", "Bus detenido", "Fuera de servicio", "Buscando GPS", "Sin transmitir"), con la franja amarilla que se vacia en 30 s desde el ultimo envio, la perforacion y una fila mono (ruta y placa; a la derecha la etiqueta "Validado · N s" o "Hace N s"). Una sola accion verde llena: "Iniciar recorrido", "Reanudar" o "Reanudar transmision"; la otra accion es contorno de tinta ("Detener", "Finalizar"). "Finalizar" pide un segundo toque ("Toca otra vez para finalizar", se desarma a los 4 s) y ese estado rellena el boton de tinta, no de rojo. Sin modal.
+
+Estados: **vivo**, **detenido**, **buscando GPS**, **viejo** (sin conexion o mas de 30 s sin enviar: la palabra baja a 28% y cae el sello "Sin conexion" o "Sin senal"; el marcador del bus en el mapa pasa a hueco), **colgado** (el servidor dice "en recorrido" o "detenido" pero este telefono no transmite, por ejemplo tras recargar: "Sin transmitir", etiqueta roja "Hace N min" con la antiguedad que guarda el servidor, la frase de lo que ven los estudiantes, "Reanudar transmision" y "Finalizar recorrido"), **libre** y **sin bus asignado**. El estado del servidor nunca se muestra como si el telefono transmitiera.
+
+Los errores del propio telefono (GPS bloqueado, no se pudo cambiar el estado) van en una caja de tinta con icono, no en rojo. "Avisar a mi ruta" se despliega en linea: tipo en chips de 44px (el activo en tinta), mensaje y "Enviar aviso" en tinta. Los avisos de notificacion (toast) del conductor caen **arriba**, bajo la barra, en movil, para no tapar Detener y Finalizar. No hay registro de actividad ni contador de puntos GPS. Trazo recorrido: puntos finos de tinta; sin emoji ni naranja.
+
 ### Etiqueta de estado
 Pieza generica de 2px 8px en mono 600 mayusculas: valida = relleno verde con texto blanco ("Validado · N s"); vencida = contorno rojo sin relleno ("Hace N s"); neutra = contorno de tinta ("Detenido", "Fuera de servicio", "Inactiva"). Rojo solo en la vencida.
 
@@ -319,6 +326,7 @@ Iconos de la biblioteca Font Awesome Solid como SVG, siempre acompanados de text
 - **Do** mantener 44px de objetivo tactil minimo y `prefers-reduced-motion` respetado (el cambio de estado se conserva, el desplazamiento se quita).
 - **Do** diferenciar varias rutas por estilo de linea (continua, rayas, puntos) y grosor, con los chips como leyenda; el chip activo va en tinta.
 - **Do** anular un bus sin senal con marcador hueco y la palabra "sin senal" en su etiqueta; en reposo la parada es un anillo de papel y solo la elegida es amarilla.
+- **Do** separar en la pantalla del conductor el estado del bus en el servidor de si este telefono transmite, y anular con sello o con etiqueta roja cuando no coinciden.
 - **Do** repetir los mismos nombres semanticos (`--bg`, `--superficie`, `--texto`, `--borde`, `--trazo`, `--acento-texto`) en modo oscuro con otros valores; en oscuro el texto verde pasa a #7fd38b.
 
 ### Don't:
@@ -333,8 +341,9 @@ Iconos de la biblioteca Font Awesome Solid como SVG, siempre acompanados de text
 
 ## Brecha conocida (no canonizada como hecha)
 
-- **Estan en el mundo: shell, Inicio y Mapa en tiempo real.** Rutas, buses, notificaciones, perfil, login, registro, conductor y administracion heredan tokens y shell pero conservan sus composiciones anteriores; estan pendientes. No se debe leer este documento como que esas pantallas cumplen estas reglas.
-- La pantalla del conductor y el panel de administracion no tienen decision de diseno aun; las reglas de arriba son los invariantes que deberan heredar, no su diseno.
+- **Estan en el mundo: shell, Inicio, Mapa en tiempo real y pantalla del conductor.** Rutas, buses, notificaciones, perfil, login, registro y administracion heredan tokens y shell pero conservan sus composiciones anteriores; estan pendientes. No se debe leer este documento como que esas pantallas cumplen estas reglas.
+- El panel de administracion no tiene decision de diseno aun; las reglas de arriba son los invariantes que debera heredar, no su diseno.
+- **Conductor:** el envio de la posicion depende de que el GPS del telefono emita lecturas (se envia como maximo cada 4 s); si el navegador solo emite al moverse, un bus parado puede verse "Sin senal" aunque transmita. No se reenvia la ultima posicion para no pasar un dato viejo por fresco. El seguimiento con la pantalla bloqueada sigue sin estar garantizado (PRODUCT.md).
 - **El ETA es una estimacion en linea recta** (distancia / 25 km/h), no por carretera; se dice en pantalla en Inicio y en la hoja del Mapa. Decision abierta en PRODUCT.md (OSRM).
 - **El mapa con teselas conserva las etiquetas de calles de OSM:** estan calmadas con filtro CSS, no eliminadas.
 - **Las teselas de OSM suman peso de red con datos inestables.** Inicio se mantiene esquematico, sin teselas.
