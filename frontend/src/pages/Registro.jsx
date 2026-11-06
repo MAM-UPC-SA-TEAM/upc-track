@@ -1,15 +1,26 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import {
-  faUser, faEnvelope, faLock,
-  faEye, faEyeSlash,
-  faCircleCheck, faUserPlus, faShield
-} from '@fortawesome/free-solid-svg-icons'
-import logoUpc from '../assets/logo-upc.png'
+import { faUserPlus, faRightToBracket, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons'
 import api from '../services/api'
 import { useAuth } from '../context/AuthContext'
-import './Registro.css'
+import AccesoLayout from '../components/acceso/AccesoLayout'
+import Campo from '../components/acceso/Campo'
+
+const CAMPOS = [
+  { key: 'nombre', label: 'Nombre completo', autoComplete: 'name' },
+  {
+    key: 'nombre_usuario', label: 'Nombre de usuario', autoComplete: 'username',
+    ayuda: '3 a 20 caracteres: letras, números, punto, guion y guion bajo.',
+    autoCapitalize: 'none', autoCorrect: 'off', spellCheck: false,
+  },
+  {
+    key: 'correo', label: 'Correo electrónico', type: 'email', autoComplete: 'email', inputMode: 'email',
+    autoCapitalize: 'none', autoCorrect: 'off', spellCheck: false,
+  },
+  { key: 'password', label: 'Contraseña', secreto: true, autoComplete: 'new-password', ayuda: 'Mínimo 8 caracteres.' },
+  { key: 'confirmar', label: 'Confirmar contraseña', secreto: true, autoComplete: 'new-password' },
+]
 
 export default function Registro() {
   const navigate = useNavigate()
@@ -18,7 +29,7 @@ export default function Registro() {
   const [form, setForm] = useState({
     nombre: '', nombre_usuario: '', correo: '', password: '', confirmar: ''
   })
-  const [mostrar, setMostrar]     = useState({ password: false, confirmar: false })
+  const [verPassword, setVerPassword] = useState(false)
   const [errores, setErrores]     = useState({})
   const [errorGlobal, setErrorGlobal] = useState('')
   const [enviando, setEnviando]   = useState(false)
@@ -39,13 +50,18 @@ export default function Registro() {
     if (form.password !== form.confirmar)
                                      e.confirmar      = 'Las contraseñas no coinciden'
     setErrores(e)
-    return Object.keys(e).length === 0
+    return e
   }
 
   async function handleSubmit(e) {
     e.preventDefault()
     setErrorGlobal('')
-    if (!validar()) return
+    const fallos = validar()
+    const primero = CAMPOS.find(c => fallos[c.key])
+    if (primero) {
+      document.getElementById(`reg-${primero.key}`)?.focus()
+      return
+    }
     setEnviando(true)
     try {
       const data = await api.post('/api/auth/registro', {
@@ -68,123 +84,57 @@ export default function Registro() {
     }
   }
 
-  const campos = [
-    { key: 'nombre',         label: 'Nombre completo',     icono: faUser,    type: 'text',     placeholder: 'Tu nombre completo'            },
-    { key: 'nombre_usuario', label: 'Nombre de usuario',   icono: faUser,    type: 'text',     placeholder: 'ej. juan.perez o jperez2024'   },
-    { key: 'correo',         label: 'Correo electrónico',  icono: faEnvelope,type: 'email',    placeholder: 'correo@ejemplo.com'            },
-    { key: 'password',       label: 'Contraseña',          icono: faLock,    type: 'password', placeholder: 'Mínimo 8 caracteres'           },
-    { key: 'confirmar',      label: 'Confirmar contraseña',icono: faLock,    type: 'password', placeholder: 'Repite tu contraseña'          },
-  ]
-
   if (exito) {
     return (
-      <div className="reg-bg">
-        <div className="reg-deco reg-deco--tl" />
-        <div className="reg-deco reg-deco--br" />
-        <div className="reg-card">
-          <div className="reg-exito">
-            <div className="reg-exito-icono">
-              <FontAwesomeIcon icon={faCircleCheck} />
-            </div>
-            <h2>¡Cuenta creada!</h2>
-            <p>Tu cuenta de estudiante ha sido registrada exitosamente. Ya puedes iniciar sesión.</p>
-            <button className="reg-btn reg-btn--primario" onClick={() => navigate('/login')}>
-              Ir al inicio de sesión
-            </button>
-          </div>
-          <div className="reg-footer">
-            <FontAwesomeIcon icon={faShield} className="reg-footer-icono" />
-            <p>© Universidad Popular del Cesar – Seccional Aguachica 2026</p>
-          </div>
+      <AccesoLayout titulo="Cuenta creada">
+        <div className="acceso-exito" role="status">
+          <p>Tu cuenta de estudiante quedó registrada. Ya puedes iniciar sesión.</p>
+          <button type="button" className="talon-accion" onClick={() => navigate('/login')}>
+            <FontAwesomeIcon icon={faRightToBracket} /> Ir a iniciar sesión
+          </button>
         </div>
-      </div>
+      </AccesoLayout>
     )
   }
 
   return (
-    <div className="reg-bg">
-      <div className="reg-deco reg-deco--tl" />
-      <div className="reg-deco reg-deco--br" />
+    <AccesoLayout titulo="Crear cuenta" subtitulo="Regístrate como estudiante UPCSA.">
+      <form onSubmit={handleSubmit} className="acceso-form" noValidate>
+        {errorGlobal && (
+          <p className="acceso-aviso" role="alert">
+            <FontAwesomeIcon icon={faTriangleExclamation} /> <span>{errorGlobal}</span>
+          </p>
+        )}
 
-      <div className="reg-card">
-        {/* Logo */}
-        <div className="reg-logo">
-          <img src={logoUpc} alt="Universidad Popular del Cesar" />
-        </div>
+        {CAMPOS.map(({ key, label, secreto, type = 'text', ...resto }) => (
+          <Campo
+            key={key}
+            id={`reg-${key}`}
+            label={label}
+            type={secreto ? (verPassword ? 'text' : 'password') : type}
+            value={form[key]}
+            error={errores[key]}
+            onChange={ev => {
+              setForm(p => ({ ...p, [key]: ev.target.value }))
+              if (errores[key]) setErrores(p => ({ ...p, [key]: '' }))
+            }}
+            {...resto}
+          />
+        ))}
 
-        <div className="reg-divider" />
+        <label className="mostrar">
+          <input type="checkbox" checked={verPassword} onChange={ev => setVerPassword(ev.target.checked)} />
+          Mostrar contraseñas
+        </label>
 
-        <div className="reg-header">
-          <div className="reg-header-icono">
-            <FontAwesomeIcon icon={faUserPlus} />
-          </div>
-          <div>
-            <h1 className="reg-titulo">Crear cuenta</h1>
-            <p className="reg-subtitulo">Regístrate como estudiante UPCSA</p>
-          </div>
-        </div>
+        <button type="submit" className="talon-accion" disabled={enviando}>
+          <FontAwesomeIcon icon={faUserPlus} /> {enviando ? 'Creando cuenta…' : 'Crear cuenta'}
+        </button>
+      </form>
 
-        <form onSubmit={handleSubmit} className="reg-form" noValidate>
-
-          {errorGlobal && (
-            <div className="reg-alerta">{errorGlobal}</div>
-          )}
-
-          {campos.map(({ key, label, icono, type, placeholder }) => {
-            const esPwd = type === 'password'
-            const visible = mostrar[key]
-            return (
-              <div key={key} className={`reg-campo ${errores[key] ? 'reg-campo--error' : ''}`}>
-                <label>{label}</label>
-                <div className="reg-input-wrap">
-                  <FontAwesomeIcon icon={icono} className="reg-input-icon" />
-                  <input
-                    type={esPwd ? (visible ? 'text' : 'password') : type}
-                    placeholder={placeholder}
-                    value={form[key]}
-                    autoComplete={esPwd ? 'new-password' : 'off'}
-                    onChange={e => {
-                      setForm(p => ({ ...p, [key]: e.target.value }))
-                      if (errores[key]) setErrores(p => ({ ...p, [key]: '' }))
-                    }}
-                  />
-                  {esPwd && (
-                    <button
-                      type="button"
-                      className="reg-toggle-pass"
-                      onClick={() => setMostrar(p => ({ ...p, [key]: !p[key] }))}
-                    >
-                      <FontAwesomeIcon icon={visible ? faEyeSlash : faEye} />
-                    </button>
-                  )}
-                </div>
-                {errores[key] && <span className="reg-error-msg">{errores[key]}</span>}
-                {key === 'password' && form.password.length > 0 && form.password.length < 8 && (
-                  <span className="reg-hint">Mínimo 8 caracteres</span>
-                )}
-              </div>
-            )
-          })}
-
-          <button type="submit" className="reg-btn reg-btn--primario reg-btn--submit" disabled={enviando}>
-            <FontAwesomeIcon icon={faUserPlus} />
-            {enviando ? 'Creando cuenta...' : 'Crear cuenta'}
-          </button>
-
-        </form>
-
-        <p className="reg-link">
-          ¿Ya tienes cuenta?{' '}
-          <span className="reg-link--verde" onClick={() => navigate('/login')}>
-            Iniciar sesión
-          </span>
-        </p>
-
-        <div className="reg-footer">
-          <FontAwesomeIcon icon={faShield} className="reg-footer-icono" />
-          <p>© Universidad Popular del Cesar – Seccional Aguachica 2026</p>
-        </div>
-      </div>
-    </div>
+      <p className="acceso-alt">
+        ¿Ya tienes cuenta? <Link className="acceso-enlace" to="/login">Iniciar sesión</Link>
+      </p>
+    </AccesoLayout>
   )
 }
