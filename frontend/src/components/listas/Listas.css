@@ -30,6 +30,9 @@
 .boton-contorno:disabled { opacity: 0.55; cursor: not-allowed; }
 @media (hover: hover) and (pointer: fine) { .boton-contorno:not(:disabled):hover { background: var(--papel-hundido); } }
 
+/* Estado apagado (suspendido, inactivo): contorno discontinuo, no un color */
+.etiqueta.etiqueta--apagada { box-shadow: none; outline: 2px dashed var(--trazo); outline-offset: -2px; }
+
 /* Filas dentro de un talón (buses): la fila entera es el enlace */
 .lista-filas { list-style: none; }
 .lista-filas li + li { border-top: 1px solid var(--borde); }

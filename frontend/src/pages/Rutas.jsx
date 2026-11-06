@@ -79,7 +79,7 @@ export default function Rutas() {
                   <h2 id={`ruta-${ruta.id_ruta}`} className="lista-nombre">
                     <FontAwesomeIcon icon={faRoute} className="ruta-icono" /> {ruta.nombre}
                   </h2>
-                  <span className={`etiqueta ${ruta.activa ? 'etiqueta--neutro' : 'etiqueta--neutro ruta-suspendida'}`}>
+                  <span className={`etiqueta ${ruta.activa ? 'etiqueta--neutro' : 'etiqueta--neutro etiqueta--apagada'}`}>
                     {ruta.activa ? 'Activa' : 'Suspendida'}
                   </span>
                 </div>
