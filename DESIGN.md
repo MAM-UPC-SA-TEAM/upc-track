@@ -166,7 +166,7 @@ components:
 
 # Design System: UpcTrack
 
-Alcance honesto: este sistema esta construido y verificado en el shell de la app (barra superior, navegacion inferior, panel lateral, paneles desplegables, avisos y toasts), en la pantalla de Inicio del estudiante, en la pantalla Mapa en tiempo real y en la pantalla del conductor (Mi recorrido). Rutas, buses, notificaciones, perfil, login, registro y administracion solo heredan los tokens y el shell; **todavia no estan en este mundo** (ver "Brecha conocida" al final).
+Alcance honesto: este sistema esta construido y verificado en el shell de la app (barra superior, navegacion inferior, panel lateral, paneles desplegables, avisos y toasts), en la pantalla de Inicio del estudiante, en la pantalla Mapa en tiempo real, en la pantalla del conductor (Mi recorrido) y en las pantallas de acceso (login y registro). Rutas, buses, notificaciones, perfil y administracion solo heredan los tokens y el shell; **todavia no estan en este mundo** (ver "Brecha conocida" al final).
 
 ## Overview
 
@@ -309,6 +309,11 @@ Estados: **vivo**, **detenido**, **buscando GPS**, **viejo** (sin conexion o mas
 
 Los errores del propio telefono (GPS bloqueado, no se pudo cambiar el estado) van en una caja de tinta con icono, no en rojo. "Avisar a mi ruta" se despliega en linea: tipo en chips de 44px (el activo en tinta), mensaje y "Enviar aviso" en tinta. Los avisos de notificacion (toast) del conductor caen **arriba**, bajo la barra, en movil, para no tapar Detener y Finalizar. No hay registro de actividad ni contador de puntos GPS. Trazo recorrido: puntos finos de tinta; sin emoji ni naranja.
 
+### Acceso (login y registro)
+Un solo marco para las dos pantallas: la hoja del talon centrada (hasta 440px) sobre papel, con el **cabo** arriba (la marca de 72px, que en oscuro lleva una placa de papel, y "UpcTrack" en texto vivo con el lema "Tu ruta en tiempo real"), la perforacion y debajo el formulario. El logo de la universidad va **al pie**, fuera del talon, sobre una placa de papel y con "Seccional Aguachica · 2026" en tinta suave; ya no se apilan dos logos antes del formulario. La marca es la de 31 KB (`upc-track-mark.png`), no la de 1,1 MB.
+
+Cada campo tiene su etiqueta real ligada (`for`/`id`) arriba, en 700; el campo mide 48px, borde de 2px en tinta y fondo papel; la ayuda ("Minimo 8 caracteres.") esta siempre visible y se reemplaza por el error cuando lo hay; el error lleva icono y texto en 700, **no rojo**, y el campo engrosa su borde 1px hacia adentro. El primer campo con error recibe el foco. "Mostrar contrasena" es una casilla en una fila de 44px (sin boton de icono); la casilla se tematiza (borde de 2px, marcada rellena de tinta). Un error general (credenciales, servidor) va en una caja de tinta con icono y `role="alert"`. La accion es el boton verde del talon ("Entrar", "Crear cuenta"); el cambio de pantalla es un enlace de texto verde subrayado de 44px. Exito del registro: el mismo marco con "Cuenta creada" y un boton a "Ir a iniciar sesion".
+
 ### Etiqueta de estado
 Pieza generica de 2px 8px en mono 600 mayusculas: valida = relleno verde con texto blanco ("Validado · N s"); vencida = contorno rojo sin relleno ("Hace N s"); neutra = contorno de tinta ("Detenido", "Fuera de servicio", "Inactiva"). Rojo solo en la vencida.
 
@@ -341,7 +346,7 @@ Iconos de la biblioteca Font Awesome Solid como SVG, siempre acompanados de text
 
 ## Brecha conocida (no canonizada como hecha)
 
-- **Estan en el mundo: shell, Inicio, Mapa en tiempo real y pantalla del conductor.** Rutas, buses, notificaciones, perfil, login, registro y administracion heredan tokens y shell pero conservan sus composiciones anteriores; estan pendientes. No se debe leer este documento como que esas pantallas cumplen estas reglas.
+- **Estan en el mundo: shell, Inicio, Mapa en tiempo real, pantalla del conductor y acceso (login y registro).** Rutas, buses, notificaciones, perfil y administracion heredan tokens y shell pero conservan sus composiciones anteriores; estan pendientes. No se debe leer este documento como que esas pantallas cumplen estas reglas.
 - El panel de administracion no tiene decision de diseno aun; las reglas de arriba son los invariantes que debera heredar, no su diseno.
 - **Conductor:** el envio de la posicion depende de que el GPS del telefono emita lecturas (se envia como maximo cada 4 s); si el navegador solo emite al moverse, un bus parado puede verse "Sin senal" aunque transmita. No se reenvia la ultima posicion para no pasar un dato viejo por fresco. El seguimiento con la pantalla bloqueada sigue sin estar garantizado (PRODUCT.md).
 - **El ETA es una estimacion en linea recta** (distancia / 25 km/h), no por carretera; se dice en pantalla en Inicio y en la hoja del Mapa. Decision abierta en PRODUCT.md (OSRM).
