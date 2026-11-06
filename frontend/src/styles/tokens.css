@@ -1,0 +1,77 @@
+/*
+ * Tokens de diseño de UpcTrack — mundo «El Talón» (papel térmico, tinta, sello).
+ * Fuente única de color, tipografía, espacio y movimiento. Las variables heredadas
+ * (--bg, --superficie, --texto, --texto-suave, --borde) se alimentan de aquí para que
+ * las pantallas antiguas adopten el sistema sin reescribirse de golpe.
+ */
+:root {
+  /* Papel y tinta */
+  --papel: #fbfaf4;
+  --papel-hundido: #f1eee1;
+  --tinta: #14261a;
+  --tinta-suave: #4a5b4f;
+  --linea-suave: #d8d3c0;
+
+  /* Marca y estados (el rojo solo existe para el sello de dato vencido) */
+  --verde: #1e6b2e;
+  --verde-profundo: #145220;
+  --amarillo: #f5c400;
+  --sello: #c62828;
+  --blanco: #ffffff;
+
+  /* Semánticos: cambian con el tema */
+  --bg: var(--papel);
+  --superficie: var(--blanco);
+  --texto: var(--tinta);
+  --texto-suave: var(--tinta-suave);
+  --borde: var(--linea-suave);
+  --trazo: var(--tinta);
+  --acento-texto: var(--verde);
+  --sobre-verde: #ffffff;
+
+  /* Tipografía */
+  --f-ui: 'Archivo Variable', 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --f-dato: 'Spline Sans Mono Variable', 'Spline Sans Mono', ui-monospace, monospace;
+  --t-xs: 0.75rem;
+  --t-sm: 0.875rem;
+  --t-md: 1rem;
+  --t-lg: 1.25rem;
+  --t-xl: 1.5rem;
+  --t-eta: clamp(5.5rem, 31vw, 7.5rem);
+
+  /* Espacio (múltiplos de 4) */
+  --e1: 4px;
+  --e2: 8px;
+  --e3: 12px;
+  --e4: 16px;
+  --e5: 24px;
+  --e6: 32px;
+
+  /* Forma y toque */
+  --grosor: 2px;
+  --toque: 44px;
+  --nav-alto: 64px;
+  --barra-alto: 56px;
+
+  /* Movimiento: curvas fuertes, tiempos cortos */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --d-toque: 140ms;
+  --d-ui: 200ms;
+}
+
+/* Modo oscuro (preferencia del usuario o del sistema): mismos nombres, otros valores */
+body[data-tema='oscuro'] {
+  --papel: #101a13;
+  --papel-hundido: #0b130e;
+  --tinta: #f1eedf;
+  --tinta-suave: #b5bdb0;
+  --linea-suave: #2c3b31;
+
+  --bg: var(--papel);
+  --superficie: #17231b;
+  --texto: var(--tinta);
+  --texto-suave: var(--tinta-suave);
+  --borde: var(--linea-suave);
+  --trazo: #a9b8a8;
+  --acento-texto: #7fd38b; /* el verde de marca no pasa contraste sobre fondo oscuro */
+}
