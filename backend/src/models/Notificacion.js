@@ -25,7 +25,7 @@ export class Notificacion {
        JOIN ruta r ON n.id_ruta = r.id_ruta
        WHERE n.id_ruta = ?
          AND DATE(n.fecha_hora) = CURDATE()
-       ORDER BY n.fecha_hora DESC`,
+       ORDER BY n.fecha_hora DESC, n.id_notificacion DESC`,
       [id_ruta]
     )
     return rows
@@ -40,7 +40,7 @@ export class Notificacion {
        JOIN usuario u ON n.id_conductor = u.id_usuario
        JOIN ruta r ON n.id_ruta = r.id_ruta
        WHERE DATE(n.fecha_hora) = CURDATE()
-       ORDER BY n.fecha_hora DESC`
+       ORDER BY n.fecha_hora DESC, n.id_notificacion DESC`
     )
     return rows
   }

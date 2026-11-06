@@ -41,7 +41,8 @@ export const Bus = {
         r.nombre      AS nombre_ruta,
         ub.latitud    AS lat,
         ub.longitud   AS lng,
-        ub.fecha_hora AS ultima_actualizacion
+        ub.fecha_hora AS ultima_actualizacion,
+        TIMESTAMPDIFF(SECOND, ub.fecha_hora, NOW()) AS edad_segundos
       FROM bus b
       LEFT JOIN usuario u   ON b.id_conductor = u.id_usuario
       LEFT JOIN bus_ruta br  ON b.id_bus = br.id_bus
@@ -79,7 +80,8 @@ export const Bus = {
         r.nombre      AS nombre_ruta,
         ub.latitud    AS lat,
         ub.longitud   AS lng,
-        ub.fecha_hora AS ultima_actualizacion
+        ub.fecha_hora AS ultima_actualizacion,
+        TIMESTAMPDIFF(SECOND, ub.fecha_hora, NOW()) AS edad_segundos
       FROM bus b
       LEFT JOIN usuario u   ON b.id_conductor = u.id_usuario
       LEFT JOIN bus_ruta br  ON b.id_bus = br.id_bus

@@ -164,9 +164,9 @@ export async function cambiarEstado(req, res) {
     // Notificación automática informativa para usuarios de la ruta.
     if (io && bus && bus.id_ruta) {
       const mensajesPorEstado = {
-        en_recorrido: `${bus.nombre} inicio su recorrido en ${bus.nombre_ruta || 'su ruta'}.`,
+        en_recorrido: `${bus.nombre} inició su recorrido en ${bus.nombre_ruta || 'su ruta'}.`,
         detenido: `${bus.nombre} se encuentra temporalmente detenido.`,
-        fuera_de_servicio: `${bus.nombre} finalizo su recorrido por hoy.`,
+        fuera_de_servicio: `${bus.nombre} finalizó su recorrido por hoy.`,
       }
 
       const mensaje = mensajesPorEstado[estado]
