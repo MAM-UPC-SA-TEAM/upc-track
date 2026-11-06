@@ -1,165 +1,19 @@
-.buses-page {
-  max-width: 800px;
+/* Buses: cada fila es un enlace al mapa de ese bus. Arriba el nombre y la etiqueta de frescura; debajo, ruta y ETA
+   a todo el ancho (no se parten por la etiqueta). Mínimo 60px, sin subrayado de enlace. */
+.bus-fila {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.buses-titulo {
-  font-size: 22px;
-  font-weight: 700;
+  min-height: 60px;
+  padding: var(--e3) var(--e4);
   color: var(--texto);
+  text-decoration: none;
 }
+.bus-fila-cab { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--e3); }
+.bus-fila-cab strong { min-width: 0; overflow-wrap: anywhere; }
+.bus-fila-ruta { color: var(--texto-suave); font-size: var(--t-sm); overflow-wrap: anywhere; }
+.buses-eta { font-size: var(--t-sm); font-weight: 600; text-transform: uppercase; }
+.lista-nota { font-size: var(--t-sm); color: var(--texto-suave); }
 
-.buses-cargando {
-  color: var(--texto-suave);
-  font-size: 15px;
-}
-
-.buses-lista {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.bus-item {
-  background: var(--superficie);
-  border: 1px solid var(--borde);
-  border-radius: 14px;
-  padding: 20px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  cursor: pointer;
-  transition: box-shadow 0.2s;
-}
-
-.bus-item:hover {
-  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-}
-
-.bus-item--inactivo {
-  opacity: 0.6;
-}
-
-.bus-icono {
-  width: 52px;
-  height: 52px;
-  background: #e8f5e9;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  color: #1e6b2e;
-  flex-shrink: 0;
-}
-
-.bus-icono--inactivo {
-  background: #f0f0f0;
-  color: #999;
-}
-
-.bus-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.bus-nombre {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--texto);
-}
-
-.bus-ruta {
-  font-size: 14px;
-  color: var(--texto-suave);
-}
-
-.bus-badge {
-  display: inline-block;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 600;
-  width: fit-content;
-}
-
-.badge--verde    { background: #e8f5e9; color: #1e6b2e; }
-.badge--amarillo { background: #fff8e1; color: #f57f17; }
-.badge--rojo     { background: #fce4e4; color: #c62828; }
-.badge--gris     { background: #f0f0f0; color: #666; }
-
-.bus-eta {
-  font-size: 13px;
-  color: var(--texto-suave);
-}
-
-.bus-flecha {
-  color: var(--texto-suave);
-  font-size: 16px;
-  flex-shrink: 0;
-}
-
-.buses-vacio {
-  text-align: center;
-  padding: 40px;
-  color: var(--texto-suave);
-  font-size: 15px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-
-.buses-btn-todos {
-  width: 100%;
-  padding: 14px;
-  background: var(--superficie);
-  border: 1.5px solid var(--borde);
-  border-radius: 12px;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--texto);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.buses-btn-todos:hover {
-  border-color: #1e6b2e;
-  color: #1e6b2e;
-}
-
-@media (max-width: 600px) {
-  .bus-item {
-    padding: 14px 14px;
-    gap: 12px;
-  }
-
-  .bus-icono {
-    width: 44px;
-    height: 44px;
-    font-size: 20px;
-    border-radius: 10px;
-  }
-
-  .bus-nombre {
-    font-size: 15px;
-  }
-
-  .bus-ruta {
-    font-size: 13px;
-  }
-
-  .bus-badge {
-    font-size: 12px;
-    padding: 2px 8px;
-  }
-
-  .buses-titulo {
-    font-size: 19px;
-  }
-}
+@media (hover: hover) and (pointer: fine) { .bus-fila:hover { background: var(--papel-hundido); } }
