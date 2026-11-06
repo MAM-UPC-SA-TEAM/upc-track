@@ -1,269 +1,224 @@
-import { useEffect, useState, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import Layout from '../components/shared/Layout'
+import TalonETA from '../components/inicio/TalonETA'
+import AvisoConductor from '../components/inicio/AvisoConductor'
 import api from '../services/api'
 import socket from '../services/socket'
+import { calcularETA } from '../utils/calcularETA'
 import './Dashboard.css'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faBus, faRoute, faCircleCheck, faCircleXmark } from '@fortawesome/free-solid-svg-icons'
-import { MapContainer, TileLayer, Marker, Polyline } from 'react-leaflet'
+import { MapContainer, Polyline, Marker, CircleMarker, Tooltip } from 'react-leaflet'
 import L from 'leaflet'
 
-const iconoBusMini = L.divIcon({
-  className: '',
-  html: `<div style="font-size:18px;line-height:1;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.35))">🚌</div>`,
-  iconSize: [22, 22],
-  iconAnchor: [11, 11],
-})
+const FRESCO_MAX_S = 30        // meta del charter: posición visible actualizada en ≤ 30 s
+const FALLOS_PARA_ANULAR = 2   // un sondeo fallido no anula el dato: dos seguidos sí
+const AVISO_VIGENCIA_MIN = 90  // un aviso del conductor deja de mostrarse tras 90 min
+const CLAVE_PARADA = 'upctrack.miParada'
+
+const iconoBus = L.divIcon({ className: '', html: '<span class="mk mk-bus"></span>', iconSize: [28, 28], iconAnchor: [14, 14] })
+const iconoParada = L.divIcon({ className: '', html: '<span class="mk mk-parada"></span>', iconSize: [22, 22], iconAnchor: [11, 11] })
+
+const num = v => Number.parseFloat(v)
 
 export default function Dashboard() {
-  const { usuario } = useAuth()
   const navigate = useNavigate()
 
-  const [stats, setStats]               = useState({ buses: 0, rutas: 0, rutaNombre: null, enServicio: false })
   const [busesActivos, setBusesActivos] = useState([])
-  const [puntosRuta, setPuntosRuta]     = useState([])
+  const [paradas, setParadas]           = useState([])
   const [cargando, setCargando]         = useState(true)
-  const [backendOk, setBackendOk]       = useState(false)
-  const intervaloRef = useRef(null)
-  const refrescoPendienteRef = useRef(null)
+  const [tardando, setTardando]         = useState(false)
+  const [fallos, setFallos]             = useState(0)
+  const [enLinea, setEnLinea]           = useState(() => navigator.onLine)
+  const [recibidoEn, setRecibidoEn]     = useState(() => Date.now())
+  const [ahora, setAhora]               = useState(() => Date.now())
+  const [aviso, setAviso]               = useState(null)
+  const [miParadaId, setMiParadaId]     = useState(() => {
+    try { return Number(localStorage.getItem(CLAVE_PARADA)) || null } catch { return null }
+  })
+
   const cargandoRef = useRef(false)
+  const refrescoPendienteRef = useRef(null)
   const ultimoRefrescoRef = useRef(0)
 
-  async function cargarStats() {
+  async function cargarEstado() {
     if (cargandoRef.current) return
     cargandoRef.current = true
     try {
-      // ── Peticiones paralelas ─────────────────────────────────
-      const [respBuses, respRutas] = await Promise.all([
-        api.get('/api/buses/activos'),   // devuelve array de buses en servicio con GPS
-        api.get('/api/rutas'),
-      ])
+      const [respBuses, respRutas] = await Promise.all([api.get('/api/buses/activos'), api.get('/api/rutas')])
+      const listaBuses = Array.isArray(respBuses) ? respBuses : (respBuses.buses || [])
+      const listaRutas = Array.isArray(respRutas) ? respRutas : (respRutas.rutas || [])
 
-      // Normalizar: ambas respuestas pueden ser array o { buses/rutas: [] }
-      const listaBuses = Array.isArray(respBuses)
-        ? respBuses
-        : (respBuses.buses || [])
-
-      const listaRutas = Array.isArray(respRutas)
-        ? respRutas
-        : (respRutas.rutas || [])
-
-      // Buses en_recorrido con GPS válido
-      const enRuta = listaBuses.filter(b =>
-        b.estado === 'en_recorrido' && b.lat && b.lng
-      )
-
-      // Rutas activas (normalizar booleano MySQL 0/1 vs true/false)
+      const enRuta = listaBuses.filter(b => b.estado === 'en_recorrido' && b.lat && b.lng)
       const rutasActivas = listaRutas.filter(r => r.activa === 1 || r.activa === true)
-
-      // Ruta en operación: primera ruta activa que tenga un bus asignado
-      const rutaEnOp = rutasActivas.find(r =>
-        enRuta.some(b => b.id_ruta === r.id_ruta || b.nombre_ruta === r.nombre)
-      ) || rutasActivas[0] || null
+      const rutaEnOp = rutasActivas.find(r => enRuta.some(b => b.id_ruta === r.id_ruta)) || rutasActivas[0] || null
 
       setBusesActivos(enRuta)
-      setStats({
-        buses:      enRuta.length,
-        rutas:      rutasActivas.length,
-        rutaNombre: rutaEnOp?.nombre || null,
-        enServicio: enRuta.length > 0,
-      })
-      setBackendOk(true)
+      setRecibidoEn(Date.now())
+      setFallos(0)
 
-      // ── Cargar paradas de la ruta en operación para el mini-mapa ──
       if (rutaEnOp?.id_ruta) {
         try {
-          const respParadas = await api.get(`/api/paradas?ruta_id=${rutaEnOp.id_ruta}`)
-          const lista = (Array.isArray(respParadas) ? respParadas : respParadas.paradas || [])
+          const resp = await api.get(`/api/paradas?ruta_id=${rutaEnOp.id_ruta}`)
+          const lista = (Array.isArray(resp) ? resp : resp.paradas || [])
             .filter(p => p.lat && p.lng)
             .sort((a, b) => (a.orden || 0) - (b.orden || 0))
-          setPuntosRuta(lista.map(p => [p.lat, p.lng]))
-        } catch { /* silencioso */ }
+          setParadas(lista)
+        } catch { /* se conservan las paradas anteriores */ }
       }
     } catch {
-      setStats({ buses: 0, rutas: 0, rutaNombre: null, enServicio: false })
-      setBackendOk(false)
+      setFallos(f => f + 1) // se conservan los últimos datos: el talón los anula con sello en vez de borrarlos
     } finally {
       cargandoRef.current = false
       setCargando(false)
     }
   }
 
+  async function cargarAviso() {
+    try {
+      const data = await api.get('/api/notificaciones')
+      const lista = Array.isArray(data) ? data : (data.notificaciones || [])
+      if (lista[0]) setAviso(lista[0])
+    } catch { /* el aviso es opcional */ }
+  }
+
   useEffect(() => {
-    cargarStats()
-    // Respaldo de sincronización por polling
-    intervaloRef.current = setInterval(cargarStats, 10_000)
-    return () => clearInterval(intervaloRef.current)
+    cargarEstado()
+    cargarAviso()
+    const poll = setInterval(cargarEstado, 10_000)
+    const reloj = setInterval(() => setAhora(Date.now()), 1000)
+    const espera = setTimeout(() => setTardando(true), 4000)
+    return () => { clearInterval(poll); clearInterval(reloj); clearTimeout(espera) }
   }, [])
 
   useEffect(() => {
-    function programarRefresco(delay = 300) {
-      const ahora = Date.now()
-      // Evita ráfagas de peticiones por eventos consecutivos.
-      if (ahora - ultimoRefrescoRef.current < 2500) return
+    const subir = () => { setEnLinea(true); cargarEstado() }
+    const bajar = () => setEnLinea(false)
+    window.addEventListener('online', subir)
+    window.addEventListener('offline', bajar)
+    return () => { window.removeEventListener('online', subir); window.removeEventListener('offline', bajar) }
+  }, [])
 
-      if (refrescoPendienteRef.current) {
-        clearTimeout(refrescoPendienteRef.current)
-      }
-      refrescoPendienteRef.current = setTimeout(() => {
-        ultimoRefrescoRef.current = Date.now()
-        cargarStats().catch(() => {})
-      }, delay)
+  useEffect(() => {
+    function refrescar(delay = 300) {
+      if (Date.now() - ultimoRefrescoRef.current < 2500) return
+      clearTimeout(refrescoPendienteRef.current)
+      refrescoPendienteRef.current = setTimeout(() => { ultimoRefrescoRef.current = Date.now(); cargarEstado() }, delay)
     }
+    const alEstado = () => refrescar(200)
+    const alConectar = () => refrescar(0)
+    const alAviso = n => setAviso(n)
 
     if (!socket.connected) socket.connect()
-
-    const onBusLocation = () => {}
-    const onBusEstado = () => programarRefresco(200)
-    const onSocketConnect = () => programarRefresco(0)
-
-    socket.on('bus:location', onBusLocation)
-    socket.on('bus:estado', onBusEstado)
-    socket.on('connect', onSocketConnect)
-
+    socket.on('bus:estado', alEstado)
+    socket.on('connect', alConectar)
+    socket.on('notificacion:nueva', alAviso)
     return () => {
-      if (refrescoPendienteRef.current) {
-        clearTimeout(refrescoPendienteRef.current)
-      }
-      socket.off('bus:location', onBusLocation)
-      socket.off('bus:estado', onBusEstado)
-      socket.off('connect', onSocketConnect)
+      clearTimeout(refrescoPendienteRef.current)
+      socket.off('bus:estado', alEstado)
+      socket.off('connect', alConectar)
+      socket.off('notificacion:nueva', alAviso)
     }
   }, [])
 
-  // Centro del mapa: primer bus activo, o coordenadas de la universidad
-  const centro = busesActivos.length > 0
-    ? [busesActivos[0].lat, busesActivos[0].lng]
-    : [8.3086, -73.6194]
+  const parada = paradas.find(p => p.id_parada === miParadaId) || paradas[0] || null
+
+  const calculo = useMemo(() => {
+    if (!parada || busesActivos.length === 0) return null
+    const buses = busesActivos.map(b => ({ ...b, lat: num(b.lat), lng: num(b.lng) }))
+    const c = calcularETA({ lat: num(parada.lat), lng: num(parada.lng) }, buses)
+    return c.etaMinutos == null ? null : c
+  }, [parada, busesActivos])
+
+  // Frescura: edad medida por el servidor al recibirla + lo que ha pasado desde entonces en este teléfono
+  const edad = calculo?.busCercano
+    ? (Number(calculo.busCercano.edad_segundos) || 0) + Math.max(0, (ahora - recibidoEn) / 1000)
+    : null
+
+  // Un dato solo se anula cuando de verdad envejeció o cuando fallaron dos sondeos seguidos;
+  // un tropiezo de red de unos segundos no debe hacer parpadear el talón.
+  const sinRed = !enLinea || fallos > 0
+  let fase = 'vivo'
+  if (cargando) fase = 'cargando'
+  else if (!calculo) fase = sinRed ? 'sin-red-vacio' : 'sin-buses'
+  else if (sinRed && (edad > FRESCO_MAX_S || fallos >= FALLOS_PARA_ANULAR)) fase = 'sin-red'
+  else if (edad > FRESCO_MAX_S) fase = 'viejo'
+
+  const avisoVigente = aviso && (ahora - new Date(aviso.fecha_hora).getTime()) / 60000 < AVISO_VIGENCIA_MIN ? aviso : null
+
+  // Mapa esquemático: la ruta, las paradas y el bus sobre papel; sin teselas de calles
+  const puntosRuta = paradas.map(p => [num(p.lat), num(p.lng)])
+  const busCerca = calculo?.busCercano
+  const hayMapa = puntosRuta.length > 0
+  const hayBus = Boolean(busCerca)
+  const encuadre = useMemo(() => {
+    const pts = [...puntosRuta]
+    if (busCerca) pts.push([busCerca.lat, busCerca.lng])
+    return pts.length > 1 ? L.latLngBounds(pts) : null
+    // se reencuadra al cambiar el conjunto de paradas o al aparecer el primer bus, no en cada posición nueva
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paradas.length, hayBus])
+
+  function elegirParada(id) {
+    setMiParadaId(id)
+    try { localStorage.setItem(CLAVE_PARADA, String(id)) } catch { /* sin almacenamiento */ }
+  }
 
   return (
-    <Layout titulo="Sistema de Monitoreo de Rutas">
-      <div className="dash">
+    <Layout titulo="UpcTrack">
+      <div className="inicio">
+        <TalonETA
+          fase={fase}
+          parada={parada}
+          paradas={paradas}
+          onParada={elegirParada}
+          minutos={calculo?.etaMinutos ?? null}
+          bus={busCerca}
+          distanciaKm={calculo?.distanciaKmVal ?? null}
+          edad={edad}
+          frescoMax={FRESCO_MAX_S}
+          recibidoEn={recibidoEn}
+          tardando={tardando}
+          onMapa={() => navigate('/mapa')}
+          onRutas={() => navigate('/rutas')}
+          onReintentar={cargarEstado}
+        />
 
-        {/* ── Saludo ── */}
-        <p className="dash-saludo">
-          Hola, <strong>{usuario?.nombre || 'Usuario'}</strong> —{' '}
-          <span className="dash-rol">{usuario?.tipo_usuario}</span>
-        </p>
+        <AvisoConductor aviso={avisoVigente} />
 
-        {/* ── Tarjetas métricas ── */}
-        <section className="dash-seccion">
-          <h3 className="dash-seccion-titulo">Resumen de transporte</h3>
-          <div className="dash-tarjetas">
-
-            {/* Buses en recorrido */}
-            <div className="dash-tarjeta">
-              <div className="dash-tarjeta-icono">
-                <FontAwesomeIcon icon={faBus} />
-              </div>
-              <div className="dash-tarjeta-info">
-                <span className="dash-tarjeta-label">Buses en ruta</span>
-                <span className="dash-tarjeta-valor">{cargando ? '…' : stats.buses}</span>
-                <span className="dash-tarjeta-sub">Con GPS activo</span>
-              </div>
-            </div>
-
-            {/* Rutas activas */}
-            <div className="dash-tarjeta">
-              <div className="dash-tarjeta-icono">
-                <FontAwesomeIcon icon={faRoute} />
-              </div>
-              <div className="dash-tarjeta-info">
-                <span className="dash-tarjeta-label">Rutas activas</span>
-                <span className="dash-tarjeta-valor">{cargando ? '…' : stats.rutas}</span>
-                <span className="dash-tarjeta-sub">Habilitadas</span>
-              </div>
-            </div>
-
-            {/* Estado del servicio — reemplaza "Próximo bus" hardcodeado */}
-            <div className="dash-tarjeta">
-              <div className={`dash-tarjeta-icono ${stats.enServicio ? '' : 'dash-tarjeta-icono--gris'}`}>
-                <FontAwesomeIcon icon={stats.enServicio ? faCircleCheck : faCircleXmark} />
-              </div>
-              <div className="dash-tarjeta-info">
-                <span className="dash-tarjeta-label">Servicio</span>
-                <span
-                  className="dash-tarjeta-valor dash-tarjeta-valor--sm"
-                  style={{ color: stats.enServicio ? '#1e6b2e' : '#c62828' }}
-                >
-                  {cargando ? '…' : stats.enServicio ? 'Activo' : 'Inactivo'}
-                </span>
-                <span className="dash-tarjeta-sub dash-tarjeta-sub--ruta" title={stats.rutaNombre || ''}>
-                  {cargando ? '' : stats.rutaNombre || 'Sin ruta en operación'}
-                </span>
-              </div>
-            </div>
-
-          </div>
-        </section>
-
-        {/* ── Mapa preview ── */}
-        <section className="dash-seccion">
-          <h3 className="dash-seccion-titulo">Seguimiento en tiempo real</h3>
-          <div className="dash-mapa-preview" onClick={() => navigate('/mapa')} style={{ cursor: 'pointer' }}>
+        {hayMapa && (
+          <Link to="/mapa" className="inicio-mapa" aria-label="Abrir el mapa en tiempo real">
             <MapContainer
-              center={centro}
-              zoom={14}
+              key={`${paradas.length}-${hayBus}`}
+              {...(encuadre
+                ? { bounds: encuadre, boundsOptions: { padding: [40, 40] } }
+                : { center: [num(paradas[0].lat), num(paradas[0].lng)], zoom: 15 })}
               style={{ width: '100%', height: '100%' }}
-              zoomControl={false}
-              dragging={false}
-              scrollWheelZoom={false}
-              doubleClickZoom={false}
-              touchZoom={false}
-              attributionControl={false}
-              className="dash-mapa-leaflet"
+              zoomControl={false} dragging={false} scrollWheelZoom={false} doubleClickZoom={false}
+              touchZoom={false} keyboard={false} attributionControl={false}
             >
-              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-
-              {/* Polilínea de la ruta activa */}
-              {puntosRuta.length > 1 && (
-                <>
-                  <Polyline positions={puntosRuta} color="#fff"    weight={6} opacity={0.7} />
-                  <Polyline positions={puntosRuta} color="#1e6b2e" weight={3} opacity={0.95} />
-                </>
-              )}
-
-              {/* Buses con GPS */}
-              {busesActivos.map(b => (
-                <Marker key={b.id_bus} position={[b.lat, b.lng]} icon={iconoBusMini} />
+              {puntosRuta.length > 1 && <Polyline positions={puntosRuta} className="ruta-verde" color="#1e6b2e" weight={5} />}
+              {paradas.filter(p => p.id_parada !== parada?.id_parada).map(p => (
+                <CircleMarker key={p.id_parada} center={[num(p.lat), num(p.lng)]} radius={5}
+                  pathOptions={{ color: '#14261a', weight: 2, fillColor: '#fbfaf4', fillOpacity: 1 }} />
               ))}
+              {parada && (
+                <Marker position={[num(parada.lat), num(parada.lng)]} icon={iconoParada}>
+                  <Tooltip permanent direction="bottom" offset={[0, 10]} className="etiqueta-mapa">Tu parada</Tooltip>
+                </Marker>
+              )}
+              {busCerca && (
+                <Marker position={[busCerca.lat, busCerca.lng]} icon={iconoBus}>
+                  <Tooltip permanent direction="top" offset={[0, -12]} className="etiqueta-mapa">{busCerca.nombre}</Tooltip>
+                </Marker>
+              )}
             </MapContainer>
+          </Link>
+        )}
 
-            <div className="dash-mapa-overlay">
-              {!backendOk && (
-                <span className="dash-mapa-offline">Sin conexión al servidor</span>
-              )}
-              {/* Chip de estado sobre el mapa */}
-              {backendOk && (
-                <span className={`dash-mapa-estado-chip ${stats.enServicio ? 'dash-mapa-estado-chip--activo' : 'dash-mapa-estado-chip--inactivo'}`}>
-                  <span className="dash-mapa-estado-dot" />
-                  {stats.enServicio
-                    ? `${stats.buses} bus${stats.buses !== 1 ? 'es' : ''} en ruta`
-                    : 'Sin servicio activo'}
-                </span>
-              )}
-              <button className="dash-mapa-btn" onClick={e => { e.stopPropagation(); navigate('/mapa') }}>
-                Ver mapa completo →
-              </button>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Accesos rápidos ── */}
-        <section className="dash-seccion">
-          <h3 className="dash-seccion-titulo">Accesos rápidos</h3>
-          <div className="dash-accesos">
-            <button className="dash-acceso-btn" onClick={() => navigate('/rutas')}>
-              <FontAwesomeIcon icon={faRoute} /> Ver rutas
-            </button>
-            <button className="dash-acceso-btn" onClick={() => navigate('/buses')}>
-              <FontAwesomeIcon icon={faBus} /> Ver buses
-            </button>
-          </div>
-        </section>
-
+        <nav className="inicio-enlaces" aria-label="Más">
+          <Link to="/rutas">Ver rutas</Link>
+          <Link to="/buses">Ver buses</Link>
+        </nav>
       </div>
     </Layout>
   )

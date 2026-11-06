@@ -31,32 +31,13 @@
 
     <title>Monitoreo de Rutas — UPCSA</title>
 
-    <!-- ── Fuentes ── -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
     <!-- ── Splash screen: color de fondo mientras carga ── -->
     <style>
-      html { background: #1e6b2e; }
-      body { background: #f0f4f0; }
-      /* Ocultar root hasta que React monte (evita flash) */
-      #root:empty {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 100dvh;
-        background: #1e6b2e;
-      }
-      #root:empty::after {
-        content: '🚌';
-        font-size: 48px;
-        animation: bounce-bus 0.9s ease-in-out infinite alternate;
-      }
-      @keyframes bounce-bus {
-        from { transform: translateY(0);    opacity: 0.8; }
-        to   { transform: translateY(-12px); opacity: 1;   }
-      }
+      html, body { background: #fbfaf4; }
+      /* Hasta que React monta: papel y la marca de UpcTrack */
+      #root:empty { display: flex; align-items: center; justify-content: center; min-height: 100dvh; background: #fbfaf4; }
+      #root:empty::after { content: url(/brand/upc-track-mark.png); width: 96px; height: 96px; }
     </style>
   </head>
   <body>

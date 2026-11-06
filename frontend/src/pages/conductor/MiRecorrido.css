@@ -1,6 +1,7 @@
 .conductor-ride-page {
   position: relative;
-  min-height: calc(100vh - 72px);
+  flex: 1; /* ocupa lo que dejan la barra superior y la navegación inferior (el padre es una columna flex) */
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -537,7 +538,7 @@ body[data-tema="oscuro"] .conductor-toggle-btn {
 ══════════════════════════════════════════════════ */
 @media (max-width: 760px) {
   .conductor-ride-page {
-    min-height: calc(100vh - 64px);
+    min-height: 0;
   }
 
   /* Mostrar handle y botones de toggle */
@@ -577,8 +578,9 @@ body[data-tema="oscuro"] .conductor-toggle-btn {
   }
 
   /* Estado: colapsado — muestra header + badges + botones */
+  /* Colapsado: tan alto como su contenido (un alto fijo recortaba los botones al cambiar la tipografía) */
   .conductor-panel--colapsado {
-    max-height: 248px;
+    max-height: none;
   }
 
   .conductor-panel--colapsado .conductor-panel-expandible {
@@ -587,7 +589,7 @@ body[data-tema="oscuro"] .conductor-toggle-btn {
 
   /* Estado: expandido — panel completo con scroll */
   .conductor-panel--expandido {
-    max-height: calc(100dvh - 72px);
+    max-height: calc(100% - var(--e4));
     overflow-y: auto;
   }
 

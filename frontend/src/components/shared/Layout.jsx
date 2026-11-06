@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useState, useEffect, useRef } from 'react'
 
@@ -84,9 +84,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faHouse, faLocationDot, faRoute, faBus,
   faBell, faUser, faUsers, faRightFromBracket,
-  faMoon, faSun, faBars, faMap, faGear,
+  faMoon, faSun, faMap, faGear,
   faTriangleExclamation, faRotate, faCircleCheck,
-  faDownload, faWifi, faArrowsRotate
+  faDownload, faWifi, faArrowsRotate, faXmark
 } from '@fortawesome/free-solid-svg-icons'
 import logoUpc from '../../assets/logo-upc.png'
 import api from '../../services/api'
@@ -96,16 +96,16 @@ import './Layout.css'
 
 const navEstudiante = [
   { path: '/inicio',         icono: faHouse,       label: 'Inicio' },
-  { path: '/mapa',           icono: faLocationDot, label: 'Mapa en tiempo real' },
+  { path: '/mapa',           icono: faLocationDot, label: 'Mapa en tiempo real', corto: 'Mapa' },
   { path: '/rutas',          icono: faRoute,       label: 'Rutas' },
-  { path: '/buses',          icono: faBus,         label: 'Buses' },
-  { path: '/notificaciones', icono: faBell,        label: 'Notificaciones' },
+  { path: '/buses',          icono: faBus,         label: 'Buses', soloEscritorio: true },
+  { path: '/notificaciones', icono: faBell,        label: 'Alertas' },
   { path: '/perfil',         icono: faUser,        label: 'Perfil' },
 ]
 
 const navConductor = [
   { path: '/conductor',      icono: faMap,    label: 'Mi recorrido' },
-  { path: '/notificaciones', icono: faBell,   label: 'Notificaciones' },
+  { path: '/notificaciones', icono: faBell,   label: 'Alertas' },
   { path: '/perfil',         icono: faUser,   label: 'Perfil' },
 ]
 
@@ -117,15 +117,15 @@ const navAdmin = [
 ]
 
 function iconoNotif(tipo) {
-  if (tipo === 'retraso')     return { icono: faTriangleExclamation, color: '#f57f17' }
-  if (tipo === 'cambio_ruta') return { icono: faRotate,              color: '#1565c0' }
-  return                             { icono: faCircleCheck,         color: '#1e6b2e' }
+  if (tipo === 'retraso')     return { icono: faTriangleExclamation }
+  if (tipo === 'cambio_ruta') return { icono: faRotate }
+  return                             { icono: faCircleCheck }
 }
 
 function tituloNotif(tipo) {
   if (tipo === 'retraso') return 'Retraso'
   if (tipo === 'cambio_ruta') return 'Cambio de ruta'
-  return 'Informacion'
+  return 'Información'
 }
 
 function formatearHace(fechaHora) {
@@ -138,8 +138,10 @@ function formatearHace(fechaHora) {
 export default function Layout({ children, titulo, sinPadding = false }) {
   const { usuario, logout } = useAuth()
   const navigate = useNavigate()
+  const { pathname } = useLocation()
+  const rutaActualRef = useRef(pathname)
+  useEffect(() => { rutaActualRef.current = pathname }, [pathname])
   const [oscuro, setOscuro] = useState(() => localStorage.getItem('tema') === 'oscuro')
-  const [menuAbierto, setMenuAbierto] = useState(false)
   const [perfilMenu, setPerfilMenu] = useState(false)
   const [notifPanel, setNotifPanel] = useState(false)
   const [notifs, setNotifs] = useState([])
@@ -186,9 +188,10 @@ export default function Layout({ children, titulo, sinPadding = false }) {
     socket.on('notificacion:nueva', (n) => {
       setNotifs(prev => [{ ...n, hace: 'Ahora' }, ...prev].slice(0, 6))
       reproducirSonidoNotif()
-      const titulo = `${tituloNotif(n.tipo)} — ${n.nombre_ruta || 'Ruta'}`
+      const titulo = n.nombre_ruta ? `${tituloNotif(n.tipo)} — ${n.nombre_ruta}` : tituloNotif(n.tipo)
       mostrarNotificacionSistema(titulo, n.mensaje)
 
+      if (rutaActualRef.current === '/inicio') return // el aviso ya se ve en la propia pantalla de inicio
       const id = Date.now()
       setToasts(prev => [...prev, { ...n, id, titulo }])
       setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 5000)
@@ -235,6 +238,15 @@ export default function Layout({ children, titulo, sinPadding = false }) {
     }
   }, [usuario])
 
+  // Escape cierra los paneles abiertos
+  useEffect(() => {
+    function alTeclear(e) {
+      if (e.key === 'Escape') { setPerfilMenu(false); setNotifPanel(false) }
+    }
+    document.addEventListener('keydown', alTeclear)
+    return () => document.removeEventListener('keydown', alTeclear)
+  }, [])
+
   // Cerrar dropdowns al hacer clic fuera
   useEffect(() => {
     function handler(e) {
@@ -263,17 +275,13 @@ export default function Layout({ children, titulo, sinPadding = false }) {
 
   return (
     <div className="layout">
-      {menuAbierto && (
-        <div className="layout-overlay" onClick={() => setMenuAbierto(false)} />
-      )}
-
       {/* Sidebar */}
-      <aside className={`sidebar ${menuAbierto ? 'sidebar--abierto' : ''}`}>
+      <aside className="sidebar">
         <div className="sidebar-logo">
-          <img src={logoUpc} alt="UPC" />
+          <img src={logoUpc} alt="Universidad Popular del Cesar" />
         </div>
 
-        <nav className="sidebar-nav">
+        <nav className="sidebar-nav" aria-label="Principal">
           {nav.map(item => (
             <NavLink
               key={item.path}
@@ -281,7 +289,6 @@ export default function Layout({ children, titulo, sinPadding = false }) {
               className={({ isActive }) =>
                 `sidebar-link ${isActive ? 'sidebar-link--activo' : ''}`
               }
-              onClick={() => setMenuAbierto(false)}
             >
               <FontAwesomeIcon icon={item.icono} className="sidebar-link-icono" />
               <span>{item.label}</span>
@@ -298,20 +305,14 @@ export default function Layout({ children, titulo, sinPadding = false }) {
       {/* Main */}
       <div className="layout-main">
         <header className="topbar">
-          <button
-            className="topbar-menu-btn"
-            onClick={() => setMenuAbierto(!menuAbierto)}
-          >
-            <FontAwesomeIcon icon={faBars} />
-          </button>
-
-          <h2 className="topbar-titulo">{titulo || 'Sistema de Monitoreo'}</h2>
+          <img className="topbar-marca" src="/brand/upc-track-mark.png" alt="" width="36" height="36" />
+          <h1 className="topbar-titulo">{titulo || 'UpcTrack'}</h1>
 
           <div className="topbar-acciones">
             <button
               className="topbar-btn"
               onClick={() => setOscuro(!oscuro)}
-              title="Cambiar tema"
+              aria-label={oscuro ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}
             >
               <FontAwesomeIcon icon={oscuro ? faSun : faMoon} />
             </button>
@@ -321,10 +322,11 @@ export default function Layout({ children, titulo, sinPadding = false }) {
               <button
                 className="topbar-btn topbar-btn--notif"
                 onClick={() => { setNotifPanel(v => !v); setPerfilMenu(false) }}
-                title="Notificaciones"
+                aria-label={sinLeer > 0 ? `Notificaciones, ${sinLeer} recientes` : 'Notificaciones'}
+                aria-expanded={notifPanel}
               >
                 <FontAwesomeIcon icon={faBell} />
-                {sinLeer > 0 && <span className="topbar-badge">{sinLeer}</span>}
+                {sinLeer > 0 && <span className="topbar-badge" aria-hidden="true">{sinLeer}</span>}
               </button>
 
               {notifPanel && (
@@ -343,13 +345,13 @@ export default function Layout({ children, titulo, sinPadding = false }) {
                   ) : (
                     <div className="topbar-notif-lista">
                       {notifs.map((n, i) => {
-                        const { icono, color } = iconoNotif(n.tipo)
+                        const { icono } = iconoNotif(n.tipo)
                         return (
                           <div key={n.id_notificacion || i} className="topbar-notif-item">
-                            <FontAwesomeIcon icon={icono} style={{ color, fontSize: 14, flexShrink: 0 }} />
+                            <FontAwesomeIcon icon={icono} className="topbar-notif-icono" />
                             <div className="topbar-notif-info">
                               <span className="topbar-notif-titulo">
-                                {tituloNotif(n.tipo)} — {n.nombre_ruta}
+                                {tituloNotif(n.tipo)}{n.nombre_ruta ? ` — ${n.nombre_ruta}` : ''}
                               </span>
                               <span className="topbar-notif-msg">{n.mensaje}</span>
                             </div>
@@ -365,13 +367,14 @@ export default function Layout({ children, titulo, sinPadding = false }) {
 
             {/* Avatar con dropdown de perfil */}
             <div className="topbar-dropdown-wrap" ref={perfilRef}>
-              <div
+              <button
                 className="topbar-avatar"
                 onClick={() => { setPerfilMenu(v => !v); setNotifPanel(false) }}
-                title={usuario?.nombre}
+                aria-label={`Cuenta de ${usuario?.nombre || 'usuario'}`}
+                aria-expanded={perfilMenu}
               >
-                {iniciales}
-              </div>
+                <span aria-hidden="true">{iniciales}</span>
+              </button>
 
               {perfilMenu && (
                 <div className="topbar-panel topbar-panel--perfil">
@@ -438,9 +441,9 @@ export default function Layout({ children, titulo, sinPadding = false }) {
             <button
               className="pwa-banner-btn pwa-banner-btn--cerrar"
               onClick={() => setBannerInstalacion(false)}
-              aria-label="Cerrar"
+              aria-label="Cerrar aviso de instalación"
             >
-              ✕
+              <FontAwesomeIcon icon={faXmark} />
             </button>
           </div>
         )}
@@ -448,13 +451,36 @@ export default function Layout({ children, titulo, sinPadding = false }) {
         <main className={`layout-contenido${sinPadding ? ' layout-contenido--sin-padding' : ''}`}>
           {children}
         </main>
+
+        {/* El logo de la universidad también se ve en móvil y tablet, donde el panel lateral no existe */}
+        {!sinPadding && (
+          <footer className="layout-pie">
+            <img src={logoUpc} alt="Universidad Popular del Cesar" />
+            <span>Seccional Aguachica</span>
+          </footer>
+        )}
       </div>
+
+      {/* ── Navegación inferior: al alcance del pulgar (móvil y tablet) ── */}
+      <nav className="botnav" aria-label="Principal">
+        {nav.filter(item => !item.soloEscritorio).map(item => (
+          <NavLink
+            key={item.path}
+            to={item.path}
+            end={item.path === '/admin'}
+            className={({ isActive }) => `botnav-item ${isActive ? 'botnav-item--activo' : ''}`}
+          >
+            <FontAwesomeIcon icon={item.icono} />
+            <span>{item.corto || item.label}</span>
+          </NavLink>
+        ))}
+      </nav>
 
       {/* ── Toasts de notificación en tiempo real ── */}
       {toasts.length > 0 && (
-        <div className="notif-toast-wrap">
+        <div className="notif-toast-wrap" role="status" aria-live="polite">
           {toasts.map(t => {
-            const { icono, color } = iconoNotif(t.tipo)
+            const { icono } = iconoNotif(t.tipo)
             return (
               <div
                 key={t.id}
@@ -462,7 +488,7 @@ export default function Layout({ children, titulo, sinPadding = false }) {
                 onClick={() => setToasts(prev => prev.filter(x => x.id !== t.id))}
               >
                 <div className="notif-toast-icono">
-                  <FontAwesomeIcon icon={icono} style={{ color }} />
+                  <FontAwesomeIcon icon={icono} />
                 </div>
                 <div className="notif-toast-body">
                   <span className="notif-toast-titulo">{t.titulo}</span>
@@ -470,8 +496,9 @@ export default function Layout({ children, titulo, sinPadding = false }) {
                 </div>
                 <button
                   className="notif-toast-cerrar"
+                  aria-label="Cerrar aviso"
                   onClick={e => { e.stopPropagation(); setToasts(prev => prev.filter(x => x.id !== t.id)) }}
-                >✕</button>
+                ><FontAwesomeIcon icon={faXmark} /></button>
               </div>
             )
           })}
