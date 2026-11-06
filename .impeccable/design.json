@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-05T00:00:00Z",
+  "title": "Design System: UpcTrack",
+  "extensions": {
+    "colorMeta": {
+      "papel": { "role": "neutral", "displayName": "Papel térmico", "canonical": "#fbfaf4", "tonalRamp": ["#0b0b09", "#2a2925", "#494843", "#6a6964", "#908f8a", "#b5b4af", "#d9d8d2", "#efeeeb"] },
+      "papel-hundido": { "role": "neutral", "displayName": "Papel hundido", "canonical": "#f1eee1", "tonalRamp": ["#0b0b09", "#2a2925", "#494843", "#6a6964", "#908f8a", "#b5b4af", "#d9d8d2", "#efeeeb"] },
+      "superficie": { "role": "neutral", "displayName": "Hoja del talón", "canonical": "#ffffff", "tonalRamp": ["#0b0b09", "#2a2925", "#494843", "#6a6964", "#908f8a", "#b5b4af", "#d9d8d2", "#ffffff"] },
+      "tinta": { "role": "neutral", "displayName": "Tinta verde-negra", "canonical": "oklch(25% 0.033 154)", "tonalRamp": ["#060d08", "#1c2e21", "#3a4d40", "#5a6f60", "#809586", "#a5bbab", "#c7dece", "#e6f2e9"] },
+      "tinta-suave": { "role": "neutral", "displayName": "Tinta suave", "canonical": "#4a5b4f", "tonalRamp": ["#060d08", "#1c2e21", "#3a4d40", "#5a6f60", "#809586", "#a5bbab", "#c7dece", "#e6f2e9"] },
+      "linea-suave": { "role": "neutral", "displayName": "Línea suave", "canonical": "#d8d3c0", "tonalRamp": ["#0b0b09", "#2a2925", "#494843", "#6a6964", "#908f8a", "#b5b4af", "#d9d8d2", "#efeeeb"] },
+      "verde-upc": { "role": "primary", "displayName": "Verde UPC", "canonical": "oklch(47% 0.120 147)", "tonalRamp": ["#001100", "#003700", "#00581b", "#307b3d", "#59a363", "#7ec987", "#a1eda9", "#d5fad8"] },
+      "amarillo-franja": { "role": "secondary", "displayName": "Amarillo franja", "canonical": "oklch(84% 0.172 90)", "tonalRamp": ["#190600", "#481a00", "#6a3d00", "#8e6000", "#b78700", "#dead00", "#ffd129", "#ffedac"] },
+      "sello": { "role": "tertiary", "displayName": "Sello rojo", "canonical": "oklch(54% 0.194 27)", "tonalRamp": ["#280000", "#6b0000", "#950000", "#bf1f22", "#ee524a", "#ff7a6e", "#ff9f90", "#ffd6cc"] },
+      "verde-texto-noche": { "role": "primary", "displayName": "Verde de texto (oscuro)", "canonical": "#7fd38b", "tonalRamp": [] },
+      "sello-noche": { "role": "tertiary", "displayName": "Sello (oscuro)", "canonical": "#ff8a80", "tonalRamp": [] }
+    },
+    "typographyMeta": {
+      "eta": { "displayName": "ETA", "purpose": "La cifra del talón. Una por pantalla. Excede el piso de 6rem de display a propósito (hasta 7.5rem)." },
+      "headline": { "displayName": "Headline", "purpose": "La parada del talón (selector nativo) y estados vacíos grandes." },
+      "title": { "displayName": "Title", "purpose": "Título de barra superior, de paneles y texto del sello." },
+      "body": { "displayName": "Body", "purpose": "Texto corrido y botones." },
+      "label": { "displayName": "Label", "purpose": "Texto de la navegación inferior y subtextos." },
+      "dato": { "displayName": "Dato (mono)", "purpose": "Solo datos medidos o que cambian: km, segundos, horas, conteos." }
+    },
+    "shadows": [],
+    "motion": [
+      { "name": "ease-out", "value": "cubic-bezier(0.23, 1, 0.32, 1)", "purpose": "Curva fuerte para toda respuesta de interfaz." },
+      { "name": "d-toque", "value": "140ms", "purpose": "Confirmación de toque (scale 0.97)." },
+      { "name": "d-ui", "value": "200ms", "purpose": "Cambios de estado, paneles desplegables, toasts." },
+      { "name": "imprime", "value": "260ms ease-out", "purpose": "La franja amarilla se imprime al llegar un dato nuevo." },
+      { "name": "sello-cae", "value": "240ms ease-out, scale 1.35 a 1", "purpose": "El sello cae sobre la cifra; único momento animado con significado." },
+      { "name": "franja-vacia", "value": "1s linear", "purpose": "La franja se vacía de 0 a 30 s según la frescura." }
+    ],
+    "breakpoints": [
+      { "name": "escritorio", "value": "1024px", "purpose": "Aparece el panel lateral de 240px, desaparece la navegación inferior; Inicio pasa a dos columnas." }
+    ]
+  },
+  "components": [
+    {
+      "name": "Talón ETA",
+      "kind": "custom",
+      "refersTo": "talon",
+      "description": "Cifra del ETA a la parada, franja de validez, perforación, fila de datos y acción primaria.",
+      "html": "<section class=\"ds-talon\"><div class=\"ds-talon-cuerpo\"><p class=\"ds-talon-parada\">Parque Principal</p><div class=\"ds-talon-eta\"><span class=\"ds-talon-cifra\">2</span><span class=\"ds-talon-unidad\">min</span></div><div class=\"ds-talon-franja\"></div></div><div class=\"ds-talon-perf\"></div><div class=\"ds-talon-datos\"><div class=\"ds-talon-info\"><span>Centro - UPC</span><span>Bus 1 · a 0,7 km</span></div><span class=\"ds-talon-estado\">Validado · 3 s</span></div><button class=\"ds-talon-accion\">Ver en el mapa</button></section>",
+      "css": ".ds-talon { position: relative; background: var(--superficie, #fff); border: 2px solid var(--trazo, #14261a); max-width: 360px; font-family: 'Archivo Variable', system-ui, sans-serif; color: var(--texto, #14261a); } .ds-talon-cuerpo { padding: 16px 16px 12px; } .ds-talon-parada { font-size: 1.5rem; font-weight: 700; line-height: 1.15; } .ds-talon-eta { display: flex; align-items: baseline; gap: 8px; margin-top: 4px; } .ds-talon-cifra { font-size: 7.5rem; line-height: 0.9; font-weight: 800; font-stretch: 76%; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; } .ds-talon-unidad { font-size: 1.75rem; font-weight: 700; } .ds-talon-franja { width: 100%; height: 10px; margin-top: 8px; background: #f5c400; } .ds-talon-perf { position: relative; margin: 0 -2px; border-top: 3px dashed var(--trazo, #14261a); } .ds-talon-perf::before, .ds-talon-perf::after { content: ''; position: absolute; top: -13px; width: 24px; height: 24px; border-radius: 50%; background: var(--bg, #fbfaf4); border: 2px solid var(--trazo, #14261a); } .ds-talon-perf::before { left: -14px; } .ds-talon-perf::after { right: -14px; } .ds-talon-datos { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px 12px; padding: 12px 16px; font-family: 'Spline Sans Mono Variable', ui-monospace, monospace; font-size: 0.875rem; font-weight: 600; text-transform: uppercase; } .ds-talon-info { display: flex; flex-direction: column; gap: 2px; } .ds-talon-estado { padding: 2px 8px; background: #1e6b2e; color: #fff; } .ds-talon-accion { display: flex; align-items: center; justify-content: center; width: calc(100% - 32px); min-height: 48px; margin: 0 16px 16px; background: #1e6b2e; color: #fff; border: 0; font: 700 1rem 'Archivo Variable', system-ui, sans-serif; cursor: pointer; transition: transform 140ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-talon-accion:active { transform: scale(0.97); } .ds-talon-accion:focus-visible { outline: 3px solid var(--trazo, #14261a); outline-offset: 2px; }"
+    },
+    {
+      "name": "Talón anulado con sello",
+      "kind": "custom",
+      "refersTo": "sello",
+      "description": "Dato vencido o sin conexión: la cifra baja al 28% y cae el sello rojo; nunca se esconde.",
+      "html": "<div class=\"ds-anulado\"><span class=\"ds-anulado-cifra\">4</span><span class=\"ds-anulado-unidad\">min</span><span class=\"ds-sello\">Sin señal</span></div><span class=\"ds-estado-viejo\">Hace 90 s</span>",
+      "css": ".ds-anulado { position: relative; display: flex; align-items: baseline; gap: 8px; min-height: 5.75rem; max-width: 280px; font-family: 'Archivo Variable', system-ui, sans-serif; color: var(--texto, #14261a); } .ds-anulado-cifra { font-size: 7.5rem; line-height: 0.9; font-weight: 800; font-stretch: 76%; letter-spacing: -0.03em; opacity: 0.28; } .ds-anulado-unidad { font-size: 1.75rem; font-weight: 700; opacity: 0.28; } .ds-sello { position: absolute; right: 0; top: 50%; translate: 0 -50%; rotate: -8deg; max-width: 8.75rem; padding: 4px 10px; text-align: center; line-height: 1.05; border: 3px solid #c62828; color: #c62828; background: color-mix(in srgb, #ffffff 72%, transparent); font-size: 1.25rem; font-weight: 800; font-stretch: 76%; letter-spacing: 0.06em; text-transform: uppercase; animation: ds-sello-cae 240ms cubic-bezier(0.23, 1, 0.32, 1) both; } @keyframes ds-sello-cae { from { opacity: 0; scale: 1.35; } to { opacity: 1; scale: 1; } } .ds-estado-viejo { display: inline-block; margin-top: 12px; padding: 2px 8px; color: #c62828; box-shadow: inset 0 0 0 2px #c62828; font: 600 0.875rem 'Spline Sans Mono Variable', ui-monospace, monospace; text-transform: uppercase; }"
+    },
+    {
+      "name": "Botón primario",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Relleno verde UPC plano, 48px, esquinas rectas. La única pieza verde llena de una vista.",
+      "html": "<button class=\"ds-btn-primary\">Ver en el mapa</button>",
+      "css": ".ds-btn-primary { min-height: 48px; padding: 0 24px; background: #1e6b2e; color: #fff; border: 0; border-radius: 0; font: 700 1rem 'Archivo Variable', system-ui, sans-serif; cursor: pointer; transition: transform 140ms cubic-bezier(0.23, 1, 0.32, 1), background-color 200ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-btn-primary:active { transform: scale(0.97); } .ds-btn-primary:focus-visible { outline: 3px solid #14261a; outline-offset: 2px; }"
+    },
+    {
+      "name": "Aviso del conductor",
+      "kind": "card",
+      "refersTo": "aviso-conductor",
+      "description": "Losa amarilla completa con tinta y borde de tinta; igual vestido para el toast.",
+      "html": "<aside class=\"ds-aviso\"><p class=\"ds-aviso-texto\">Retraso de 10 minutos por obras en la Calle 5</p><time class=\"ds-aviso-hace\">ahora</time></aside>",
+      "css": ".ds-aviso { display: flex; align-items: flex-start; gap: 12px; padding: 12px 16px; max-width: 360px; background: #f5c400; color: #14261a; border: 2px solid #14261a; font-family: 'Archivo Variable', system-ui, sans-serif; } .ds-aviso-texto { flex: 1; font-weight: 700; } .ds-aviso-hace { margin-top: 4px; font: 600 0.875rem 'Spline Sans Mono Variable', ui-monospace, monospace; white-space: nowrap; }"
+    },
+    {
+      "name": "Navegación inferior",
+      "kind": "nav",
+      "refersTo": "botnav-item",
+      "description": "Cinco destinos con icono y texto; el activo es una losa verde completa.",
+      "html": "<nav class=\"ds-botnav\"><a class=\"ds-botnav-item ds-botnav-activo\" href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"currentColor\"><path d=\"M12 3 2 12h3v8h5v-6h4v6h5v-8h3z\"/></svg><span>Inicio</span></a><a class=\"ds-botnav-item\" href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"currentColor\"><path d=\"M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.500a2.500 2.500 0 0 1 0 5z\"/></svg><span>Mapa</span></a><a class=\"ds-botnav-item\" href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"currentColor\"><circle cx=\"12\" cy=\"12\" r=\"6\"/></svg><span>Rutas</span></a></nav>",
+      "css": ".ds-botnav { display: flex; max-width: 360px; background: var(--bg, #fbfaf4); border-top: 2px solid var(--trazo, #14261a); font-family: 'Archivo Variable', system-ui, sans-serif; } .ds-botnav-item { flex: 1; min-height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 0.75rem; font-weight: 600; color: #4a5b4f; text-decoration: none; } .ds-botnav-activo { background: #1e6b2e; color: #fff; font-weight: 700; } .ds-botnav-item:focus-visible { outline: 3px solid #14261a; outline-offset: -3px; } .ds-botnav-item:not(.ds-botnav-activo):hover { background: #f1eee1; }"
+    },
+    {
+      "name": "Barra superior",
+      "kind": "nav",
+      "refersTo": "topbar",
+      "description": "Papel, borde inferior de 2px, logo, título, tema, campana con cuenta en tinta y avatar verde.",
+      "html": "<header class=\"ds-topbar\"><span class=\"ds-topbar-titulo\">UpcTrack</span><span class=\"ds-topbar-badge\">2</span><span class=\"ds-topbar-avatar\">ED</span></header>",
+      "css": ".ds-topbar { display: flex; align-items: center; gap: 12px; min-height: 56px; max-width: 360px; padding: 0 8px 0 16px; background: #fbfaf4; border-bottom: 2px solid #14261a; font-family: 'Archivo Variable', system-ui, sans-serif; color: #14261a; } .ds-topbar-titulo { flex: 1; font-size: 1.25rem; font-weight: 700; } .ds-topbar-badge { min-width: 20px; height: 20px; padding: 0 5px; display: grid; place-items: center; background: #14261a; color: #fbfaf4; font: 700 0.75rem 'Spline Sans Mono Variable', ui-monospace, monospace; } .ds-topbar-avatar { width: 32px; height: 32px; display: grid; place-items: center; background: #1e6b2e; color: #fff; font-size: 0.875rem; font-weight: 700; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "El Talón",
+    "overview": "Cada dato es un talón: el tiempo de llegada a tu parada se imprime como un tiquete sobre papel térmico y se valida o se anula con un sello. La app nunca muestra una cifra vieja como si fuera actual; un dato vencido baja de tono y recibe un sello rojo encima, no se esconde. El sistema es papel, tinta verde-negra, y dos colores de marca con trabajo fijo: verde UPC para lo accionable y lo válido, amarillo para la franja de frescura y los avisos del conductor.\n\nLa densidad es baja y la jerarquía es de un solo foco: una cifra enorme y condensada, rodeada de bordes de 2px, color plano, sin sombras, sin degradados y sin rótulos pequeños encima de los títulos. Está pensado para pleno sol, una mano y lectura de tres segundos.\n\nRechaza las tarjetas blancas redondeadas con métrica grande y acento azul. Alcance: construido solo en el shell y en Inicio; el resto de pantallas solo hereda tokens y shell y aún no está en este mundo.",
+    "keyCharacteristics": [
+      "Papel térmico y tinta verde-negra; el blanco es solo la hoja del talón y los paneles.",
+      "Una sola cifra grande y condensada por pantalla.",
+      "Bordes de 2px en tinta, esquinas rectas, sin sombras; la única curva es la muesca de la perforación.",
+      "Rojo solo para el sello de dato vencido o sin conexión; verde solo para lo accionable y lo válido.",
+      "Un único gesto animado con significado: el sello que cae sobre la cifra."
+    ],
+    "rules": [
+      { "name": "The Rojo Es Sello Rule", "body": "El rojo existe solo para decir «este dato ya no vale» (sello, estado vencido, sin conexión). Ninguna otra cosa lo usa.", "section": "colors" },
+      { "name": "The Un Solo Verde Lleno Rule", "body": "El verde se llena en una acción primaria por vista, en el elemento activo de navegación y en el estado válido. No es decoración.", "section": "colors" },
+      { "name": "The Amarillo Con Tinta Rule", "body": "El amarillo siempre lleva texto e icono en tinta y borde de tinta; nunca sobre papel como texto.", "section": "colors" },
+      { "name": "The Una Cifra Rule", "body": "Una sola cifra de display por pantalla. Todo lo demás se subordina a ella en tamaño, no en color.", "section": "typography" },
+      { "name": "The Mono Solo Dato Rule", "body": "Spline Sans Mono se usa solo para datos que cambian o se miden. Nunca para títulos, etiquetas ni botones.", "section": "typography" },
+      { "name": "The Cifras Fijas Rule", "body": "Todo número que se actualiza usa cifras tabulares para que no salte al refrescarse.", "section": "typography" },
+      { "name": "The Plano Con Borde Rule", "body": "Separar es dibujar un borde de 2px o cambiar de relleno plano; nunca una sombra ni un degradado.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do mostrar siempre la frescura del dato junto a la cifra, y anular con sello (cifra al 28%, franja gris) cuando pase de 30 s o se pierda la red.",
+      "Do usar tinta #14261a sobre papel #fbfaf4 como par de máximo contraste y bordes de 2px en tinta.",
+      "Do reservar el verde lleno para una acción primaria por vista, el elemento activo de navegación y el estado válido.",
+      "Do dar a los avisos del conductor una losa amarilla completa con tinta y borde de tinta.",
+      "Do usar Spline Sans Mono con cifras tabulares solo para km, segundos, horas y conteos.",
+      "Do mantener 44px de objetivo táctil mínimo y prefers-reduced-motion respetado.",
+      "Do repetir los mismos nombres semánticos en modo oscuro con otros valores; en oscuro el texto verde pasa a #7fd38b."
+    ],
+    "donts": [
+      "Don't usar rojo para nada que no sea dato vencido o sin conexión.",
+      "Don't usar sombras, degradados ni esquinas redondeadas; la única curva es la muesca de la perforación.",
+      "Don't poner rótulos pequeños encima de los títulos ni etiquetas de sección decorativas.",
+      "Don't repetir la cifra grande en más de un lugar por pantalla ni usar Spline Sans Mono para títulos o botones.",
+      "Don't volver a la tarjeta blanca redondeada con métrica grande y acento azul.",
+      "Don't usar el verde como acento decorativo ni el amarillo como color de texto sobre papel."
+    ]
+  }
+}
