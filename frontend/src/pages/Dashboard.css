@@ -15,24 +15,6 @@
   overflow: hidden;
   border: var(--grosor) solid var(--trazo);
 }
-/* Mapa esquemático sobre papel: solo la ruta, las paradas y el bus (sin teselas, sin rótulos de calles) */
-.inicio-mapa .leaflet-container { background: var(--papel-hundido); font-family: var(--f-ui); }
-.inicio-mapa .ruta-linea { stroke: var(--acento-texto); }
-.inicio-mapa .leaflet-tooltip.mapa-etiqueta {
-  padding: 2px 8px;
-  background: #fbfaf4; /* la etiqueta es siempre papel con tinta, también en oscuro */
-  color: #14261a;
-  border: 2px solid #14261a;
-  border-radius: 0;
-  box-shadow: none;
-  font: 700 var(--t-sm) / 1.3 var(--f-ui);
-}
-.inicio-mapa .leaflet-tooltip.mapa-etiqueta::before { display: none; }
-
-/* Marcadores propios (sin emoji): el bus es tinta, la parada es el amarillo del talón */
-.mk { display: block; border-radius: 50%; border: 3px solid #fbfaf4; }
-.mk-bus { width: 26px; height: 26px; background: #14261a; }
-.mk-parada { width: 22px; height: 22px; background: var(--amarillo); border-color: #14261a; }
 
 .inicio-enlaces { display: flex; gap: var(--e5); }
 .inicio-enlaces a {

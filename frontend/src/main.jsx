@@ -2,10 +2,11 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import '@fontsource-variable/archivo/wdth.css'
 import '@fontsource-variable/spline-sans-mono'
+import 'leaflet/dist/leaflet.css'
 import './styles/tokens.css'
 import './styles/base.css'
+import './styles/mapa.css'
 import App from './App'
-import 'leaflet/dist/leaflet.css'
 
 try {
   const guardado = localStorage.getItem('tema')

@@ -1,0 +1,54 @@
+/* Hoja inferior del mapa: el talón (ver Talon.css) y la lista de buses. */
+
+/* Etiquetas de estado: validado (verde, lo válido), anulado (rojo, solo dato vencido) o neutro */
+.etiqueta { flex-shrink: 0; padding: 2px 8px; font: 600 var(--t-sm) / 1.3 var(--f-dato); text-transform: uppercase; white-space: nowrap; }
+.etiqueta--vivo { background: var(--verde); color: var(--sobre-verde); }
+.etiqueta--viejo { color: var(--sello); box-shadow: inset 0 0 0 2px var(--sello); }
+.etiqueta--neutro { color: var(--texto); box-shadow: inset 0 0 0 2px var(--trazo); }
+body[data-tema='oscuro'] .etiqueta--viejo { color: #ff8a80; box-shadow: inset 0 0 0 2px #ff8a80; }
+
+/* El talón dentro de la hoja: sin marco propio (la hoja ya lo tiene) y cifra algo menor */
+.talon--hoja { border: 0; background: transparent; }
+.talon--hoja .talon-eta { min-height: 4.5rem; }
+.talon--hoja .talon-cifra { font-size: clamp(4rem, 22vw, 5.25rem); }
+.talon--hoja .talon-perf::before, .talon--hoja .talon-perf::after { background: var(--superficie); }
+.talon-cabecera { display: flex; align-items: center; gap: var(--e2); }
+.talon-titulo { flex: 1; min-width: 0; font-size: var(--t-xl); font-weight: 700; font-stretch: 92%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.talon-cerrar { flex-shrink: 0; width: var(--toque); height: var(--toque); margin-right: calc(var(--e2) * -1); display: grid; place-items: center; font-size: 1.125rem; }
+.talon-destino { margin-top: calc(var(--e1) * -1); color: var(--texto-suave); font-weight: 500; }
+
+.hoja-buses { display: flex; flex-direction: column; }
+.hoja-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 56px;
+  padding: 0 var(--e4);
+  font-weight: 700;
+  text-align: left;
+}
+.hoja-cabecera:disabled { opacity: 1; cursor: default; }
+.hoja-lista { border-top: 1px solid var(--borde); max-height: 40vh; overflow-y: auto; }
+.hoja-lista ul { list-style: none; }
+.hoja-lista li + li { border-top: 1px solid var(--borde); }
+.hoja-seccion { padding: var(--e3) var(--e4) var(--e1); color: var(--texto); font-size: var(--t-md); font-weight: 700; }
+
+.hoja-fila {
+  width: 100%;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e3);
+  padding: var(--e2) var(--e4);
+  text-align: left;
+}
+.hoja-fila-info { display: flex; flex-direction: column; min-width: 0; }
+.hoja-fila-info span { color: var(--texto-suave); font-size: var(--t-sm); }
+/* Fila de parada: icono y nombre en una sola línea (más específica que .hoja-fila-info) */
+.hoja-fila-info.hoja-fila-parada { flex-direction: row; align-items: center; gap: var(--e3); }
+.hoja-fila-parada svg { flex-shrink: 0; color: var(--acento-texto); }
+
+@media (hover: hover) and (pointer: fine) {
+  .hoja-fila:hover, .hoja-cabecera:not(:disabled):hover, .chip:not(.chip--activo):hover { background: var(--papel-hundido); }
+}

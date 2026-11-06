@@ -15,7 +15,7 @@ const FALLOS_PARA_ANULAR = 2   // un sondeo fallido no anula el dato: dos seguid
 const AVISO_VIGENCIA_MIN = 90  // un aviso del conductor deja de mostrarse tras 90 min
 const CLAVE_PARADA = 'upctrack.miParada'
 
-const iconoBus = L.divIcon({ className: '', html: '<span class="mk mk-bus"></span>', iconSize: [26, 26], iconAnchor: [13, 13] })
+const iconoBus = L.divIcon({ className: '', html: '<span class="mk mk-bus"></span>', iconSize: [28, 28], iconAnchor: [14, 14] })
 const iconoParada = L.divIcon({ className: '', html: '<span class="mk mk-parada"></span>', iconSize: [22, 22], iconAnchor: [11, 11] })
 
 const num = v => Number.parseFloat(v)
@@ -196,19 +196,19 @@ export default function Dashboard() {
               zoomControl={false} dragging={false} scrollWheelZoom={false} doubleClickZoom={false}
               touchZoom={false} keyboard={false} attributionControl={false}
             >
-              {puntosRuta.length > 1 && <Polyline positions={puntosRuta} className="ruta-linea" color="#1e6b2e" weight={5} />}
+              {puntosRuta.length > 1 && <Polyline positions={puntosRuta} className="ruta-verde" color="#1e6b2e" weight={5} />}
               {paradas.filter(p => p.id_parada !== parada?.id_parada).map(p => (
                 <CircleMarker key={p.id_parada} center={[num(p.lat), num(p.lng)]} radius={5}
                   pathOptions={{ color: '#14261a', weight: 2, fillColor: '#fbfaf4', fillOpacity: 1 }} />
               ))}
               {parada && (
                 <Marker position={[num(parada.lat), num(parada.lng)]} icon={iconoParada}>
-                  <Tooltip permanent direction="bottom" offset={[0, 10]} className="mapa-etiqueta">Tu parada</Tooltip>
+                  <Tooltip permanent direction="bottom" offset={[0, 10]} className="etiqueta-mapa">Tu parada</Tooltip>
                 </Marker>
               )}
               {busCerca && (
                 <Marker position={[busCerca.lat, busCerca.lng]} icon={iconoBus}>
-                  <Tooltip permanent direction="top" offset={[0, -12]} className="mapa-etiqueta">{busCerca.nombre}</Tooltip>
+                  <Tooltip permanent direction="top" offset={[0, -12]} className="etiqueta-mapa">{busCerca.nombre}</Tooltip>
                 </Marker>
               )}
             </MapContainer>

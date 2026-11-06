@@ -1,16 +1,11 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMap, faRoute, faLocationDot, faRotate } from '@fortawesome/free-solid-svg-icons'
+import { textoEdad } from '../../utils/formato'
 import './Talon.css'
 
 // Fases: vivo (validado) · viejo y sin-red (cifra anulada con sello) · sin-red-vacio (no hay datos y no hay red)
 // · sin-buses (la red responde y nadie transmite) · cargando.
 const SELLOS = { viejo: 'Sin señal', 'sin-red': 'Sin conexión', 'sin-red-vacio': 'Sin conexión' }
-
-function textoEdad(seg) {
-  if (seg == null) return ''
-  const s = Math.max(0, Math.round(seg))
-  return s < 90 ? `${s} s` : `${Math.round(s / 60)} min`
-}
 
 function TituloParada({ fase, parada, paradas, onParada }) {
   if (paradas.length > 0) {
