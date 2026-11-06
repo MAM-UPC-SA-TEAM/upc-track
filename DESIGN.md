@@ -166,7 +166,7 @@ components:
 
 # Design System: UpcTrack
 
-Alcance honesto: este sistema esta construido y verificado en el shell de la app (barra superior, navegacion inferior, panel lateral, paneles desplegables, avisos y toasts), en la pantalla de Inicio del estudiante, en la pantalla Mapa en tiempo real, en la pantalla del conductor (Mi recorrido) y en las pantallas de acceso (login y registro). Rutas, buses, notificaciones, perfil y administracion solo heredan los tokens y el shell; **todavia no estan en este mundo** (ver "Brecha conocida" al final).
+Alcance honesto: este sistema esta construido y verificado en el shell de la app (barra superior, navegacion inferior, panel lateral, paneles desplegables, avisos y toasts), en la pantalla de Inicio del estudiante, en la pantalla Mapa en tiempo real, en la pantalla del conductor (Mi recorrido) en las pantallas de acceso (login y registro) y en las listas Rutas, Buses y Notificaciones. Perfil y administracion solo heredan los tokens y el shell; **todavia no estan en este mundo** (ver "Brecha conocida" al final).
 
 ## Overview
 
@@ -314,6 +314,11 @@ Un solo marco para las dos pantallas: la hoja del talon centrada (hasta 440px) s
 
 Cada campo tiene su etiqueta real ligada (`for`/`id`) arriba, en 700; el campo mide 48px, borde de 2px en tinta y fondo papel; la ayuda ("Minimo 8 caracteres.") esta siempre visible y se reemplaza por el error cuando lo hay; el error lleva icono y texto en 700, **no rojo**, y el campo engrosa su borde 1px hacia adentro. El primer campo con error recibe el foco. "Mostrar contrasena" es una casilla en una fila de 44px (sin boton de icono); la casilla se tematiza (borde de 2px, marcada rellena de tinta). Un error general (credenciales, servidor) va en una caja de tinta con icono y `role="alert"`. La accion es el boton verde del talon ("Entrar", "Crear cuenta"); el cambio de pantalla es un enlace de texto verde subrayado de 44px. Exito del registro: el mismo marco con "Cuenta creada" y un boton a "Ir a iniciar sesion".
 
+### Listas (Rutas, Buses, Notificaciones)
+Columna unica de hasta 560px (720px desde 1024px); el titulo de la pagina es el de la barra superior (el unico `h1`) y cada pantalla usa `h2` a 1.5rem. El talon es el contenedor: **Rutas** una hoja por ruta (nombre en 1.5rem con su etiqueta neutra "Activa" o "Suspendida" de contorno discontinuo, "N paradas" en mono, perforacion, horarios en filas de 44px con la hora en mono, y un boton de contorno "Ver en el mapa"; una ruta suspendida no ofrece el boton). **Buses** una sola hoja con filas de 60px o mas que son enlaces reales al mapa de ese bus: arriba nombre y etiqueta de frescura (la misma del Mapa, `utils/estadoBus.js`: "Validado · N s", "Hace N s" en rojo, "Detenido"), debajo ruta y "Parada mas cercana · N min" en mono; una posicion vencida **no muestra ETA**. **Notificaciones**: lo nuevo es la losa amarilla del aviso (relleno, tinta, borde de tinta) con la palabra "Nueva" y "Marcar como leida"; lo leido es la hoja blanca; el titulo de la lista es "N sin leer" o "Todo al dia" con "Marcar todas como leidas" en contorno. "Leida" se recuerda en el dispositivo (el servidor no lo guarda). Iconos por tipo en tinta (triangulo = retraso, flechas = cambio de ruta, i = informacion), sin circulos de colores.
+
+Estados de cualquier lista: **cargando** (esqueleto de tres barras y, pasados 6 s, "Despertando el servidor... puede tardar hasta un minuto."), **error de carga** ("No pudimos cargar" en la palabra grande del talon, "Reintentar ahora" en verde; un fallo de red nunca se muestra como lista vacia) y **vacio** ("Sin rutas", "Sin bus ahora" con "Ver rutas y horarios", "Sin avisos"). Sin botones que no hacen nada ("Ver todas...").
+
 ### Etiqueta de estado
 Pieza generica de 2px 8px en mono 600 mayusculas: valida = relleno verde con texto blanco ("Validado · N s"); vencida = contorno rojo sin relleno ("Hace N s"); neutra = contorno de tinta ("Detenido", "Fuera de servicio", "Inactiva"). Rojo solo en la vencida.
 
@@ -346,7 +351,8 @@ Iconos de la biblioteca Font Awesome Solid como SVG, siempre acompanados de text
 
 ## Brecha conocida (no canonizada como hecha)
 
-- **Estan en el mundo: shell, Inicio, Mapa en tiempo real, pantalla del conductor y acceso (login y registro).** Rutas, buses, notificaciones, perfil y administracion heredan tokens y shell pero conservan sus composiciones anteriores; estan pendientes. No se debe leer este documento como que esas pantallas cumplen estas reglas.
+- **Estan en el mundo: shell, Inicio, Mapa en tiempo real, pantalla del conductor, acceso (login y registro) y las listas Rutas, Buses y Notificaciones.** Perfil y administracion heredan tokens y shell pero conservan sus composiciones anteriores; estan pendientes. No se debe leer este documento como que esas pantallas cumplen estas reglas.
+- **Notificaciones:** el estado "leida" vive solo en el dispositivo (localStorage, hasta 300 ids); no se sincroniza entre dispositivos ni con la campana de la barra superior, que cuenta los avisos recientes de la sesion. **Buses:** el ETA es a la parada activa mas cercana de la ruta del bus (no a la proxima parada), en linea recta.
 - El panel de administracion no tiene decision de diseno aun; las reglas de arriba son los invariantes que debera heredar, no su diseno.
 - **Conductor:** el envio de la posicion depende de que el GPS del telefono emita lecturas (se envia como maximo cada 4 s); si el navegador solo emite al moverse, un bus parado puede verse "Sin senal" aunque transmita. No se reenvia la ultima posicion para no pasar un dato viejo por fresco. El seguimiento con la pantalla bloqueada sigue sin estar garantizado (PRODUCT.md).
 - **El ETA es una estimacion en linea recta** (distancia / 25 km/h), no por carretera; se dice en pantalla en Inicio y en la hoja del Mapa. Decision abierta en PRODUCT.md (OSRM).
