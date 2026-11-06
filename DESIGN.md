@@ -166,7 +166,7 @@ components:
 
 # Design System: UpcTrack
 
-Alcance honesto: este sistema esta construido y verificado en el shell de la app (barra superior, navegacion inferior, panel lateral, paneles desplegables, avisos y toasts), en la pantalla de Inicio del estudiante, en la pantalla Mapa en tiempo real, en la pantalla del conductor (Mi recorrido) en las pantallas de acceso (login y registro) y en las listas Rutas, Buses y Notificaciones. Perfil y administracion solo heredan los tokens y el shell; **todavia no estan en este mundo** (ver "Brecha conocida" al final).
+Alcance honesto: este sistema esta construido y verificado en el shell de la app (barra superior, navegacion inferior, panel lateral, paneles desplegables, avisos y toasts), en la pantalla de Inicio del estudiante, en la pantalla Mapa en tiempo real, en la pantalla del conductor (Mi recorrido) en las pantallas de acceso (login y registro) en las listas Rutas, Buses y Notificaciones y en Perfil. Solo la administracion hereda los tokens y el shell; **todavia no estan en este mundo** (ver "Brecha conocida" al final).
 
 ## Overview
 
@@ -319,6 +319,9 @@ Columna unica de hasta 560px (720px desde 1024px); el titulo de la pagina es el 
 
 Estados de cualquier lista: **cargando** (esqueleto de tres barras y, pasados 6 s, "Despertando el servidor... puede tardar hasta un minuto."), **error de carga** ("No pudimos cargar" en la palabra grande del talon, "Reintentar ahora" en verde; un fallo de red nunca se muestra como lista vacia) y **vacio** ("Sin rutas", "Sin bus ahora" con "Ver rutas y horarios", "Sin avisos"). Sin botones que no hacen nada ("Ver todas...").
 
+### Perfil
+Dos hojas en la columna de las listas (560px). La primera es el talon del usuario: su **nombre** hace de cifra (2.25rem/800/ancho 76%, `overflow-wrap: anywhere`) con el rol como etiqueta neutra (una sola vez, sin repetirlo en los datos), perforacion y "Datos personales" como filas (etiqueta en tinta suave, valor en 600, divisores de 1px; un dato vacio dice "Sin registrar") con "Editar" de contorno. Al editar, el mismo bloque pasa a campos (`Campo` de Acceso), con error por campo, foco al primero con error, y "Guardar cambios" como la unica accion verde; el formulario parte siempre de los datos vigentes. La segunda hoja es "Cambiar contrasena", un desplegable en linea (boton de 56px con `aria-expanded`, sin pestanas) con actual, nueva (ayuda "Minimo 8 caracteres.") y confirmar, la casilla "Mostrar contrasenas" y "Actualizar contrasena" en **tinta** para que el verde lleno siga siendo uno. Los resultados (guardado, error del servidor) van en la caja de tinta con icono, `role="status"` o `role="alert"`, nunca en rojo. Sin avatar propio: la barra superior ya lo muestra.
+
 ### Etiqueta de estado
 Pieza generica de 2px 8px en mono 600 mayusculas: valida = relleno verde con texto blanco ("Validado · N s"); vencida = contorno rojo sin relleno ("Hace N s"); neutra = contorno de tinta ("Detenido", "Fuera de servicio", "Inactiva"). Rojo solo en la vencida.
 
@@ -351,7 +354,7 @@ Iconos de la biblioteca Font Awesome Solid como SVG, siempre acompanados de text
 
 ## Brecha conocida (no canonizada como hecha)
 
-- **Estan en el mundo: shell, Inicio, Mapa en tiempo real, pantalla del conductor, acceso (login y registro) y las listas Rutas, Buses y Notificaciones.** Perfil y administracion heredan tokens y shell pero conservan sus composiciones anteriores; estan pendientes. No se debe leer este documento como que esas pantallas cumplen estas reglas.
+- **Estan en el mundo: shell, Inicio, Mapa en tiempo real, pantalla del conductor, acceso (login y registro) las listas Rutas, Buses y Notificaciones y Perfil.** La administracion hereda tokens y shell pero conservan sus composiciones anteriores; estan pendientes. No se debe leer este documento como que esas pantallas cumplen estas reglas.
 - **Notificaciones:** el estado "leida" vive solo en el dispositivo (localStorage, hasta 300 ids); no se sincroniza entre dispositivos ni con la campana de la barra superior, que cuenta los avisos recientes de la sesion. **Buses:** el ETA es a la parada activa mas cercana de la ruta del bus (no a la proxima parada), en linea recta.
 - El panel de administracion no tiene decision de diseno aun; las reglas de arriba son los invariantes que debera heredar, no su diseno.
 - **Conductor:** el envio de la posicion depende de que el GPS del telefono emita lecturas (se envia como maximo cada 4 s); si el navegador solo emite al moverse, un bus parado puede verse "Sin senal" aunque transmita. No se reenvia la ultima posicion para no pasar un dato viejo por fresco. El seguimiento con la pantalla bloqueada sigue sin estar garantizado (PRODUCT.md).
