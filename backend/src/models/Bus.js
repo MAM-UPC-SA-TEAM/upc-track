@@ -130,7 +130,8 @@ export const Bus = {
         b.placa,
         b.estado,
         r.id_ruta,
-        r.nombre AS nombre_ruta
+        r.nombre AS nombre_ruta,
+        TIMESTAMPDIFF(SECOND, ult.fecha_hora, NOW()) AS edad_segundos
       FROM bus b
       LEFT JOIN (
         SELECT id_bus, MAX(id_ruta) AS id_ruta
@@ -138,6 +139,11 @@ export const Bus = {
         GROUP BY id_bus
       ) br ON b.id_bus = br.id_bus
       LEFT JOIN ruta r ON br.id_ruta = r.id_ruta
+      LEFT JOIN (
+        SELECT id_bus, MAX(fecha_hora) AS fecha_hora
+        FROM ubicacion_bus
+        GROUP BY id_bus
+      ) ult ON b.id_bus = ult.id_bus
       WHERE b.id_conductor = ?
     `, [idusuario])
     return rows[0] || null
