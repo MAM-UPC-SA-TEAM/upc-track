@@ -478,7 +478,7 @@ export default function Layout({ children, titulo, sinPadding = false }) {
 
       {/* ── Toasts de notificación en tiempo real ── */}
       {toasts.length > 0 && (
-        <div className="notif-toast-wrap" role="status" aria-live="polite">
+        <div className={`notif-toast-wrap ${rol === 'conductor' ? 'notif-toast-wrap--arriba' : ''}`} role="status" aria-live="polite">
           {toasts.map(t => {
             const { icono } = iconoNotif(t.tipo)
             return (
