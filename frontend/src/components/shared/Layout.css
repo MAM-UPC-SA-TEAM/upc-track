@@ -197,6 +197,8 @@ body[data-tema='oscuro'] .topbar-marca { padding: 2px; background: #fbfaf4; }
   gap: var(--e2);
   pointer-events: none;
 }
+/* El conductor tiene sus controles abajo (Detener, Finalizar): sus avisos caen arriba, bajo la barra */
+.notif-toast-wrap--arriba { top: calc(var(--barra-alto) + env(safe-area-inset-top) + var(--e3)); bottom: auto; }
 .notif-toast {
   pointer-events: auto;
   display: flex;
@@ -265,7 +267,7 @@ body[data-tema='oscuro'] .topbar-marca { padding: 2px; background: #fbfaf4; }
   .layout-main { padding-bottom: 0; }
   .layout-contenido { padding: var(--e5); }
   .botnav, .layout-pie { display: none; }
-  .notif-toast-wrap { left: auto; right: var(--e5); bottom: var(--e5); width: 380px; }
+  .notif-toast-wrap, .notif-toast-wrap--arriba { left: auto; right: var(--e5); top: auto; bottom: var(--e5); width: 380px; }
 
   .sidebar {
     position: fixed;

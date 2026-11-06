@@ -1,0 +1,126 @@
+/* Talón del conductor: el mismo talón del estudiante, pero su «cifra» es el estado de ESTE teléfono.
+   Hereda Talon.css (franja, perforación, sello, datos) y Mapa.css (etiquetas). Plano, bordes de 2px, sin sombras. */
+
+.cond-bus-icono { flex-shrink: 0; font-size: 1.25rem; color: var(--acento-texto); }
+
+/* La palabra de estado hace de cifra: una sola, grande y condensada */
+.cond-estado { position: relative; display: flex; align-items: center; min-height: 3.5rem; margin-top: var(--e1); }
+.cond-palabra {
+  font-size: 2.25rem;
+  line-height: 1;
+  font-weight: 800;
+  font-stretch: 76%;
+  letter-spacing: -0.02em;
+  color: var(--texto);
+  text-wrap: balance;
+}
+/* Anulada (sin conexión o dato vencido): baja de tono, no desaparece; el sello cae encima */
+.cond--anulada .cond-palabra { opacity: 0.28; }
+
+.cond-neutra { background: transparent; }
+
+.cond-explica { padding-top: 0; color: var(--texto); }
+
+/* Errores y avisos del propio teléfono: caja de tinta, no roja (el rojo es solo para el dato vencido) */
+.cond-error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--e2);
+  margin: 0 var(--e4) var(--e3);
+  padding: var(--e2) var(--e3);
+  border: var(--grosor) solid var(--trazo);
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+.cond-error svg { flex-shrink: 0; margin-top: 3px; }
+
+/* Acciones: la verde llena es la única; la otra es contorno de tinta */
+.cond-acciones { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e2); margin: 0 var(--e4) var(--e4); }
+.cond-acciones--apiladas { grid-template-columns: minmax(0, 1fr); }
+.cond-acciones .talon-accion { width: 100%; margin: 0; }
+.cond-boton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e2);
+  min-height: 48px;
+  padding: 0 var(--e3);
+  background: var(--superficie);
+  border: var(--grosor) solid var(--trazo);
+  color: var(--texto);
+  font-size: var(--t-md);
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.15;
+}
+/* Al pedir confirmación el botón se rellena de tinta (como el chip activo), no de rojo */
+.cond-boton--confirma { background: var(--tinta); color: var(--papel); }
+.talon-accion:disabled { background: var(--linea-suave); color: var(--texto-suave); opacity: 1; }
+
+/* Aviso a la ruta: se despliega en línea dentro del talón */
+.cond-aviso { border-top: 1px solid var(--borde); }
+.cond-aviso-boton {
+  width: 100%;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--e4);
+  font-weight: 700;
+  text-align: left;
+}
+.cond-aviso-boton span { display: inline-flex; align-items: center; gap: var(--e3); }
+.cond-aviso-form { display: flex; flex-direction: column; gap: var(--e2); padding: 0 var(--e4) var(--e4); }
+.cond-tipos { display: flex; gap: var(--e2); flex-wrap: wrap; }
+.cond-tipo {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--toque);
+  padding: 0 var(--e3);
+  background: var(--superficie);
+  border: var(--grosor) solid var(--trazo);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.cond-tipo--activo { background: var(--tinta); color: var(--papel); }
+.cond-aviso-form input {
+  min-height: var(--toque);
+  padding: 0 var(--e3);
+  background: var(--superficie);
+  color: var(--texto);
+  border: var(--grosor) solid var(--trazo);
+  font: inherit;
+}
+.cond-aviso-form input:focus-visible { outline: 3px solid var(--trazo); outline-offset: 2px; }
+.cond-enviar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e2);
+  min-height: 48px;
+  background: var(--tinta);
+  color: var(--papel);
+  font-size: var(--t-md);
+  font-weight: 700;
+}
+.cond-enviar:disabled { background: var(--linea-suave); color: var(--texto-suave); opacity: 1; }
+.cond-aviso-estado { min-height: 1.5em; display: flex; align-items: center; gap: var(--e2); font-size: var(--t-sm); font-weight: 600; }
+
+/* Pantalla: mapa a sangre y el talón abajo (tarjeta a la izquierda en escritorio), igual que el Mapa */
+.cond-pantalla { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+.cond-mapa { position: absolute; inset: 0; }
+.cond-hoja {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 800;
+  max-height: 78%;
+  overflow-y: auto;
+  overflow-x: hidden; /* las muescas de la perforación y el sello rotado sobresalen del borde */
+  background: var(--superficie);
+  border-top: var(--grosor) solid var(--trazo);
+}
+@media (min-width: 1024px) {
+  .cond-hoja { left: var(--e4); right: auto; bottom: var(--e4); width: min(440px, calc(100% - var(--e5) * 2)); max-height: calc(100% - var(--e5) * 2); border: var(--grosor) solid var(--trazo); }
+}

@@ -1,57 +1,78 @@
-import { useEffect, useState, useRef } from 'react'
-import { MapContainer, Marker, Polyline, CircleMarker, Popup, TileLayer, useMap } from 'react-leaflet'
-import L from 'leaflet'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { Fragment, useEffect, useState, useRef } from 'react'
 import {
-  faBus, faRoute, faLocationDot, faClock,
-  faPlay, faStop, faPaperPlane, faSignal,
-  faCircleCheck, faCirclePause, faCircleXmark,
-  faTriangleExclamation, faChevronUp, faChevronDown, faMap
-} from '@fortawesome/free-solid-svg-icons'
+  MapContainer, Marker, Polyline, CircleMarker, Tooltip, TileLayer, ZoomControl, AttributionControl, useMap,
+} from 'react-leaflet'
+import L from 'leaflet'
 import Layout from '../../components/shared/Layout'
+import TalonConductor, { FRESCO_MAX_S } from '../../components/conductor/TalonConductor'
 import api from '../../services/api'
-import './MiRecorrido.css'
 
 const CENTRO_DEFECTO = [8.3086, -73.6194]
+const INTERVALO_ENVIO_MS = 4000
 
-const iconoBus = L.divIcon({
+const icono = clase => L.divIcon({
   className: '',
-  html: '<div class="conductor-mapa-bus">🚌</div>',
-  iconSize: [34, 34],
-  iconAnchor: [17, 17],
+  html: `<div class="mk-wrap"><span class="mk ${clase}"></span></div>`,
+  iconSize: [44, 44],
+  iconAnchor: [22, 22],
 })
+const iconoBus = icono('mk-bus')
+const iconoBusViejo = icono('mk-bus mk-bus--viejo')
 
-function ControlCamara({ centro }) {
+const ahoraMs = () => Date.now() // helper de módulo: se llama desde manejadores, nunca al renderizar
+const paradaActiva = p => p.activa !== false && p.activa !== 0
+
+// El talón tapa parte del mapa: lo que se mira debe quedar en la zona libre (abajo en móvil, a la derecha en escritorio)
+function zonaLibre() {
+  const hoja = document.querySelector('.cond-hoja')
+  if (!hoja) return { dx: 0, dy: 0, tl: [40, 72], br: [64, 48] }
+  if (window.innerWidth >= 1024) {
+    const ocupado = hoja.offsetLeft + hoja.offsetWidth
+    return { dx: -ocupado / 2, dy: 0, tl: [ocupado + 64, 72], br: [64, 48] }
+  }
+  return { dx: 0, dy: hoja.offsetHeight / 2, tl: [40, 72], br: [64, hoja.offsetHeight + 16] }
+}
+
+function Camara({ gps, ruta }) {
   const map = useMap()
 
+  // Con GPS, el bus se sigue centrado en la zona libre
   useEffect(() => {
-    if (!centro) return
-    map.setView(centro, Math.max(map.getZoom(), 16), { animate: true })
-  }, [centro, map])
+    if (!gps) return
+    const z = Math.max(map.getZoom(), 16)
+    const { dx, dy } = zonaLibre()
+    const punto = map.project([gps.lat, gps.lng], z).add([dx, dy])
+    map.setView(map.unproject(punto, z), z, { animate: true })
+  }, [gps, map])
+
+  // Sin GPS, se encuadra la ruta asignada
+  useEffect(() => {
+    if (gps || ruta.length < 2) return
+    const { tl, br } = zonaLibre()
+    map.fitBounds(L.latLngBounds(ruta), { paddingTopLeft: tl, paddingBottomRight: br, animate: false })
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- solo cuando llega la ruta; el GPS lo maneja el efecto de arriba
+  }, [ruta, map])
 
   return null
 }
 
 export default function MiRecorrido() {
-  const [busInfo, setBusInfo]       = useState(null)
-  const [enRecorrido, setEnRecorrido] = useState(false)
-  const [estado, setEstado]         = useState('fuera_de_servicio')
-  const [gps, setGps]               = useState(null)
+  const [busInfo, setBusInfo] = useState(null)
+  const [enRecorrido, setEnRecorrido] = useState(false) // este teléfono está transmitiendo
+  const [estado, setEstado] = useState('fuera_de_servicio') // estado del bus en el servidor
+  const [gps, setGps] = useState(null)
   const [historialGps, setHistorialGps] = useState([])
   const [estadoConexion, setEstadoConexion] = useState(() => (navigator.onLine ? 'online' : 'offline'))
-  const [ultimaActualizacion, setUltimaActualizacion] = useState(null)
-  const [mensaje, setMensaje]       = useState('')
-  const [tipoAviso, setTipoAviso]   = useState('info')
-  const [log, setLog]               = useState([])
+  const [ultimoEnvioMs, setUltimoEnvioMs] = useState(null)
+  const [inicioMs, setInicioMs] = useState(null)
+  const [ahora, setAhora] = useState(() => Date.now())
   const [errorCargaBus, setErrorCargaBus] = useState('')
   const [errorGps, setErrorGps] = useState('')
-  // 'colapsado' | 'expandido' | 'oculto'
-  const [panelMovil, setPanelMovil] = useState('colapsado')
-  const [paradasRuta, setParadasRuta]     = useState([])
+  const [errorAccion, setErrorAccion] = useState('')
+  const [paradasRuta, setParadasRuta] = useState([])
   const [geometriaRuta, setGeometriaRuta] = useState([])
   const watchRef = useRef(null)
   const ultimoEnvioRef = useRef(0)
-  const INTERVALO_ENVIO_MS = 4000
 
   useEffect(() => {
     async function cargar() {
@@ -60,6 +81,8 @@ export default function MiRecorrido() {
         if (data.bus) {
           setBusInfo(data.bus)
           setEstado(data.bus.estado || 'fuera_de_servicio')
+          // Antigüedad de la última posición que el servidor tiene de este bus (si la recargamos a mitad de ruta)
+          if (data.bus.edad_segundos != null) setUltimoEnvioMs(Date.now() - data.bus.edad_segundos * 1000)
           setErrorCargaBus('')
         }
       } catch (err) {
@@ -67,7 +90,7 @@ export default function MiRecorrido() {
         setEstado('fuera_de_servicio')
         setErrorCargaBus(err?.status === 404
           ? 'No tienes un bus o ruta asignada actualmente.'
-          : 'No se pudo cargar la informacion del bus.')
+          : 'No se pudo cargar la información del bus.')
       }
     }
     cargar()
@@ -89,7 +112,7 @@ export default function MiRecorrido() {
         if (lista.length < 2) return
         // Construir geometría vial via OSRM
         const coords = lista.map(p => `${p.lng},${p.lat}`).join(';')
-        const res  = await fetch(
+        const res = await fetch(
           `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`
         )
         const json = await res.json()
@@ -99,7 +122,7 @@ export default function MiRecorrido() {
           setGeometriaRuta(lista.map(p => [p.lat, p.lng]))
         }
       } catch {
-        // Silencioso — la ruta sigue funcionando sin geometría OSRM
+        // Silencioso: la ruta sigue funcionando sin geometría OSRM
       }
     }
     cargarRuta()
@@ -113,15 +136,19 @@ export default function MiRecorrido() {
     }
   }, [])
 
+  // El servidor dice «en recorrido» o «detenido» pero este teléfono no transmite (recarga, caída, reinicio)
+  const servidorActivo = estado === 'en_recorrido' || estado === 'detenido'
+  const colgado = !enRecorrido && servidorActivo
+
   // Si el conductor navega fuera de esta vista sin finalizar, resetear el bus
-  const enRecorridoRef = useRef(false)
+  const debeCerrarRef = useRef(false)
   const busInfoRef = useRef(null)
-  useEffect(() => { enRecorridoRef.current = enRecorrido }, [enRecorrido])
+  useEffect(() => { debeCerrarRef.current = enRecorrido || colgado }, [enRecorrido, colgado])
   useEffect(() => { busInfoRef.current = busInfo }, [busInfo])
 
   useEffect(() => {
     return () => {
-      if (enRecorridoRef.current && busInfoRef.current?.id_bus) {
+      if (debeCerrarRef.current && busInfoRef.current?.id_bus) {
         api.patch(`/api/buses/${busInfoRef.current.id_bus}/estado`, { estado: 'inactivo' }).catch(() => {})
       }
     }
@@ -145,44 +172,49 @@ export default function MiRecorrido() {
     }
   }, [])
 
+  // Reloj de 1 s para la antigüedad del último envío (solo mientras importa)
+  useEffect(() => {
+    if (!enRecorrido && !colgado) return undefined
+    const t = setInterval(() => setAhora(Date.now()), 1000)
+    return () => clearInterval(t)
+  }, [enRecorrido, colgado])
+
   function iniciarRecorrido() {
     if (!window.isSecureContext) {
-      const msg = 'GPS bloqueado: esta pagina debe abrirse por HTTPS (o localhost) para usar ubicacion.'
-      setErrorGps(msg)
-      agregarLog(msg, 'error')
+      setErrorGps('GPS bloqueado: esta página debe abrirse por HTTPS (o localhost) para usar la ubicación.')
       return
     }
 
     if (!navigator.geolocation) {
-      const msg = 'GPS no disponible en este dispositivo'
-      setErrorGps(msg)
-      agregarLog(msg, 'error')
+      setErrorGps('GPS no disponible en este dispositivo.')
       return
     }
 
     setErrorGps('')
+    setErrorAccion('')
     setEnRecorrido(true)
     setEstado('en_recorrido')
-    agregarLog('Recorrido iniciado', 'ok')
+    setInicioMs(ahoraMs())
+    setAhora(ahoraMs())
+    ultimoEnvioRef.current = 0
     actualizarEstadoBus('en_recorrido')
 
+    if (watchRef.current !== null) navigator.geolocation.clearWatch(watchRef.current)
     watchRef.current = navigator.geolocation.watchPosition(
       (pos) => {
-        const ahora = Date.now()
+        const t = Date.now()
         const lat = pos.coords.latitude
         const lng = pos.coords.longitude
         setErrorGps('')
         setGps({ lat, lng })
-        setHistorialGps(prev => [...prev.slice(-19), { lat, lng, id: Date.now() }])
-        if (!ultimoEnvioRef.current || (ahora - ultimoEnvioRef.current) >= INTERVALO_ENVIO_MS) {
-          ultimoEnvioRef.current = ahora
+        setHistorialGps(prev => [...prev.slice(-19), { lat, lng, id: t }])
+        if (!ultimoEnvioRef.current || (t - ultimoEnvioRef.current) >= INTERVALO_ENVIO_MS) {
+          ultimoEnvioRef.current = t
           enviarUbicacion(lat, lng)
         }
       },
       (err) => {
-        const msg = `Error GPS: ${err.message}`
-        setErrorGps(msg)
-        agregarLog(msg, 'error')
+        setErrorGps(`Error de GPS: ${err.message}`)
       },
       { enableHighAccuracy: true, maximumAge: 3000, timeout: 10000 }
     )
@@ -197,349 +229,132 @@ export default function MiRecorrido() {
     setEstado('fuera_de_servicio')
     setGps(null)
     setHistorialGps([])
+    setErrorGps('')
     ultimoEnvioRef.current = 0
     if (watchRef.current !== null) {
       navigator.geolocation.clearWatch(watchRef.current)
       watchRef.current = null
     }
-    agregarLog('Recorrido finalizado', 'ok')
     actualizarEstadoBus('fuera_de_servicio')
   }
 
   function alternarDetenido() {
     if (!enRecorrido) return
-
     const nuevoEstado = estado === 'detenido' ? 'en_recorrido' : 'detenido'
     setEstado(nuevoEstado)
-
-    if (nuevoEstado === 'detenido') {
-      agregarLog('Bus marcado como detenido', 'ok')
-    } else {
-      agregarLog('Bus reanudo el recorrido', 'ok')
-    }
-
     actualizarEstadoBus(nuevoEstado)
   }
 
   async function actualizarEstadoBus(nuevoEstado) {
     const idBus = busInfo?.id_bus
     if (!idBus) {
-      agregarLog('No hay bus asignado para actualizar estado', 'error')
+      setErrorAccion('No hay un bus asignado para actualizar su estado.')
       return
     }
 
     try {
       await api.patch(`/api/buses/${idBus}/estado`, { estado: nuevoEstado })
+      setErrorAccion('')
     } catch {
-      agregarLog(`Error al actualizar estado a ${nuevoEstado}`, 'error')
+      setErrorAccion('No se pudo actualizar el estado del bus. Revisa tu conexión.')
     }
   }
 
   async function enviarUbicacion(lat, lng) {
     const idBus = busInfo?.id_bus
-    if (!idBus) {
-      agregarLog('No hay bus asignado para enviar ubicación', 'error')
-      return
-    }
+    if (!idBus) return
 
-    const hora = new Date().toLocaleTimeString()
     try {
       setEstadoConexion('syncing')
       await api.post('/api/ubicacion', { id_bus: idBus, lat, lng })
       setEstadoConexion('online')
-      setUltimaActualizacion(hora)
-      agregarLog(`${hora} — lat: ${lat.toFixed(5)}, lng: ${lng.toFixed(5)}`, 'ok')
+      setUltimoEnvioMs(Date.now())
     } catch {
       setEstadoConexion(navigator.onLine ? 'retrying' : 'offline')
-      agregarLog(`${hora} — Error al enviar ubicación`, 'error')
     }
   }
 
-  async function enviarAviso() {
-    if (!mensaje.trim()) return
+  async function enviarAviso(tipo, mensaje) {
     try {
-      await api.post('/api/notificaciones', { mensaje, tipo: tipoAviso })
-      agregarLog('Aviso enviado', 'ok')
-      setMensaje('')
+      await api.post('/api/notificaciones', { mensaje, tipo })
+      return true
     } catch {
-      agregarLog('Error al enviar aviso. Intenta nuevamente.', 'error')
+      return false
     }
   }
 
-  function agregarLog(msg, tipo) {
-    setLog(prev => [...prev.slice(-20), { msg, tipo, id: Date.now() }])
-  }
+  // Vista del talón: el estado de ESTE teléfono manda sobre el que dice el servidor
+  const sinRed = estadoConexion === 'offline' || estadoConexion === 'retrying'
+  const haEnviado = enRecorrido && ultimoEnvioMs != null && inicioMs != null && ultimoEnvioMs >= inicioMs
+  const edad = ultimoEnvioMs != null ? Math.max(0, (ahora - ultimoEnvioMs) / 1000) : null
+  let vista
+  if (!busInfo) vista = 'sin-bus'
+  else if (colgado) vista = 'colgado'
+  else if (!enRecorrido) vista = 'libre'
+  else if (sinRed || (haEnviado && edad > FRESCO_MAX_S)) vista = 'viejo'
+  else if (!haEnviado) vista = 'buscando'
+  else vista = estado === 'detenido' ? 'detenido' : 'vivo'
 
-  const estadoConfig = {
-    en_recorrido:     { texto: 'En recorrido',      icono: faCircleCheck,  clase: 'badge--verde'    },
-    detenido:         { texto: 'Detenido',           icono: faCirclePause,  clase: 'badge--amarillo' },
-    fuera_de_servicio:{ texto: 'Fuera de servicio',  icono: faCircleXmark,  clase: 'badge--rojo'     },
-  }
-
-  const conexionConfig = {
-    online:   { texto: 'En linea',          icono: faCircleCheck,      clase: 'conexion-chip--online' },
-    syncing:  { texto: 'Sincronizando...',  icono: faCirclePause,      clase: 'conexion-chip--syncing' },
-    retrying: { texto: 'Reintentando',      icono: faTriangleExclamation, clase: 'conexion-chip--retrying' },
-    offline:  { texto: 'Sin conexion',      icono: faCircleXmark,      clase: 'conexion-chip--offline' },
-  }
-
-  const estadoInfo = estadoConfig[estado] || estadoConfig.fuera_de_servicio
-  const conexionInfo = conexionConfig[estadoConexion] || conexionConfig.offline
-  const centroMapa = gps ? [gps.lat, gps.lng] : CENTRO_DEFECTO
+  const centroMapa = gps ? [gps.lat, gps.lng] : (paradasRuta[0] ? [paradasRuta[0].lat, paradasRuta[0].lng] : CENTRO_DEFECTO)
   const trazoRecorrido = historialGps.map(p => [p.lat, p.lng])
+  const errores = { carga: errorCargaBus, lista: [errorGps, errorAccion].filter(Boolean) }
 
   return (
     <Layout titulo="Mi recorrido" sinPadding>
-      <div className="conductor-ride-page">
+      <div className="cond-pantalla">
+        <div className="cond-mapa">
+          <MapContainer center={centroMapa} zoom={16} style={{ width: '100%', height: '100%' }} zoomControl={false} attributionControl={false}>
+            <TileLayer className="tiles-calmos" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="© OpenStreetMap" />
+            <ZoomControl position="topright" />
+            <AttributionControl position="topleft" prefix={false} />
+            <Camara gps={gps} ruta={geometriaRuta} />
 
-        {/* ── Mapa (ocupa toda la pantalla) ── */}
-        <div className="conductor-ride-map">
-          <MapContainer
-            center={centroMapa}
-            zoom={16}
-            style={{ width: '100%', height: '100%' }}
-            zoomControl={false}
-          >
-            <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution="© OpenStreetMap"
-            />
-            <ControlCamara centro={gps ? [gps.lat, gps.lng] : null} />
-
-            {/* ── Ruta asignada (geometría vial) ── */}
+            {/* Ruta asignada: un trazo verde con casing de papel, igual que en el Mapa */}
             {geometriaRuta.length > 1 && (
               <>
-                <Polyline positions={geometriaRuta} color="#ffffff" weight={7} opacity={0.7} />
-                <Polyline positions={geometriaRuta} color="#1e6b2e" weight={4} opacity={0.9} />
+                <Polyline positions={geometriaRuta} interactive={false} className="ruta-casing" color="#fbfaf4" weight={9} />
+                <Polyline positions={geometriaRuta} interactive={false} className="ruta-verde" color="#1e6b2e" weight={5} />
               </>
             )}
 
-            {/* ── Paradas de la ruta ── */}
+            {/* Paradas: punto visible pequeño + zona de toque de 22 px que abre su nombre */}
             {paradasRuta.map(p => (
-              <CircleMarker
-                key={p.id_parada}
-                center={[p.lat, p.lng]}
-                radius={p.activa === false || p.activa === 0 ? 5 : 7}
-                pathOptions={{
-                  color: '#fff',
-                  weight: 2,
-                  fillColor: p.activa === false || p.activa === 0 ? '#aaa' : '#1e6b2e',
-                  fillOpacity: 1,
-                }}
-              >
-                <Popup>
-                  <strong>{p.nombre}</strong>
-                  {(p.activa === false || p.activa === 0) && (
-                    <><br /><span style={{ fontSize: 11, color: '#aaa' }}>Inactiva</span></>
-                  )}
-                </Popup>
-              </CircleMarker>
+              <Fragment key={p.id_parada}>
+                <CircleMarker center={[p.lat, p.lng]} radius={8} interactive={false}
+                  className={`parada-punto ${paradaActiva(p) ? '' : 'parada-punto--inactiva'}`} pathOptions={{ weight: 2 }} />
+                <CircleMarker center={[p.lat, p.lng]} radius={22} bubblingMouseEvents={false} pathOptions={{ stroke: false, fillOpacity: 0 }}>
+                  <Tooltip direction="top" offset={[0, -12]} className="etiqueta-mapa">
+                    {paradaActiva(p) ? p.nombre : `${p.nombre} · inactiva`}
+                  </Tooltip>
+                </CircleMarker>
+              </Fragment>
             ))}
 
-            {/* ── Trazo GPS en tiempo real del bus ── */}
+            {/* Trazo de lo recorrido: puntos finos de tinta */}
             {trazoRecorrido.length > 1 && (
-              <Polyline positions={trazoRecorrido} color="#ff6b00" weight={4} opacity={0.75} dashArray="8 5" />
+              <Polyline positions={trazoRecorrido} interactive={false} className="ruta-tinta" color="#14261a" weight={3} dashArray="2 9" />
             )}
 
-            {gps && <Marker position={[gps.lat, gps.lng]} icon={iconoBus} />}
+            {/* El bus; si el dato está anulado, marcador hueco como lo ven los estudiantes */}
+            {gps && <Marker position={[gps.lat, gps.lng]} icon={vista === 'viejo' ? iconoBusViejo : iconoBus} interactive={false} />}
           </MapContainer>
         </div>
 
-        {/* ── FAB para reabrir panel cuando está oculto (solo móvil) ── */}
-        {panelMovil === 'oculto' && (
-          <button
-            className="conductor-fab-panel"
-            onClick={() => setPanelMovil('colapsado')}
-            aria-label="Mostrar panel"
-          >
-            <FontAwesomeIcon icon={faBus} />
-          </button>
-        )}
-
-        {/* ── Panel lateral / bottom sheet ── */}
-        <aside
-          className={`conductor-ride-panel conductor-panel--${panelMovil}`}
-          data-panel={panelMovil}
-        >
-          {/* Handle drag visible solo en móvil */}
-          <div
-            className="conductor-panel-handle"
-            onClick={() => setPanelMovil(v =>
-              v === 'colapsado' ? 'expandido' : v === 'expandido' ? 'colapsado' : 'colapsado'
-            )}
-            role="button"
-            aria-label="Expandir o contraer panel"
-          >
-            <span className="conductor-panel-handle-bar" />
-          </div>
-
-          {/* ── Header siempre visible ── */}
-          <div className="conductor-panel-header">
-            <div>
-              <p className="conductor-panel-kicker">Modo conductor</p>
-              <h3>{busInfo?.nombre || 'Bus sin asignar'}</h3>
-            </div>
-            <div className="conductor-panel-header-actions">
-              <div className={`conductor-conexion-chip ${conexionInfo.clase}`}>
-                <FontAwesomeIcon icon={conexionInfo.icono} />
-                <span className="conductor-chip-texto">{conexionInfo.texto}</span>
-              </div>
-              {/* Botones toggle solo en móvil */}
-              <button
-                className="conductor-toggle-btn"
-                onClick={() => setPanelMovil(v => v === 'expandido' ? 'colapsado' : 'expandido')}
-                aria-label="Expandir o contraer"
-              >
-                <FontAwesomeIcon icon={panelMovil === 'expandido' ? faChevronDown : faChevronUp} />
-              </button>
-              <button
-                className="conductor-toggle-btn conductor-toggle-btn--map"
-                onClick={() => setPanelMovil('oculto')}
-                aria-label="Ver mapa completo"
-              >
-                <FontAwesomeIcon icon={faMap} />
-              </button>
-            </div>
-          </div>
-
-          {/* ── Badges siempre visibles ── */}
-          <div className="conductor-panel-badges">
-            <span className={`conductor-badge ${estadoInfo.clase}`}>
-              <FontAwesomeIcon icon={estadoInfo.icono} />
-              {estadoInfo.texto}
-            </span>
-            <span className="conductor-pill">
-              <FontAwesomeIcon icon={faSignal} /> {busInfo?.placa || '---'}
-            </span>
-            <span className="conductor-pill">
-              <FontAwesomeIcon icon={faRoute} /> {busInfo?.nombre_ruta || 'Sin ruta asignada'}
-            </span>
-          </div>
-
-          {/* ── Leyenda del mapa ── */}
-          {(geometriaRuta.length > 0 || trazoRecorrido.length > 0) && (
-            <div className="conductor-leyenda">
-              {geometriaRuta.length > 0 && (
-                <span className="conductor-leyenda-item">
-                  <span className="conductor-leyenda-linea conductor-leyenda-linea--ruta" />
-                  Ruta asignada
-                </span>
-              )}
-              {trazoRecorrido.length > 0 && (
-                <span className="conductor-leyenda-item">
-                  <span className="conductor-leyenda-linea conductor-leyenda-linea--trazo" />
-                  Mi recorrido
-                </span>
-              )}
-            </div>
-          )}
-
-          {errorCargaBus && (
-            <div className="conductor-log-item conductor-log--error" style={{ marginTop: 10 }}>
-              <span className="conductor-log-dot" />
-              {errorCargaBus}
-            </div>
-          )}
-
-          {errorGps && (
-            <div className="conductor-log-item conductor-log--error" style={{ marginTop: 10 }}>
-              <span className="conductor-log-dot" />
-              {errorGps}
-            </div>
-          )}
-
-          {/* ── Botones de control siempre visibles ── */}
-          <div className="conductor-botones">
-            <button
-              className="conductor-btn conductor-btn--iniciar"
-              onClick={iniciarRecorrido}
-              disabled={enRecorrido || !busInfo?.id_bus}
-            >
-              <FontAwesomeIcon icon={faPlay} />
-              Iniciar
-            </button>
-            <button
-              className="conductor-btn conductor-btn--detener"
-              onClick={alternarDetenido}
-              disabled={!enRecorrido}
-            >
-              <FontAwesomeIcon icon={faCirclePause} />
-              {estado === 'detenido' ? 'Reanudar' : 'Detener'}
-            </button>
-            <button
-              className="conductor-btn conductor-btn--finalizar"
-              onClick={finalizarRecorrido}
-              disabled={!enRecorrido}
-            >
-              <FontAwesomeIcon icon={faStop} />
-              Finalizar
-            </button>
-          </div>
-
-          {/* ── Sección expandible: stats, aviso, log ── */}
-          <div className="conductor-panel-expandible">
-            <div className="conductor-stats-grid">
-              <div className="conductor-stat-card">
-                <span>Ultimo envio</span>
-                <strong>{ultimaActualizacion || 'Sin datos'}</strong>
-              </div>
-              <div className="conductor-stat-card">
-                <span>Puntos GPS</span>
-                <strong>{historialGps.length}</strong>
-              </div>
-              <div className="conductor-stat-card conductor-stat-card--full">
-                <span>
-                  <FontAwesomeIcon icon={faLocationDot} /> Coordenadas actuales
-                </span>
-                <strong>{gps ? `${gps.lat.toFixed(5)}, ${gps.lng.toFixed(5)}` : 'Aun sin señal GPS'}</strong>
-              </div>
-            </div>
-
-            <div className="conductor-aviso">
-              <h4>
-                <FontAwesomeIcon icon={faTriangleExclamation} /> Aviso rapido
-              </h4>
-              <div className="conductor-aviso-form">
-                <select
-                  value={tipoAviso}
-                  onChange={e => setTipoAviso(e.target.value)}
-                  aria-label="Tipo de aviso"
-                >
-                  <option value="info">Info</option>
-                  <option value="retraso">Retraso</option>
-                  <option value="cambio_ruta">Cambio de ruta</option>
-                </select>
-                <input
-                  type="text"
-                  placeholder="Ej: Retraso por trafico en la Calle 7"
-                  value={mensaje}
-                  onChange={e => setMensaje(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && enviarAviso()}
-                />
-                <button className="conductor-aviso-btn" onClick={enviarAviso}>
-                  <FontAwesomeIcon icon={faPaperPlane} />
-                </button>
-              </div>
-            </div>
-
-            <div className="conductor-log">
-              <h4 className="conductor-log-titulo">
-                <FontAwesomeIcon icon={faClock} /> Actividad reciente
-              </h4>
-              <div className="conductor-log-lista">
-                {log.length === 0 && (
-                  <p className="conductor-log-vacio">Sin eventos por ahora.</p>
-                )}
-                {[...log].reverse().map(l => (
-                  <div key={l.id} className={`conductor-log-item conductor-log--${l.tipo}`}>
-                    <span className="conductor-log-dot" />
-                    {l.msg}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </aside>
+        <div className="cond-hoja">
+          <TalonConductor
+            vista={vista}
+            bus={busInfo}
+            estado={estado}
+            edad={edad}
+            ultimoEnvioMs={ultimoEnvioMs}
+            sinRed={sinRed}
+            errores={errores}
+            onIniciar={iniciarRecorrido}
+            onDetener={alternarDetenido}
+            onFinalizar={finalizarRecorrido}
+            onAviso={enviarAviso}
+          />
+        </div>
       </div>
     </Layout>
   )

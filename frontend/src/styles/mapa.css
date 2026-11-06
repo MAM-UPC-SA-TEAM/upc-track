@@ -51,3 +51,8 @@
   font-size: var(--t-xs);
 }
 .leaflet-control-attribution a { color: var(--acento-texto) !important; }
+
+/* Calles reales, calmadas: sin color saturado, con el tono del papel; así la ruta y el bus son lo que se lee */
+.tiles-calmos { filter: grayscale(0.85) sepia(0.2) saturate(0.7) contrast(0.78) brightness(1.08); opacity: 0.72; /* se funde con el papel: las calles quedan de fondo y la ruta manda */ }
+/* En oscuro el fondo se inclina hacia el verde-negro del papel, no hacia un gris neutro */
+body[data-tema='oscuro'] .tiles-calmos { filter: invert(0.9) hue-rotate(180deg) grayscale(0.5) sepia(0.35) hue-rotate(60deg) brightness(0.8) contrast(0.78); }
