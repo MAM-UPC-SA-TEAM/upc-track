@@ -166,7 +166,7 @@ components:
 
 # Design System: UpcTrack
 
-Alcance honesto: este sistema esta construido y verificado en el shell de la app (barra superior, navegacion inferior, panel lateral, paneles desplegables, avisos y toasts), en la pantalla de Inicio del estudiante, en la pantalla Mapa en tiempo real, en la pantalla del conductor (Mi recorrido) en las pantallas de acceso (login y registro) en las listas Rutas, Buses y Notificaciones y en Perfil. Solo la administracion hereda los tokens y el shell; **todavia no estan en este mundo** (ver "Brecha conocida" al final).
+Alcance honesto: este sistema esta construido y verificado en toda la app: el shell (barra superior, navegacion inferior, panel lateral, paneles desplegables, avisos y toasts), Inicio y Mapa en tiempo real del estudiante, la pantalla del conductor (Mi recorrido), las pantallas de acceso (login y registro), las listas Rutas, Buses y Notificaciones, Perfil y la administracion (panel, usuarios, buses y rutas con sus paradas y horarios). Los datos de demostracion tienen una sola ruta y un bus, y todo se verifico en navegador de escritorio y con viewport movil; falta probarlo en un telefono real (ver "Brecha conocida" al final).
 
 ## Overview
 
@@ -322,6 +322,15 @@ Estados de cualquier lista: **cargando** (esqueleto de tres barras y, pasados 6 
 ### Perfil
 Dos hojas en la columna de las listas (560px). La primera es el talon del usuario: su **nombre** hace de cifra (2.25rem/800/ancho 76%, `overflow-wrap: anywhere`) con el rol como etiqueta neutra (una sola vez, sin repetirlo en los datos), perforacion y "Datos personales" como filas (etiqueta en tinta suave, valor en 600, divisores de 1px; un dato vacio dice "Sin registrar") con "Editar" de contorno. Al editar, el mismo bloque pasa a campos (`Campo` de Acceso), con error por campo, foco al primero con error, y "Guardar cambios" como la unica accion verde; el formulario parte siempre de los datos vigentes. La segunda hoja es "Cambiar contrasena", un desplegable en linea (boton de 56px con `aria-expanded`, sin pestanas) con actual, nueva (ayuda "Minimo 8 caracteres.") y confirmar, la casilla "Mostrar contrasenas" y "Actualizar contrasena" en **tinta** para que el verde lleno siga siendo uno. Los resultados (guardado, error del servidor) van en la caja de tinta con icono, `role="status"` o `role="alert"`, nunca en rojo. Sin avatar propio: la barra superior ya lo muestra.
 
+### Administracion (panel, usuarios, buses, rutas)
+Misma columna central que las listas pero con mas ancho (hasta 1040px desde 1024px, 560px por debajo). El `h2` es el conteo ("3 usuarios", "2 buses", "2 rutas") y a su derecha va **la unica accion verde llena** ("Agregar usuario/bus/ruta"). **Desde 1024px la lista es una tabla real** (borde de 2px, encabezado sobre papel hundido, filas con divisor fino, acciones con texto "Editar" y "Eliminar" de 44px de alto y nombre accesible con el elemento: "Editar Estudiante Demo"); **por debajo es una tarjeta-talon por fila** (nombre como titulo, perforacion, pares etiqueta y valor en filas de 44px, acciones a todo el ancho). Solo una de las dos vistas existe a la vez para los lectores de pantalla (la otra es `display:none`). Estado de usuario, bus, ruta o parada: etiqueta neutra; lo apagado ("Inactivo", "Suspendida", "Fuera de servicio", "Inactiva") lleva contorno discontinuo, no un color. La placa, las coordenadas, el orden y las horas van en mono.
+
+**Formularios en `<dialog>` nativo** (el unico caso donde un modal se justifica: un formulario que bloquea la lista mientras se edita): hoja de 480px (920px la de parada) con borde de 2px, cabecera con titulo y cerrar de 44px, cuerpo con scroll, pie con "Cancelar" de contorno y "Guardar" verde; el fondo es tinta al 60%. El navegador atrapa el foco, cierra con Esc y lo devuelve al boton que abrio; el foco inicial va al primer campo. Campos con `Campo` (etiqueta ligada, ayuda, error por campo con icono, foco al primero con error), selectores tematizados con la flecha del talon. Los botones de envio no se deshabilitan mientras guardan (`aria-disabled` y guarda contra doble envio) para no perder el foco dentro del dialogo. Los errores del servidor salen en la caja de tinta del propio dialogo; ya no hay `alert()` ni `confirm()`.
+
+**Eliminar** pide confirmacion en el mismo tipo de dialogo ("¿Eliminar?", "Vas a eliminar <elemento>", foco inicial en "Cancelar"); "Eliminar" es de **tinta**, no rojo, y si el servidor lo rechaza el error aparece ahi. **Rutas:** "Paradas y horarios" de una ruta abre debajo dos secciones con su propia tabla y estados (paradas con "Agregar parada" de contorno; horarios con "Agregar horario" de contorno); la seccion recibe el foco. El formulario de **parada** junta los campos y un selector en mapa de calles calmadas (marcador amarillo, busqueda de direcciones limitada a Aguachica, Cesar, Colombia, "Usar mi ubicacion actual"); las coordenadas escritas son la via por teclado. Cargando, error de carga y vacio usan los mismos estados de las listas.
+
+### Etiqueta de estado
+
 ### Etiqueta de estado
 Pieza generica de 2px 8px en mono 600 mayusculas: valida = relleno verde con texto blanco ("Validado · N s"); vencida = contorno rojo sin relleno ("Hace N s"); neutra = contorno de tinta ("Detenido", "Fuera de servicio", "Inactiva"). Rojo solo en la vencida.
 
@@ -354,9 +363,8 @@ Iconos de la biblioteca Font Awesome Solid como SVG, siempre acompanados de text
 
 ## Brecha conocida (no canonizada como hecha)
 
-- **Estan en el mundo: shell, Inicio, Mapa en tiempo real, pantalla del conductor, acceso (login y registro) las listas Rutas, Buses y Notificaciones y Perfil.** La administracion hereda tokens y shell pero conservan sus composiciones anteriores; estan pendientes. No se debe leer este documento como que esas pantallas cumplen estas reglas.
+- **Estan en el mundo todas las pantallas de la app.** Lo que sigue son limites conocidos de cada una, no pantallas pendientes.
 - **Notificaciones:** el estado "leida" vive solo en el dispositivo (localStorage, hasta 300 ids); no se sincroniza entre dispositivos ni con la campana de la barra superior, que cuenta los avisos recientes de la sesion. **Buses:** el ETA es a la parada activa mas cercana de la ruta del bus (no a la proxima parada), en linea recta.
-- El panel de administracion no tiene decision de diseno aun; las reglas de arriba son los invariantes que debera heredar, no su diseno.
 - **Conductor:** el envio de la posicion depende de que el GPS del telefono emita lecturas (se envia como maximo cada 4 s); si el navegador solo emite al moverse, un bus parado puede verse "Sin senal" aunque transmita. No se reenvia la ultima posicion para no pasar un dato viejo por fresco. El seguimiento con la pantalla bloqueada sigue sin estar garantizado (PRODUCT.md).
 - **El ETA es una estimacion en linea recta** (distancia / 25 km/h), no por carretera; se dice en pantalla en Inicio y en la hoja del Mapa. Decision abierta en PRODUCT.md (OSRM).
 - **El mapa con teselas conserva las etiquetas de calles de OSM:** estan calmadas con filtro CSS, no eliminadas.
