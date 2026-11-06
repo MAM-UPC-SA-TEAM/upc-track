@@ -126,6 +126,38 @@ components:
     backgroundColor: "{colors.superficie}"
     textColor: "{colors.tinta}"
     rounded: "{rounded.none}"
+  chip:
+    backgroundColor: "{colors.superficie}"
+    textColor: "{colors.tinta}"
+    rounded: "{rounded.none}"
+    padding: "0 12px"
+    height: "44px"
+  chip-activo:
+    backgroundColor: "{colors.tinta}"
+    textColor: "{colors.papel}"
+    rounded: "{rounded.none}"
+    padding: "0 12px"
+    height: "44px"
+  etiqueta-vivo:
+    backgroundColor: "{colors.verde-upc}"
+    textColor: "#ffffff"
+    rounded: "{rounded.none}"
+    padding: "2px 8px"
+  etiqueta-viejo:
+    backgroundColor: "transparent"
+    textColor: "{colors.sello}"
+    rounded: "{rounded.none}"
+    padding: "2px 8px"
+  etiqueta-mapa:
+    backgroundColor: "{colors.papel}"
+    textColor: "{colors.tinta}"
+    rounded: "{rounded.none}"
+    padding: "2px 8px"
+  hoja-mapa:
+    backgroundColor: "{colors.superficie}"
+    textColor: "{colors.tinta}"
+    rounded: "{rounded.none}"
+    width: "440px"
   sidebar:
     backgroundColor: "{colors.tinta}"
     textColor: "{colors.tinta-noche}"
@@ -134,7 +166,7 @@ components:
 
 # Design System: UpcTrack
 
-Alcance honesto: este sistema esta construido y verificado solo en el shell de la app (barra superior, navegacion inferior, panel lateral, paneles desplegables, avisos y toasts) y en la pantalla de Inicio del estudiante. Mapa, rutas, buses, notificaciones, perfil, login, registro, conductor y administracion solo heredan los tokens y el shell; **todavia no estan en este mundo** (ver "Brecha conocida" al final).
+Alcance honesto: este sistema esta construido y verificado en el shell de la app (barra superior, navegacion inferior, panel lateral, paneles desplegables, avisos y toasts), en la pantalla de Inicio del estudiante y en la pantalla Mapa en tiempo real. Rutas, buses, notificaciones, perfil, login, registro, conductor y administracion solo heredan los tokens y el shell; **todavia no estan en este mundo** (ver "Brecha conocida" al final).
 
 ## Overview
 
@@ -158,10 +190,10 @@ Rechaza las tarjetas blancas redondeadas con metrica grande y acento azul. Manti
 Paleta de papel y tinta con dos colores de marca de trabajo fijo y un rojo de uso unico; el modo oscuro conserva los mismos nombres semanticos con otros valores.
 
 ### Primary
-- **Verde UPC** (`verde-upc`, #1e6b2e): el unico relleno de accion y de estado valido: boton primario "Ver en el mapa", pestana activa de la navegacion, avatar, sello "Validado", trazo de la ruta en el mapa, enlaces de texto (en claro). Blanco (#ffffff) sobre el es el texto estandar.
+- **Verde UPC** (`verde-upc`, #1e6b2e): el unico relleno de accion y de estado valido: boton primario "Ver en el mapa", pestana activa de la navegacion, avatar, sello "Validado", trazo de la ruta en los mapas, enlaces de texto (en claro). Blanco (#ffffff) sobre el es el texto estandar.
 
 ### Secondary
-- **Amarillo franja** (`amarillo-franja`, #f5c400): la franja de validez bajo la cifra (se vacia de 0 a 30 s), la losa completa del aviso del conductor, el aviso de actualizacion y el marcador de parada. Texto sobre el siempre en tinta (#14261a). Tambien es el color de seleccion de texto.
+- **Amarillo franja** (`amarillo-franja`, #f5c400): la franja de validez bajo la cifra (se vacia de 0 a 30 s), la losa completa del aviso del conductor, el aviso de actualizacion y el marcador de la parada elegida o propia (en reposo las paradas del Mapa son anillos de papel, no amarillas). Texto sobre el siempre en tinta (#14261a). Tambien es el color de seleccion de texto.
 
 ### Tertiary
 - **Sello rojo** (`sello`, #c62828): reservado para anular. Sello sobre la cifra, estado "Hace N s" vencido y el aviso de conexion perdida. No es peligro generico: "Cerrar sesion" va en tinta.
@@ -214,6 +246,8 @@ A partir de 1024px la navegacion inferior y el pie de logo desaparecen y entra u
 
 Objetivos tactiles de 44px minimo (48px en el boton del talon y en enlaces del panel lateral). El foco visible es un anillo de 3px en trazo con 2px de separacion.
 
+**Pantalla Mapa.** El contenido ocupa todo el alto bajo la barra: una banda de papel con borde inferior de 2px (buscador y chips de ruta) y el mapa a sangre. El buscador solo aparece con mas de 3 buses. Sin seleccion, la hoja inferior abarca todo el ancho (hasta 72% del alto, borde superior de 2px); con >=1024px es una tarjeta de 440px abajo a la izquierda con borde de 2px. El encuadre de la seleccion deja libre la hoja: mide su alto en movil y su ancho en escritorio, y deja 64px a la derecha para el zoom.
+
 ## Elevation & Depth
 
 Sin sombras. Toda la profundidad es plana: la jerarquia sale de bordes de 2px en tinta, de rellenos planos (papel, superficie blanca, amarillo, verde) y del contraste entre ellos. Los paneles desplegables y los toasts se separan por borde, no por elevacion. El anillo interior del estado vencido es un trazo de 2px (`inset`), no una sombra de profundidad. Los degradados no existen.
@@ -223,7 +257,7 @@ Sin sombras. Toda la profundidad es plana: la jerarquia sale de bordes de 2px en
 
 ## Shapes
 
-Esquinas rectas en todo (radio 0), con borde de 2px (`--grosor`) en tinta para los contenedores principales y de 1px en linea suave para divisores internos. La unica curva del sistema son las dos muescas circulares de la perforacion del talon (24px, borde de 2px, relleno igual al fondo de pagina) sobre una linea punteada de 3px; los marcadores del mapa esquematico son circulos solidos (bus tinta 26px, parada amarilla 22px, ambos con borde de papel). El sello gira -8 grados con borde de 3px.
+Esquinas rectas en todo (radio 0), con borde de 2px (`--grosor`) en tinta para los contenedores principales y de 1px en linea suave para divisores internos. La unica curva del sistema son las dos muescas circulares de la perforacion del talon (24px, borde de 2px, relleno igual al fondo de pagina) sobre una linea punteada de 3px; los marcadores de mapa son circulos (ver Mapas en Componentes). El sello gira -8 grados con borde de 3px.
 
 ## Components
 
@@ -252,8 +286,24 @@ Losa amarilla completa con borde de 2px en tinta, icono, mensaje en 700 y hora r
 ### Banners de la app
 Franja a todo el ancho: conexion perdida en rojo sello con texto blanco, actualizacion en amarillo con tinta, instalacion en tinta con papel.
 
-### Mapa esquematico (Inicio)
-Marco de 2px en tinta sobre papel hundido; solo la ruta (verde, trazo de 5px), la parada (circulo amarillo) y el bus (circulo tinta), sin teselas ni calles. Las etiquetas son rectangulos de papel con tinta y borde de 2px, siempre en esos colores, tambien en oscuro.
+### Mapas (Inicio y Mapa)
+Dos bases, un mismo lenguaje compartido (marcadores, etiquetas, trazos y controles viven en un solo archivo y los usan ambas pantallas).
+
+- **Base de Inicio:** esquematica, sin teselas ni calles, sobre papel hundido; marco de 2px en tinta; solo ruta (verde, 5px), parada y bus; sin interaccion de arrastre ni zoom; todo el mapa es un enlace al Mapa.
+- **Base del Mapa:** calles reales de OpenStreetMap calmadas con CSS: gris (grayscale .85), sepia .2, saturacion .7, contraste .78, brillo 1.08 y opacidad .72 para que las calles se fundan con el papel y la ruta mande. En oscuro se invierte y se inclina hacia el verde-negro. Las etiquetas de calles de OSM se calman, no se quitan.
+- **Marcadores:** bus = punto de tinta de 28px con borde de papel de 3px dentro de un area tactil de 44px. Bus sin senal (mas de 30 s o estado "sin senal") = marcador hueco de papel con anillo discontinuo de tinta, con la etiqueta "Nombre · sin senal"; se anula, no desaparece. Parada en reposo = anillo de papel de 16px con trazo de tinta de 2px (guion cuando esta inactiva), con un circulo invisible de 22px de radio que da 44px de toque. Parada elegida, o la proxima parada del bus elegido = punto amarillo de 22px con borde de tinta y su nombre en una etiqueta plana.
+- **Etiquetas:** siempre papel con tinta y borde de 2px, 700, esquinas rectas, sin flecha, en cualquier tema. Con mas de 3 buses solo se rotula el elegido.
+- **Rutas:** un solo trazo verde por ruta con un casing de papel debajo. Con varias rutas se distinguen por estilo de linea y no por una paleta: continua gruesa verde (6px), rayas finas de tinta (3px, 10 8), puntos verdes gruesos (6px, 2 9), puntos finos de tinta (3px, 2 9). Las rutas impares son mas finas para que, donde comparten calle, la de abajo siga viendose.
+- **Controles:** zoom arriba a la derecha, dos cuadrados planos de 44px con borde de 2px y sin sombra; atribucion arriba a la izquierda sobre papel.
+
+### Barra de rutas y chips
+Banda de papel con borde inferior de 2px. Los chips miden 44px, tienen borde de 2px en tinta y esquinas rectas; el chip activo se rellena de **tinta**, no de verde, para conservar la regla de un solo verde lleno. Hacen de leyenda: solo con "Todas" cada chip muestra una muestra de su trazo. Mientras se calcula la geometria aparece un anillo giratorio pequeno. El buscador es un campo blanco de 44px con borde de 2px y foco de 3px.
+
+### Hoja del Mapa y su talon
+Superficie blanca con borde de 2px. Sin seleccion lista **Buses** y **Paradas** (la lista de paradas es tambien el camino accesible a las paradas); los encabezados de grupo son h3 reales a 1rem, 700, en tinta, no rotulos pequenos. Cada fila mide 60px o mas. Al tocar una parada muestra su talon con el ETA del bus mas cercano **de la misma ruta**; al tocar un bus, su talon con el ETA a su proxima parada. Es el mismo talon de Inicio sin marco propio (cifra algo menor, clamp(4rem, 22vw, 5.25rem), franja amarilla que se vacia en 30 s, perforacion, fila mono, sello "Sin senal"/"Sin conexion" y nota de linea recta), con titulo en 1.5rem y boton de cerrar de 44px. Estados disenados: sin buses ("Ningun bus transmite ahora": ruta y paradas se quedan), bus sin senal, sin conexion, carga inicial fallida (sello "Sin conexion" y boton "Reintentar ahora", nunca una pantalla vacia) y carga.
+
+### Etiqueta de estado
+Pieza generica de 2px 8px en mono 600 mayusculas: valida = relleno verde con texto blanco ("Validado · N s"); vencida = contorno rojo sin relleno ("Hace N s"); neutra = contorno de tinta ("Detenido", "Fuera de servicio", "Inactiva"). Rojo solo en la vencida.
 
 ### Iconografia
 Iconos de la biblioteca Font Awesome Solid como SVG, siempre acompanados de texto en la navegacion y en las acciones.
@@ -267,6 +317,8 @@ Iconos de la biblioteca Font Awesome Solid como SVG, siempre acompanados de text
 - **Do** dar a los avisos del conductor una losa amarilla completa con tinta y borde de tinta.
 - **Do** usar Spline Sans Mono con cifras tabulares solo para km, segundos, horas y conteos.
 - **Do** mantener 44px de objetivo tactil minimo y `prefers-reduced-motion` respetado (el cambio de estado se conserva, el desplazamiento se quita).
+- **Do** diferenciar varias rutas por estilo de linea (continua, rayas, puntos) y grosor, con los chips como leyenda; el chip activo va en tinta.
+- **Do** anular un bus sin senal con marcador hueco y la palabra "sin senal" en su etiqueta; en reposo la parada es un anillo de papel y solo la elegida es amarilla.
 - **Do** repetir los mismos nombres semanticos (`--bg`, `--superficie`, `--texto`, `--borde`, `--trazo`, `--acento-texto`) en modo oscuro con otros valores; en oscuro el texto verde pasa a #7fd38b.
 
 ### Don't:
@@ -274,11 +326,18 @@ Iconos de la biblioteca Font Awesome Solid como SVG, siempre acompanados de text
 - **Don't** usar sombras, degradados ni esquinas redondeadas; la unica curva es la muesca de la perforacion.
 - **Don't** poner rotulos pequenos encima de los titulos ni etiquetas de seccion decorativas; el titulo es el contenido (la parada).
 - **Don't** repetir la cifra grande en mas de un lugar por pantalla ni usar Spline Sans Mono para titulos o botones.
+- **Don't** distinguir rutas con una paleta de colores ni rellenar de verde el chip activo.
+- **Don't** poner etiquetas del mapa sobre fondo del tema: siempre papel con tinta.
 - **Don't** volver a la tarjeta blanca redondeada con metrica grande y acento azul.
 - **Don't** usar el verde como acento decorativo ni el amarillo como color de texto sobre papel.
 
 ## Brecha conocida (no canonizada como hecha)
 
-- **Solo el shell y Inicio estan rediseñados.** Mapa en tiempo real, rutas, buses, notificaciones, perfil, login, registro, conductor y administracion heredan tokens y shell pero conservan sus composiciones anteriores; estan pendientes de entrar al mundo. No se debe leer este documento como que esas pantallas cumplen estas reglas.
+- **Estan en el mundo: shell, Inicio y Mapa en tiempo real.** Rutas, buses, notificaciones, perfil, login, registro, conductor y administracion heredan tokens y shell pero conservan sus composiciones anteriores; estan pendientes. No se debe leer este documento como que esas pantallas cumplen estas reglas.
 - La pantalla del conductor y el panel de administracion no tienen decision de diseno aun; las reglas de arriba son los invariantes que deberan heredar, no su diseno.
-- Pendientes del brief: umbrales de frescura (hoy 30 s validado, hasta 120 s con sello), escala del sello en modo oscuro, y favoritos de parada guardados solo en el dispositivo.
+- **El ETA es una estimacion en linea recta** (distancia / 25 km/h), no por carretera; se dice en pantalla en Inicio y en la hoja del Mapa. Decision abierta en PRODUCT.md (OSRM).
+- **El mapa con teselas conserva las etiquetas de calles de OSM:** estan calmadas con filtro CSS, no eliminadas.
+- **Las teselas de OSM suman peso de red con datos inestables.** Inicio se mantiene esquematico, sin teselas.
+- **Tableta y "Todas" con varias rutas se verificaron solo con una segunda ruta temporal en la base de desarrollo;** los datos de demostracion tienen una sola ruta.
+- **Seguir a un solo bus (centrar y acompanar) queda fuera de alcance.**
+- Pendientes del brief de Inicio: umbrales de frescura (hoy 30 s validado, hasta 120 s con sello), escala del sello en modo oscuro, y favoritos de parada guardados solo en el dispositivo.
