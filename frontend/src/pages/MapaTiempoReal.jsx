@@ -10,13 +10,12 @@ import Layout from '../components/shared/Layout'
 import ChipsRutas from '../components/mapa/ChipsRutas'
 import HojaBuses from '../components/mapa/HojaBuses'
 import TalonMapa from '../components/mapa/TalonMapa'
-import { textoEdad } from '../utils/formato'
+import { FRESCO_MAX_S, etiquetaBus } from '../utils/estadoBus'
 import socket from '../services/socket'
 import api from '../services/api'
 import { distanciaKm } from '../utils/calcularETA'
 import './MapaTiempoReal.css'
 
-const FRESCO_MAX_S = 30          // misma meta que el inicio: dato visible actualizado en ≤ 30 s
 const UMBRAL_SIN_SENAL_MS = 60000
 const VELOCIDAD_KMH = 25         // ETA por distancia en línea recta (se dice en pantalla)
 const MAX_ETIQUETAS_BUS = 3      // con más buses solo se rotula el seleccionado
@@ -46,16 +45,6 @@ const tieneCoordenadas = b => Number.isFinite(num(b?.lat)) && Number.isFinite(nu
 const normalizarBus = b => ({ ...b, lat: b?.lat == null ? null : num(b.lat), lng: b?.lng == null ? null : num(b.lng) })
 const esActiva = r => r.activa === true || r.activa === 1
 const paradaActiva = p => p.activa !== false && p.activa !== 0
-
-// Estado visible del bus: lo vivo es verde; lo vencido, sello rojo; el resto, neutro
-function etiquetaBus(b, edad) {
-  if (b.estado === 'sin_senal' || (b.estado === 'en_recorrido' && edad > FRESCO_MAX_S)) {
-    return { tipo: 'viejo', texto: `Hace ${textoEdad(edad)}` }
-  }
-  if (b.estado === 'en_recorrido') return { tipo: 'vivo', texto: `Validado · ${textoEdad(edad)}` }
-  if (b.estado === 'detenido') return { tipo: 'neutro', texto: 'Detenido' }
-  return { tipo: 'neutro', texto: 'Fuera de servicio' }
-}
 
 // Bus más cercano a un punto y su tiempo estimado en línea recta
 function masCercano(punto, buses, idRuta) {
