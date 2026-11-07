@@ -4,7 +4,8 @@
 // manejar multiples peticiones simultaneas (RNF1)
 
 import pg from 'pg'
-import { env } from './env.js'
+import './env.js'   // carga y valida el .env antes de crear el pool
+import { opcionesPool } from './conexion.js'
 
 // COUNT() y otros agregados llegan como BIGINT y pg los devuelve como texto;
 // los convertimos a numero (nuestros conteos son pequenos). DECIMAL/NUMERIC se
@@ -12,12 +13,9 @@ import { env } from './env.js'
 pg.types.setTypeParser(pg.types.builtins.INT8, (valor) => Number(valor))
 
 export const pool = new pg.Pool({
-  host:     env.db.host,
-  port:     env.db.port,
-  user:     env.db.user,
-  password: env.db.password,
-  database: env.db.name,
-  max:      10,   // maximo 10 conexiones simultaneas
+  ...opcionesPool(),
+  max: 10,                         // maximo 10 conexiones simultaneas
+  connectionTimeoutMillis: 15000,  // Neon puede tardar unos segundos en despertar tras suspenderse
 })
 
 // Un error en una conexion inactiva del pool no debe tumbar el proceso

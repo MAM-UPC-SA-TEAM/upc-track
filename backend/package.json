@@ -8,7 +8,9 @@
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
     "lint": "eslint .",
-    "test": "node --test"
+    "test": "node --test",
+    "db:migrate": "node scripts/db/migrate.mjs",
+    "db:usuario": "node scripts/db/crear-usuario.mjs"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
