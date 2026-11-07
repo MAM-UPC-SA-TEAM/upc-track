@@ -1,13 +1,13 @@
 // src/models/Parada.js
 // Esquema real: parada, ruta_parada
 
-import { pool } from '../config/database.js'
+import { pool, transaccion } from '../config/database.js'
 
 export const Parada = {
 
   // Todas las paradas
   async todas() {
-    const [rows] = await pool.query(`
+    const { rows: rows } = await pool.query(`
       SELECT
         p.id_parada,
         p.nombre,
@@ -20,14 +20,14 @@ export const Parada = {
       FROM parada p
       LEFT JOIN ruta_parada rp ON p.id_parada = rp.id_parada
       LEFT JOIN ruta r         ON rp.id_ruta  = r.id_ruta
-      ORDER BY rp.id_ruta, rp.orden
+      ORDER BY rp.id_ruta NULLS FIRST, rp.orden
     `)
     return rows
   },
 
   // Paradas de una ruta específica
   async porRuta(idRuta) {
-    const [rows] = await pool.query(`
+    const { rows: rows } = await pool.query(`
       SELECT
         p.id_parada,
         p.nombre,
@@ -37,7 +37,7 @@ export const Parada = {
         rp.orden
       FROM parada p
       INNER JOIN ruta_parada rp ON p.id_parada = rp.id_parada
-      WHERE rp.id_ruta = ?
+      WHERE rp.id_ruta = $1
       ORDER BY rp.orden ASC
     `, [idRuta])
     return rows
@@ -45,83 +45,55 @@ export const Parada = {
 
   // Parada por ID
   async porId(id) {
-    const [rows] = await pool.query(
-      'SELECT id_parada, nombre, latitud AS lat, longitud AS lng, activa FROM parada WHERE id_parada = ?',
+    const { rows: rows } = await pool.query(
+      'SELECT id_parada, nombre, latitud AS lat, longitud AS lng, activa FROM parada WHERE id_parada = $1',
       [id]
     )
     return rows[0] || null
   },
 
   async crear({ nombre, lat, lng, activa = true, idRuta, orden }) {
-    const conn = await pool.getConnection()
-    try {
-      await conn.beginTransaction()
-
-      const [result] = await conn.query(
+    return transaccion(async (conn) => {
+      const { rows } = await conn.query(
         `INSERT INTO parada (nombre, latitud, longitud, activa)
-         VALUES (?, ?, ?, ?)`,
+         VALUES ($1, $2, $3, $4)
+         RETURNING id_parada`,
         [nombre, lat, lng, activa ? 1 : 0]
       )
-
-      const idParada = result.insertId
+      const idParada = rows[0].id_parada
 
       await conn.query(
         `INSERT INTO ruta_parada (id_ruta, id_parada, orden)
-         VALUES (?, ?, ?)`,
+         VALUES ($1, $2, $3)`,
         [idRuta, idParada, orden]
       )
-
-      await conn.commit()
       return idParada
-    } catch (error) {
-      await conn.rollback()
-      throw error
-    } finally {
-      conn.release()
-    }
+    })
   },
 
   async editar(idParada, { nombre, lat, lng, activa = true, idRuta, orden }) {
-    const conn = await pool.getConnection()
-    try {
-      await conn.beginTransaction()
-
+    await transaccion(async (conn) => {
       await conn.query(
         `UPDATE parada
-         SET nombre = ?, latitud = ?, longitud = ?, activa = ?
-         WHERE id_parada = ?`,
+         SET nombre = $1, latitud = $2, longitud = $3, activa = $4
+         WHERE id_parada = $5`,
         [nombre, lat, lng, activa ? 1 : 0, idParada]
       )
 
-      await conn.query('DELETE FROM ruta_parada WHERE id_parada = ?', [idParada])
+      await conn.query('DELETE FROM ruta_parada WHERE id_parada = $1', [idParada])
 
       await conn.query(
         `INSERT INTO ruta_parada (id_ruta, id_parada, orden)
-         VALUES (?, ?, ?)`,
+         VALUES ($1, $2, $3)`,
         [idRuta, idParada, orden]
       )
-
-      await conn.commit()
-    } catch (error) {
-      await conn.rollback()
-      throw error
-    } finally {
-      conn.release()
-    }
+    })
   },
 
   async eliminar(idParada) {
-    const conn = await pool.getConnection()
-    try {
-      await conn.beginTransaction()
-      await conn.query('DELETE FROM ruta_parada WHERE id_parada = ?', [idParada])
-      await conn.query('DELETE FROM parada WHERE id_parada = ?', [idParada])
-      await conn.commit()
-    } catch (error) {
-      await conn.rollback()
-      throw error
-    } finally {
-      conn.release()
-    }
+    await transaccion(async (conn) => {
+      await conn.query('DELETE FROM ruta_parada WHERE id_parada = $1', [idParada])
+      await conn.query('DELETE FROM parada WHERE id_parada = $1', [idParada])
+    })
   },
 }
