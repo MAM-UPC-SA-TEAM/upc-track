@@ -7,7 +7,7 @@ export const Ruta = {
 
   // Todas las rutas con conteo de paradas
   async todas() {
-    const [rows] = await pool.query(`
+    const { rows: rows } = await pool.query(`
       SELECT
         r.id_ruta,
         r.nombre,
@@ -24,8 +24,8 @@ export const Ruta = {
 
   // Ruta por ID
   async porId(id) {
-    const [rows] = await pool.query(
-      'SELECT * FROM ruta WHERE id_ruta = ?',
+    const { rows: rows } = await pool.query(
+      'SELECT * FROM ruta WHERE id_ruta = $1',
       [id]
     )
     return rows[0] || null
@@ -33,7 +33,7 @@ export const Ruta = {
 
   // Paradas de una ruta (ordenadas para polilínea) (#10, #14)
   async obtenerParadas(idRuta) {
-    const [rows] = await pool.query(`
+    const { rows: rows } = await pool.query(`
       SELECT
         p.id_parada,
         p.nombre,
@@ -43,7 +43,7 @@ export const Ruta = {
         rp.orden
       FROM parada p
       INNER JOIN ruta_parada rp ON p.id_parada = rp.id_parada
-      WHERE rp.id_ruta = ?
+      WHERE rp.id_ruta = $1
       ORDER BY rp.orden ASC
     `, [idRuta])
     return rows

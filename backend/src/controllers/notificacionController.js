@@ -3,6 +3,7 @@
 
 import { Notificacion } from '../models/Notificacion.js'
 import { io }           from '../server.js'
+import { pool }         from '../config/database.js'
 
 // POST /api/notificaciones — conductor envía alerta (RF-04)
 export async function enviarNotificacion(req, res) {
@@ -21,10 +22,10 @@ export async function enviarNotificacion(req, res) {
 
   try {
     // Obtener la ruta del bus del conductor
-    const [rows] = await (await import('../config/database.js')).pool.query(
+    const { rows } = await pool.query(
       `SELECT br.id_ruta FROM bus b
        JOIN bus_ruta br ON b.id_bus = br.id_bus
-       WHERE b.id_conductor = ?`,
+       WHERE b.id_conductor = $1`,
       [id_conductor]
     )
 

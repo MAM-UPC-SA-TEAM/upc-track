@@ -7,7 +7,7 @@ export const Bus = {
 
   // Todos los buses con su ruta asignada
   async todos() {
-    const [rows] = await pool.query(`
+    const { rows: rows } = await pool.query(`
       SELECT
         b.id_bus,
         b.nombre,
@@ -29,7 +29,7 @@ export const Bus = {
 
   // Buses activos con última posición GPS (#09, #13)
   async activos() {
-    const [rows] = await pool.query(`
+    const { rows: rows } = await pool.query(`
       SELECT
         b.id_bus,
         b.nombre,
@@ -42,7 +42,7 @@ export const Bus = {
         ub.latitud    AS lat,
         ub.longitud   AS lng,
         ub.fecha_hora AS ultima_actualizacion,
-        TIMESTAMPDIFF(SECOND, ub.fecha_hora, NOW()) AS edad_segundos
+        FLOOR(EXTRACT(EPOCH FROM (now() - ub.fecha_hora)))::int AS edad_segundos
       FROM bus b
       LEFT JOIN usuario u   ON b.id_conductor = u.id_usuario
       LEFT JOIN bus_ruta br  ON b.id_bus = br.id_bus
@@ -60,7 +60,7 @@ export const Bus = {
         AND b.id_conductor IS NOT NULL
         AND u.activo = 1
         AND ub.fecha_hora IS NOT NULL
-        AND ub.fecha_hora >= (NOW() - INTERVAL 2 MINUTE)
+        AND ub.fecha_hora >= (now() - INTERVAL '2 minutes')
       ORDER BY b.nombre
     `)
     return rows
@@ -68,7 +68,7 @@ export const Bus = {
 
   // Todos los buses con posición (incluye inactivos)
   async todosConPosicion() {
-    const [rows] = await pool.query(`
+    const { rows: rows } = await pool.query(`
       SELECT
         b.id_bus,
         b.nombre,
@@ -81,7 +81,7 @@ export const Bus = {
         ub.latitud    AS lat,
         ub.longitud   AS lng,
         ub.fecha_hora AS ultima_actualizacion,
-        TIMESTAMPDIFF(SECOND, ub.fecha_hora, NOW()) AS edad_segundos
+        FLOOR(EXTRACT(EPOCH FROM (now() - ub.fecha_hora)))::int AS edad_segundos
       FROM bus b
       LEFT JOIN usuario u   ON b.id_conductor = u.id_usuario
       LEFT JOIN bus_ruta br  ON b.id_bus = br.id_bus
@@ -102,7 +102,7 @@ export const Bus = {
 
   // Bus por ID
   async porId(id) {
-    const [rows] = await pool.query(`
+    const { rows: rows } = await pool.query(`
       SELECT
         b.id_bus,
         b.nombre,
@@ -116,14 +116,14 @@ export const Bus = {
       LEFT JOIN usuario u  ON b.id_conductor = u.id_usuario
       LEFT JOIN bus_ruta br ON b.id_bus = br.id_bus
       LEFT JOIN ruta r      ON br.id_ruta = r.id_ruta
-      WHERE b.id_bus = ?
+      WHERE b.id_bus = $1
     `, [id])
     return rows[0] || null
   },
 
   // Bus asignado a un conductor
   async porConductor(idusuario) {
-    const [rows] = await pool.query(`
+    const { rows: rows } = await pool.query(`
       SELECT
         b.id_bus,
         b.nombre,
@@ -131,7 +131,7 @@ export const Bus = {
         b.estado,
         r.id_ruta,
         r.nombre AS nombre_ruta,
-        TIMESTAMPDIFF(SECOND, ult.fecha_hora, NOW()) AS edad_segundos
+        FLOOR(EXTRACT(EPOCH FROM (now() - ult.fecha_hora)))::int AS edad_segundos
       FROM bus b
       LEFT JOIN (
         SELECT id_bus, MAX(id_ruta) AS id_ruta
@@ -144,7 +144,7 @@ export const Bus = {
         FROM ubicacion_bus
         GROUP BY id_bus
       ) ult ON b.id_bus = ult.id_bus
-      WHERE b.id_conductor = ?
+      WHERE b.id_conductor = $1
     `, [idusuario])
     return rows[0] || null
   },
@@ -152,18 +152,18 @@ export const Bus = {
   // Actualizar estado
   async actualizarEstado(idBus, estado) {
     await pool.query(
-      'UPDATE bus SET estado = ? WHERE id_bus = ?',
+      'UPDATE bus SET estado = $1 WHERE id_bus = $2',
       [estado, idBus]
     )
   },
 
   // Obtener ruta del bus
   async obtenerRuta(idBus) {
-    const [rows] = await pool.query(`
+    const { rows: rows } = await pool.query(`
       SELECT r.*
       FROM ruta r
       INNER JOIN bus_ruta br ON r.id_ruta = br.id_ruta
-      WHERE br.id_bus = ?
+      WHERE br.id_bus = $1
     `, [idBus])
     return rows[0] || null
   },

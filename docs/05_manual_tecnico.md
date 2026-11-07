@@ -18,7 +18,7 @@ explicitamente aqui:
 
 ```text
 ┌─────────────────┐   HTTP / WS   ┌──────────────────┐   SQL   ┌───────────┐
-│   Frontend        │ ────────────► │   Backend          │ ───────► │   MySQL     │
+│   Frontend        │ ────────────► │   Backend          │ ───────► │ PostgreSQL  │
 │   React + Vite     │               │   Node + Express   │           │             │
 │   (Vercel)          │               │   + Socket.IO       │           │             │
 └─────────────────┘               └──────────────────┘           └───────────┘
@@ -59,9 +59,8 @@ deliberada, no una limitacion:
   ngrok (ver seccion 7); preparado para migrar a Render/Railway sin cambios
   de codigo, solo reconfigurando variables de entorno (`CLIENT_URL`,
   `VITE_API_URL`, `DB_HOST`, etc.).
-- Base de datos: MySQL mediante pool de conexiones (`mysql2/promise`),
-  local o en un servicio cloud compatible (PlanetScale, Railway MySQL,
-  Aiven).
+- Base de datos: PostgreSQL mediante pool de conexiones (`pg`), en un
+  contenedor local para desarrollo y en Neon en la nube.
 - No se usa Docker ni Kubernetes: no se justifican para un unico servicio
   backend sin necesidad de orquestar multiples instancias.
 - No hay pipeline de CI/CD en esta entrega; es una mejora futura natural
@@ -74,9 +73,9 @@ Define como se organiza el codigo **dentro de cada componente/servicio**
 
 - El backend sigue una organizacion por capas de tipo **MVC extendido con
   capa de services** (routes -> controllers -> services -> models ->
-  MySQL). Ver secciones 2 y 3 para el detalle de cada capa.
+  PostgreSQL). Ver secciones 2 y 3 para el detalle de cada capa.
 - No se adopta Clean Architecture ni Arquitectura Hexagonal: los modelos
-  consultan MySQL directamente y no existen puertos/adaptadores de dominio.
+  consultan PostgreSQL directamente y no existen puertos/adaptadores de dominio.
   Es una decision valida para este alcance porque el proyecto no requiere
   independencia de la base de datos ni multiples implementaciones de
   persistencia (no se contempla cambiar de motor de base de datos ni
@@ -99,7 +98,7 @@ un problema de diseno diferente.
 - **Observer**: Socket.IO con rooms por ruta (`ruta_{id_ruta}`) implementa
   publicacion/suscripcion para difundir `bus:location`, `bus:estado` y
   `notificacion:nueva` en tiempo real (`backend/src/sockets/busSocket.js`).
-- **Singleton (idiomatico por modulo ES)**: el pool de MySQL exportado desde
+- **Singleton (idiomatico por modulo ES)**: el pool de PostgreSQL exportado desde
   `backend/src/config/database.js`, la instancia de Socket.IO creada en
   `backend/src/server.js`, y el cliente de socket en
   `frontend/src/services/socket.js` se instancian una sola vez y se

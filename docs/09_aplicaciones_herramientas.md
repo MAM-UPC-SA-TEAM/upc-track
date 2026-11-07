@@ -18,12 +18,12 @@
 - Socket.IO
 - JWT (jsonwebtoken)
 - bcryptjs
-- MySQL2
+- pg (node-postgres)
 - express-rate-limit
 - cors
 
 ## Base de datos
-- MySQL
+- PostgreSQL (Neon)
 
 ## Pruebas y consumo API
 - Postman (colecciones incluidas en /postman)

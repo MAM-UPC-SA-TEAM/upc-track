@@ -5,7 +5,7 @@
 import bcrypt           from 'bcryptjs'
 import { Usuario }      from '../models/Usuario.js'
 import { generarToken } from '../utils/jwt.js'
-import { pool }         from '../config/database.js'
+import { pool, esDuplicado } from '../config/database.js'
 
 export async function login(nombre_usuario, password) {
   const usuario = await Usuario.porNombreUsuario(nombre_usuario)
@@ -45,14 +45,15 @@ export async function registrarEstudiante({ nombre, nombre_usuario, correo, pass
   const passwordHash = await bcrypt.hash(password, 10)
 
   try {
-    const [result] = await pool.query(
+    const { rows } = await pool.query(
       `INSERT INTO usuario (nombre, nombre_usuario, correo, password_hash, tipo_usuario, activo)
-       VALUES (?, ?, ?, ?, 'estudiante', 1)`,
+       VALUES ($1, $2, $3, $4, 'estudiante', 1)
+       RETURNING id_usuario`,
       [nombre, nombre_usuario, correo, passwordHash]
     )
 
     const usuario = {
-      id_usuario:     result.insertId,
+      id_usuario:     rows[0].id_usuario,
       nombre,
       nombre_usuario,
       correo,
@@ -63,8 +64,8 @@ export async function registrarEstudiante({ nombre, nombre_usuario, correo, pass
 
     return { token, usuario }
   } catch (error) {
-    if (error.code === 'ER_DUP_ENTRY') {
-      if (error.message.includes('nombre_usuario')) {
+    if (esDuplicado(error)) {
+      if (error.constraint?.includes('nombre_usuario')) {
         throw new Error('USUARIO_YA_REGISTRADO', { cause: error })
       }
       throw new Error('CORREO_YA_REGISTRADO', { cause: error })

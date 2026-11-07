@@ -1,7 +1,7 @@
 // src/controllers/usuarioController.js
 import { Usuario } from '../models/Usuario.js'
 import bcrypt from 'bcryptjs'
-import { pool } from '../config/database.js'
+import { pool, esDuplicado } from '../config/database.js'
 
 // GET /api/usuarios
 export async function listarUsuarios(_req, res) {
@@ -28,15 +28,16 @@ export async function crearUsuario(req, res) {
 
   try {
     const password_hash = await bcrypt.hash(password, 10)
-    const [result] = await pool.query(
+    const { rows } = await pool.query(
       `INSERT INTO usuario (nombre, nombre_usuario, correo, password_hash, tipo_usuario, activo)
-       VALUES (?, ?, ?, ?, ?, ?)`,
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING id_usuario`,
       [nombre, nombre_usuario.toLowerCase(), correo, password_hash, tipo_usuario || 'estudiante', activo === false ? 0 : 1]
     )
-    return res.status(201).json({ ok: true, id_usuario: result.insertId })
+    return res.status(201).json({ ok: true, id_usuario: rows[0].id_usuario })
   } catch (error) {
-    if (error.code === 'ER_DUP_ENTRY') {
-      if (error.message.includes('nombre_usuario')) {
+    if (esDuplicado(error)) {
+      if (error.constraint?.includes('nombre_usuario')) {
         return res.status(400).json({ error: 'Ese nombre de usuario ya está en uso' })
       }
       return res.status(400).json({ error: 'Ya existe un usuario con ese correo' })
@@ -58,20 +59,20 @@ export async function editarUsuario(req, res) {
       }
       const password_hash = await bcrypt.hash(password, 10)
       await pool.query(
-        `UPDATE usuario SET nombre=?, nombre_usuario=?, correo=?, tipo_usuario=?, activo=?, password_hash=?
-         WHERE id_usuario=?`,
+        `UPDATE usuario SET nombre=$1, nombre_usuario=$2, correo=$3, tipo_usuario=$4, activo=$5, password_hash=$6
+         WHERE id_usuario=$7`,
         [nombre, nombre_usuario?.toLowerCase(), correo, tipo_usuario, activo === false ? 0 : 1, password_hash, id]
       )
     } else {
       await pool.query(
-        `UPDATE usuario SET nombre=?, nombre_usuario=?, correo=?, tipo_usuario=?, activo=?
-         WHERE id_usuario=?`,
+        `UPDATE usuario SET nombre=$1, nombre_usuario=$2, correo=$3, tipo_usuario=$4, activo=$5
+         WHERE id_usuario=$6`,
         [nombre, nombre_usuario?.toLowerCase(), correo, tipo_usuario, activo === false ? 0 : 1, id]
       )
     }
     return res.status(200).json({ ok: true })
   } catch (error) {
-    if (error.code === 'ER_DUP_ENTRY') {
+    if (esDuplicado(error)) {
       return res.status(400).json({ error: 'Ese nombre de usuario ya está en uso' })
     }
     console.error('Error editando usuario:', error)
@@ -95,16 +96,16 @@ export async function editarPerfil(req, res) {
 
   try {
     await pool.query(
-      `UPDATE usuario SET nombre=?, correo=? WHERE id_usuario=?`,
+      `UPDATE usuario SET nombre=$1, correo=$2 WHERE id_usuario=$3`,
       [nombre.trim(), correo, id]
     )
-    const [[usuario]] = await pool.query(
-      `SELECT id_usuario, nombre, nombre_usuario, correo, tipo_usuario FROM usuario WHERE id_usuario=?`,
+    const { rows: [usuario] } = await pool.query(
+      `SELECT id_usuario, nombre, nombre_usuario, correo, tipo_usuario FROM usuario WHERE id_usuario=$1`,
       [id]
     )
     return res.status(200).json({ ok: true, usuario })
   } catch (error) {
-    if (error.code === 'ER_DUP_ENTRY') {
+    if (esDuplicado(error)) {
       return res.status(400).json({ error: 'Ese correo ya está en uso' })
     }
     console.error('Error editando perfil:', error)
@@ -125,8 +126,8 @@ export async function cambiarPassword(req, res) {
   }
 
   try {
-    const [[usuario]] = await pool.query(
-      `SELECT password_hash FROM usuario WHERE id_usuario=?`, [id]
+    const { rows: [usuario] } = await pool.query(
+      `SELECT password_hash FROM usuario WHERE id_usuario=$1`, [id]
     )
     const coincide = await bcrypt.compare(password_actual, usuario.password_hash)
     if (!coincide) {
@@ -135,7 +136,7 @@ export async function cambiarPassword(req, res) {
 
     const nuevoHash = await bcrypt.hash(password_nueva, 10)
     await pool.query(
-      `UPDATE usuario SET password_hash=? WHERE id_usuario=?`, [nuevoHash, id]
+      `UPDATE usuario SET password_hash=$1 WHERE id_usuario=$2`, [nuevoHash, id]
     )
     return res.status(200).json({ ok: true })
   } catch (error) {
@@ -148,10 +149,10 @@ export async function cambiarPassword(req, res) {
 export async function eliminarUsuario(req, res) {
   const { id } = req.params
   try {
-    await pool.query(`DELETE FROM usuario WHERE id_usuario=?`, [id])
+    await pool.query(`DELETE FROM usuario WHERE id_usuario=$1`, [id])
     return res.status(200).json({ ok: true })
   } catch (error) {
     console.error('Error eliminando usuario:', error)
     return res.status(500).json({ error: 'Error interno del servidor' })
   }
-}
+}

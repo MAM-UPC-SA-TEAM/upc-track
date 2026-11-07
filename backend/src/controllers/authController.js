@@ -78,7 +78,7 @@ export async function logoutController(req, res) {
   try {
     if (req.usuario?.tipo_usuario === 'conductor') {
       await pool.query(
-        `UPDATE bus SET estado = 'inactivo' WHERE id_conductor = ? AND estado != 'inactivo'`,
+        `UPDATE bus SET estado = 'inactivo' WHERE id_conductor = $1 AND estado != 'inactivo'`,
         [req.usuario.id_usuario]
       )
     }

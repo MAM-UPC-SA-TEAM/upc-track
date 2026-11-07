@@ -1,7 +1,7 @@
 # Documentacion de Base de Datos
 
 ## 1. Motor
-MySQL
+PostgreSQL 16 (Neon en producción). Esquema en `database/schema.sql`: `correo`, `nombre_usuario` y `placa` son `CITEXT` (no distinguen mayúsculas), `activo`/`activa` son `SMALLINT` 0/1 y las fechas son `TIMESTAMPTZ`.
 
 ## 2. Entidades principales
 

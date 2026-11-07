@@ -1,30 +1,56 @@
 // src/config/database.js
-// Pool de conexiones a MySQL
-// Usar pool en lugar de una sola conexión permite
-// manejar múltiples peticiones simultáneas (RNF1)
+// Pool de conexiones a PostgreSQL (Neon en produccion, contenedor local en desarrollo).
+// Usar pool en lugar de una sola conexion permite
+// manejar multiples peticiones simultaneas (RNF1)
 
-import mysql from 'mysql2/promise'
+import pg from 'pg'
 import { env } from './env.js'
 
-export const pool = mysql.createPool({
-  host:               env.db.host,
-  port:               env.db.port,
-  user:               env.db.user,
-  password:           env.db.password,
-  database:           env.db.name,
-  waitForConnections: true,
-  connectionLimit:    10,   // máximo 10 conexiones simultáneas
-  queueLimit:         0,
+// COUNT() y otros agregados llegan como BIGINT y pg los devuelve como texto;
+// los convertimos a numero (nuestros conteos son pequenos). DECIMAL/NUMERIC se
+// queda como texto, igual que con mysql2.
+pg.types.setTypeParser(pg.types.builtins.INT8, (valor) => Number(valor))
+
+export const pool = new pg.Pool({
+  host:     env.db.host,
+  port:     env.db.port,
+  user:     env.db.user,
+  password: env.db.password,
+  database: env.db.name,
+  max:      10,   // maximo 10 conexiones simultaneas
 })
 
-// Verificar conexión al iniciar
+// Un error en una conexion inactiva del pool no debe tumbar el proceso
+pool.on('error', (error) => {
+  console.error('Error en una conexion inactiva de PostgreSQL:', error.message)
+})
+
+// Violacion de restriccion UNIQUE (equivale al ER_DUP_ENTRY de MySQL)
+export const esDuplicado = (error) => error?.code === '23505'
+
+// Ejecuta fn(client) dentro de una transaccion; hace ROLLBACK si falla
+export async function transaccion(fn) {
+  const client = await pool.connect()
+  try {
+    await client.query('BEGIN')
+    const resultado = await fn(client)
+    await client.query('COMMIT')
+    return resultado
+  } catch (error) {
+    await client.query('ROLLBACK')
+    throw error
+  } finally {
+    client.release()
+  }
+}
+
+// Verificar conexion al iniciar
 export async function connectDB() {
   try {
-    const connection = await pool.getConnection()
-    console.log('✅ Conexión a MySQL exitosa')
-    connection.release()
+    await pool.query('SELECT 1')
+    console.log('✅ Conexión a PostgreSQL exitosa')
   } catch (error) {
-    console.error('❌ Error conectando a MySQL:', error.message)
+    console.error('❌ Error conectando a PostgreSQL:', error.message)
     process.exit(1)
   }
 }
