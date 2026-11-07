@@ -28,7 +28,7 @@ export const LABELS = [
 ]
 
 export const MILESTONES = [
-  { n: 1, title: 'Hito 1 · Base, CI y nube',      due: '2026-11-13', description: 'Sprint 4. Repo ordenado, CI, backend en Render, BD en Aiven, frontend en Vercel, charter v2.' },
+  { n: 1, title: 'Hito 1 · Base, CI y nube',      due: '2026-11-13', description: 'Sprint 4. Repo ordenado, CI, backend en Render, BD PostgreSQL en Neon, frontend en Cloudflare, charter v2.' },
   { n: 2, title: 'Hito 2 · Diseño móvil y base Capacitor', due: '2026-11-20', description: 'Sprint 4. Tokens, navegación móvil, pantalla del conductor, Capacitor con login y GPS.' },
   { n: 3, title: 'Hito 3 · APK, capas y pulido',   due: '2026-11-27', description: 'Sprint 5. APK firmado, pruebas en dispositivo, refactor de capas, accesibilidad y stretch.' },
   { n: 4, title: 'Hito 4 · QA, docs y entrega',   due: '2026-12-05', description: 'Sprint 5. Congelamiento 01-dic. QA, usabilidad, manuales, release v1.0.0, sustentación.' },
@@ -39,7 +39,7 @@ export const ISSUES = [
   {
     id: 'W01', hito: 1, prio: 'P0', area: ['repo', 'frontend'],
     titulo: 'Reorganizar el repo: landing dentro de frontend/, retirar Pages y limpiar',
-    contexto: 'La fusión dejó en la raíz la landing (`src/`, `index.html`, `vite.config.js` con `base: /upc-track/`, `public/brand`) y, en el working tree, el `package.json` raíz quedó con el del monorepo (sin `build`, `vite` ni `react`; sin commitear). Decisión: la landing vive dentro de `frontend/` y se sirve desde Vercel en `/`. GitHub Pages se retira: no hay URL impresa que preservar.',
+    contexto: 'La fusión dejó en la raíz la landing (`src/`, `index.html`, `vite.config.js` con `base: /upc-track/`, `public/brand`) y, en el working tree, el `package.json` raíz quedó con el del monorepo (sin `build`, `vite` ni `react`; sin commitear). Decisión: la landing vive dentro de `frontend/` y se sirve desde Cloudflare en `/`. GitHub Pages se retira: no hay URL impresa que preservar.',
     tareas: [
       'Mover `src/features/feria`, `src/content/feria.js` y los estilos propios de la landing a `frontend/src/features/landing/`; `public/brand/*` a `frontend/public/brand/`.',
       'Añadir `@fontsource-variable/archivo` y `@fontsource-variable/instrument-sans` a `frontend/package.json` (versiones del commit b777e29).',
@@ -92,36 +92,53 @@ export const ISSUES = [
   // ───────────────────────── Infraestructura y despliegue ─────────────────────────
   {
     id: 'D01', hito: 1, prio: 'P0', area: ['infra'], nivel: 1, charter: true,
-    titulo: 'Spike: crear MySQL gratuito en Aiven y fijar el plan de continuidad',
-    contexto: 'Según la documentación de Aiven, el plan free es de nodo único (1 CPU, 1 GB), sin tarjeta y sin límite de tiempo, pero **Aiven puede apagar servicios free sin actividad continua** (umbral no publicado; se puede volver a encender). Si la BD se apaga durante una prueba o la sustentación, toda la app cae. Decisión: mantener actividad con un `SELECT 1` periódico (D06) y tener un plan B que no dependa de otro proveedor: el MySQL local de `docker-compose.yml`.',
+    titulo: 'Spike: crear la base PostgreSQL gratuita en Neon y fijar el plan de continuidad',
+    contexto: 'Por recomendación del profesor (07-nov-2026) la BD pasa de Aiven MySQL a **Neon (PostgreSQL)**. Según la documentación de Neon (consultada el 07-nov-2026) el plan Free no cobra excedentes, suspende el cómputo a los 5 min sin conexiones (no se puede desactivar en Free) y despierta en pocos segundos; los límites publicados son 100 CU-horas de cómputo al mes y 1 GB de almacenamiento por proyecto (otras páginas de Neon aún muestran 0,5 GB: confirmar en la consola). Con el almacenamiento lleno las escrituras fallan. **Un ping constante impediría la suspensión y gastaría las CU-horas**, así que no se mantiene la BD despierta a propósito (ver D06). Plan B que no depende de otro proveedor: el PostgreSQL local de `docker-compose.yml` (D10).',
     tareas: [
-      'Crear el servicio MySQL free, anotar región, host, puerto y usuario, y descargar el CA.',
-      'Registrar en el issue, con fecha, lo que muestre la consola: almacenamiento, conexiones y si hay aviso de apagado por inactividad.',
-      'Probar conexión desde local y, cuando exista, desde Render (D05).',
-      'Probar el apagado/encendido manual y medir cuánto tarda en volver, para documentarlo en el plan de contingencia (Q06).',
+      'Crear el proyecto en Neon (región más cercana a la de Render), anotar host, base, usuario y rol, y copiar la cadena de conexión con `sslmode=require`.',
+      'Registrar en el issue, con fecha, los límites que muestre la consola (almacenamiento, CU-horas, si pide tarjeta) y comprobar que no se activa facturación.',
+      'Probar la conexión desde local y, cuando exista, desde Render (D05).',
+      'Medir cuánto tarda la primera consulta tras la suspensión para documentarlo en el plan de contingencia (Q06).',
       'Dejar un volcado reproducible (`schema.sql` + `seed.prod.sql`) para recrear la BD en minutos.',
     ],
     aceptacion: [
-      'Instancia accesible y credenciales guardadas en un gestor del equipo (no en el repo).',
+      'Proyecto accesible y credenciales guardadas en un gestor del equipo (no en el repo).',
       'El issue documenta límites verificados con fecha y el procedimiento de recuperación.',
     ],
     refs: 'Plan Nivel 1 · Charter §4.2, R4',
   },
   {
-    id: 'D02', hito: 1, prio: 'P0', area: ['backend', 'infra'], nivel: 1, deps: ['D01'],
-    titulo: 'Backend y BD en Aiven: soporte TLS y migración de esquema/datos',
-    contexto: '`database.js` crea el pool sin opción `ssl` y Aiven exige TLS. Además `seed.sql` crea usuarios con clave conocida (`Admin123*`), inaceptable en una BD pública. El registro público solo crea estudiantes, así que ningún rol privilegiado se autogenera.',
+    id: 'D02', hito: 1, prio: 'P0', area: ['backend', 'infra'], nivel: 1, deps: ['D01', 'D10'],
+    titulo: 'Backend y BD en Neon: TLS, migración de esquema y datos',
+    contexto: 'Neon exige TLS. Además `seed.sql` crea usuarios con clave conocida (`Admin123*`), inaceptable en una BD pública. El registro público solo crea estudiantes, así que ningún rol privilegiado se autogenera. Depende de D10 (el backend ya habla PostgreSQL).',
     tareas: [
-      'Añadir `DB_SSL` y `DB_SSL_CA` (PEM en variable o ruta) a `env.js` y pasar `ssl: { ca, rejectUnauthorized: true }` al pool cuando aplique; sin TLS contra el MySQL de Docker.',
-      'Actualizar `backend/.env.example` (quitar PlanetScale, documentar las variables nuevas).',
-      'Aplicar `schema.sql` en Aiven de forma reproducible (`scripts/db/migrate.mjs` o documento); verificar `utf8mb4` y modo SQL.',
+      'Soportar `DATABASE_URL` (o `DB_*` + `DB_SSL`) en `env.js` y pasar `ssl: { rejectUnauthorized: true }` al pool de `pg` cuando aplique; sin TLS contra el PostgreSQL de Docker.',
+      'Actualizar `backend/.env.example` (quitar PlanetScale/MySQL, documentar las variables nuevas).',
+      'Aplicar el esquema PostgreSQL en Neon de forma reproducible (`scripts/db/migrate.mjs` o documento).',
       'Crear `seed.prod.sql` con rutas, paradas y buses reales **sin** contraseñas conocidas; cuentas de prueba (admin, conductor, estudiante) con claves robustas.',
     ],
     aceptacion: [
-      'El backend arranca contra Aiven con TLS verificado y contra Docker sin cambiar el `.env` local.',
-      'La BD de Aiven tiene esquema y datos reales; no existe ningún usuario con clave de demo.',
+      'El backend arranca contra Neon con TLS verificado y contra Docker sin cambiar el `.env` local.',
+      'La BD de Neon tiene esquema y datos reales; no existe ningún usuario con clave de demo.',
     ],
     refs: 'Plan Nivel 1 · Charter §8 R4',
+  },
+  {
+    id: 'D10', hito: 1, prio: 'P0', area: ['backend', 'infra'], nivel: 1, charter: true,
+    titulo: 'Migrar el backend de MySQL a PostgreSQL (driver pg)',
+    contexto: 'Neon solo ofrece PostgreSQL y el backend usa `mysql2` con SQL escrito a mano (~60 consultas en controladores, servicios y modelos), `database/schema.sql`, `database/seed.sql` y un `docker-compose.yml` con MySQL. Hay que cambiar el driver, los marcadores `?` por `$1…`, `insertId`/`affectedRows` por `RETURNING`/`rowCount`, `AUTO_INCREMENT` por identidad, `ENUM` y funciones de fecha propias de MySQL, y los backticks. Es la tarea con más riesgo del cambio de infraestructura: se hace primero y con pruebas.',
+    tareas: [
+      'Inventariar las consultas y construcciones propias de MySQL (`grep` de `?`, backticks, `insertId`, `NOW()`, `INTERVAL`, `ENUM`, `ON DUPLICATE KEY`) y registrarlas en el issue.',
+      'Reemplazar `mysql2` por `pg` en `database.js` (pool, `connectDB`) conservando la misma forma de uso para los llamadores (helper `query` que devuelve filas).',
+      'Adaptar controladores, servicios y modelos; cuidar los tipos (`DECIMAL`/`BIGINT` llegan como texto desde `pg`) y las zonas horarias de `ubicacion_bus`.',
+      'Traducir `schema.sql` y `seed.sql` a PostgreSQL y cambiar `docker-compose.yml` a una imagen `postgres` (puerto de desarrollo documentado).',
+      'Probar cada ruta de la API contra el PostgreSQL local, incluidas las de Socket.IO que escriben ubicaciones.',
+    ],
+    aceptacion: [
+      '`mysql2` ya no está en `package.json` y `npm run lint` y `npm test` pasan.',
+      'Login de los tres roles, CRUD de rutas/paradas/buses y envío de ubicación funcionan contra PostgreSQL local.',
+    ],
+    refs: 'Cambio de infraestructura del 07-nov-2026 (D-05, D-06)',
   },
   {
     id: 'D04', hito: 2, prio: 'P1', area: ['infra', 'backend'], nivel: 1,
@@ -143,13 +160,13 @@ export const ISSUES = [
     contexto: 'Sustituye a ngrok. Condiciones de Render free (documentación consultada el 05-nov-2026): se suspende tras 15 min sin tráfico entrante, despierta en ~1 min, tiene 750 h/mes por workspace (un servicio 24/7 consume 744 h, por lo que **no debe haber otro servicio free en el mismo workspace**), sistema de archivos efímero y puede reiniciarse en cualquier momento. Desde el 24-feb-2026 los mensajes WebSocket entrantes cuentan como actividad.',
     tareas: [
       'Crear `render.yaml` (Web Service, `rootDir: backend`, build `npm ci`, start `npm start`, `healthCheckPath: /api/health`).',
-      'Configurar variables: `DB_*` (Aiven), `DB_SSL*`, `JWT_SECRET` nuevo, `JWT_EXPIRES_IN`, `CLIENT_URL` (dominio de Vercel + orígenes Capacitor).',
-      'Elegir región cercana a Colombia y a la región de Aiven para minimizar latencia.',
+      'Configurar variables: `DATABASE_URL` (Neon), `JWT_SECRET` nuevo, `JWT_EXPIRES_IN`, `CLIENT_URL` (dominio de Cloudflare + orígenes Capacitor).',
+      'Elegir región cercana a Colombia y a la región de Neon para minimizar latencia. Render pide tarjeta al crear la cuenta: es un requisito previo.',
       'Documentar la limitación de suspensión en README y manual técnico.',
       'Verificar que el backend no guarda estado en disco ni depende de memoria entre reinicios (el socket debe reconectar solo).',
     ],
     aceptacion: [
-      '`https://<servicio>.onrender.com/api/health` responde 200 con la BD de Aiven.',
+      '`https://<servicio>.onrender.com/api/health` responde 200 con la BD de Neon.',
       'Login de los tres roles funciona contra el backend desplegado.',
     ],
     refs: 'Plan Nivel 1 · Charter Obj. Específico 4, §9',
@@ -157,9 +174,9 @@ export const ISSUES = [
   {
     id: 'D06', hito: 2, prio: 'P1', area: ['infra', 'frontend'], nivel: 1, deps: ['D05'],
     titulo: 'Mitigar el arranque en frío: keep-alive y estado «servidor despertando»',
-    contexto: 'Render free se suspende a los 15 min y tarda ~1 min en despertar; además Aiven free puede apagarse por inactividad (D01). Un `SELECT 1` periódico mitiga ambos. Mientras el conductor transmite (cada 4 s) el servicio permanece activo; el riesgo es el tiempo sin nadie conectado.',
+    contexto: 'Render free se suspende a los 15 min y tarda ~1 min en despertar; Neon free suspende el cómputo a los 5 min (despierta en segundos), pero un ping constante a la BD gastaría las 100 CU-horas mensuales, así que el keep-alive despierta solo a Render. Mientras el conductor transmite (cada 4 s) el servicio permanece activo; el riesgo es el tiempo sin nadie conectado.',
     tareas: [
-      'Ampliar `/api/health` para ejecutar `SELECT 1` contra la BD (cuenta como actividad en Aiven) y devolver versión/commit.',
+      'Mantener `/api/health` ligero (sin consultar la BD) y devolver versión/commit; añadir `/api/health/db` con `SELECT 1` solo para comprobaciones manuales.',
       'Configurar un ping externo (cron-job.org) cada 10 min entre el 20-nov y el 05-dic y documentar cómo pausarlo.',
       'En el frontend: si la primera petición tarda o falla, mostrar «Despertando el servidor…» con reintento automático (en lugar de error).',
       'Asegurar reconexión de Socket.IO con backoff tras el despertar.',
@@ -172,15 +189,15 @@ export const ISSUES = [
   },
   {
     id: 'D07', hito: 1, prio: 'P0', area: ['infra', 'frontend'], nivel: 1, charter: true, deps: ['D05', 'W01'],
-    titulo: 'Frontend en Vercel apuntando al backend de Render',
-    contexto: 'El frontend ya usa Vercel (se mantiene). Falta apuntarlo a Render y asegurar el fallback SPA con la landing en `/`.',
+    titulo: 'Frontend en Cloudflare apuntando al backend de Render',
+    contexto: 'Por recomendación del profesor (07-nov-2026) el frontend pasa de Vercel a **Cloudflare** (Pages, plan gratuito: hasta 500 compilaciones al mes según la documentación consultada). Hay que conectar el repo, apuntarlo a Render y asegurar el fallback SPA con la landing en `/`.',
     tareas: [
-      'Reconfigurar el proyecto de Vercel (Root Directory `frontend`) con `VITE_API_URL=<render>`.',
-      'Verificar `vercel.json` (rewrite SPA) con la landing en `/` y rutas profundas (`/mapa`, `/admin/rutas`).',
-      'Añadir el dominio de Vercel (producción y previews si aplica) a `CLIENT_URL` del backend.',
+      'Crear el proyecto en Cloudflare Pages desde GitHub (directorio raíz `frontend`, build `npm run build`, salida `dist`) con `VITE_API_URL=<render>`.',
+      'Configurar el fallback SPA (`frontend/public/_redirects` con `/* /index.html 200`, a verificar) con la landing en `/` y rutas profundas (`/mapa`, `/admin/rutas`); retirar `vercel.json`.',
+      'Añadir el dominio de Cloudflare (producción y previews si aplica) a `CLIENT_URL` del backend.',
     ],
     aceptacion: [
-      'La URL pública de Vercel carga la landing, permite login y muestra el mapa contra Render/Aiven.',
+      'La URL pública de Cloudflare carga la landing, permite login y muestra el mapa contra Render/Neon.',
       'Recargar en una ruta profunda no da 404.',
     ],
     refs: 'Plan Nivel 1 · Charter §4 Módulo 4',
@@ -239,7 +256,7 @@ export const ISSUES = [
       'Un correo fuera de `unicesar.edu.co` es rechazado por el servidor con un mensaje claro aunque se salte el formulario (probado con `curl`).',
       'No se puede iniciar sesión ni obtener token con un correo institucional sin verificar (métodos A y B).',
       'Los casos de suplantación de dominio están cubiertos por pruebas automáticas.',
-      'El flujo completo funciona en Render + Aiven y en el APK con un buzón `@unicesar.edu.co` real.',
+      'El flujo completo funciona en Render + Neon y en el APK con un buzón `@unicesar.edu.co` real.',
       'El charter v2 recoge el requisito (ver Q01).',
     ],
     refs: 'Charter §4 Módulo 1 (requisito nuevo a mitad de semestre, ver R3) · Plan Nivel 1',
@@ -284,7 +301,7 @@ export const ISSUES = [
       'Crear `backend/src/utils/cors.js` exportando `origenPermitido` y un `corsOptions` reutilizable.',
       'Importarlo desde `app.js` y `server.js` (Express y Socket.IO).',
       'Permitir explícitamente `https://localhost`, `capacitor://localhost` y `http://localhost` en todos los entornos.',
-      'Documentar el valor final de `CLIENT_URL` (Vercel + orígenes nativos) en `.env.example`.',
+      'Documentar el valor final de `CLIENT_URL` (Cloudflare + orígenes nativos) en `.env.example`.',
     ],
     aceptacion: [
       'Las tres funciones existen en un único archivo.',
@@ -602,12 +619,12 @@ export const ISSUES = [
   {
     id: 'Q01', hito: 1, prio: 'P0', area: ['docs'], charter: true,
     titulo: 'Enmendar el Project Charter (v2): nube gratuita y APK Android',
-    contexto: 'El charter vigente contradice las decisiones tomadas: Obj. Específico 4 y Módulo 4 fijan Vercel + Ngrok; §4.1 deja Capacitor fuera de alcance; §7.1, §8 (R4), §9 y el cronograma (Sprint 4) también mencionan Ngrok. Como el charter es la entrega final, debe reflejar lo que realmente se construye.',
+    contexto: 'El charter vigente contradice las decisiones tomadas: Obj. Específico 4 y Módulo 4 fijan Vercel + Ngrok (v1); §4.1 deja Capacitor fuera de alcance; §7.1, §8 (R4), §9 y el cronograma (Sprint 4) también mencionan Ngrok. Como el charter es la entrega final, debe reflejar lo que realmente se construye.',
     tareas: [
       'Crear versión 2 con tabla de control de cambios (fecha, motivo, secciones).',
-      'Obj. Específico 4 / Módulo 4 / §9: Vercel + Render + Aiven; ngrok queda como contingencia local. §9: la gestión ágil pasa de Jira a GitHub Projects (fuente única de verdad).',
+      'Obj. Específico 4 / Módulo 4 / §9: Cloudflare + Render + Neon (PostgreSQL); ngrok queda como contingencia local. §9: la gestión ágil pasa de Jira a GitHub Projects (fuente única de verdad).',
       'Módulo 3 / §4.1: Capacitor pasa a In-Scope como **APK Android instalable**; tiendas (Play/App Store) e iOS compilado siguen Out-of-Scope.',
-      'Actualizar §6 (Sprint 4/5), §7.1 (servicios Render/Aiven), §8 (R4: suspensión de Render, apagado por inactividad de Aiven; nuevo riesgo: GPS con pantalla bloqueada en el APK) y §10 (criterio: APK instalable).',
+      'Actualizar §6 (Sprint 4/5), §7.1 (servicios Render/Neon), §8 (R4: suspensión de Render, suspensión de Neon a los 5 min; nuevo riesgo: GPS con pantalla bloqueada en el APK) y §10 (criterio: APK instalable).',
       'Definir en §2.2 cómo se mide cada meta: «satisfacción ≥ 80 %» = al menos 80 % de los participantes puntúan 4 o 5 sobre 5 en la pregunta global; los tiempos se miden con el cronómetro de la sesión (Q03); el RNF de respuesta < 3 s se mide con el servicio despierto y el primer arranque en frío (~1 min) se declara excepción.',
       'Marcar el documento como «v2 — cambios propuestos, pendiente de aprobación del docente» y listar en el control de cambios qué se desvía del v1.',
       'Módulo 1 (Autenticación): añadir el registro restringido a correo institucional `@unicesar.edu.co` con verificación de titularidad como requisito nuevo a mitad de semestre, tratado según el riesgo R3 (A01).',
@@ -624,7 +641,7 @@ export const ISSUES = [
     titulo: 'Ejecutar las checklists de RF y RNF sobre el entorno desplegado',
     contexto: 'Existen `docs/checklist_validacion_rf.md` y `checklist_validacion_rnf.md`, que deben validarse contra la nube real, no solo en local.',
     tareas: [
-      'Ejecutar cada ítem en Vercel+Render+Aiven y en el APK; adjuntar evidencia.',
+      'Ejecutar cada ítem en Cloudflare+Render+Neon y en el APK; adjuntar evidencia.',
       'Medir RNF críticos: tiempo de respuesta < 3 s (anotando la excepción del primer arranque en frío) y propagación GPS 3–4 s.',
       'Abrir issue por cada incumplimiento y decidir corrección o excepción documentada.',
     ],
@@ -650,7 +667,7 @@ export const ISSUES = [
     titulo: 'Actualizar README, manuales y documentación a la nueva arquitectura y cerrar el plan',
     contexto: 'README y docs siguen describiendo ngrok, PlanetScale y «sin Docker».',
     tareas: [
-      'README: nueva arquitectura, arranque local, despliegue Render/Aiven/Vercel y APK; quitar ngrok/PlanetScale como camino principal.',
+      'README: nueva arquitectura, arranque local, despliegue Render/Neon/Cloudflare y APK; quitar ngrok/PlanetScale como camino principal.',
       '`05_manual_tecnico.md`: capas tras B01/B02, patrones (Strategy, Adapter, Factory), limitación consciente de DIP, background GPS y notas de Capacitor.',
       '`06_documentacion_bd.md`, `09_aplicaciones_herramientas.md`, `08_interfaz_usuario.md` y `04_manual_usuario.md` (instalación del APK).',
       'Regenerar `Manual_Tecnico_*.docx` y `Manual_Usuario_*.docx` y actualizar `01_bitacora_desarrollo.md` y `00_indice_entrega.md`.',
@@ -663,7 +680,7 @@ export const ISSUES = [
   {
     id: 'Q06', hito: 4, prio: 'P0', area: ['qa', 'docs'], charter: true,
     titulo: 'Preparar la sustentación y el plan de contingencia (R4)',
-    contexto: 'Render puede estar dormido, Aiven puede caerse o no haber red en el salón. La demostración no puede depender de la suerte.',
+    contexto: 'Render puede estar dormido, Neon puede estar suspendido o no haber red en el salón. La demostración no puede depender de la suerte.',
     tareas: [
       'Guion de demo con tiempos y roles (estudiante, conductor, admin).',
       'Checklist previa: despertar Render 10 min antes, APK instalado, usuarios de prueba, respaldo en video.',
