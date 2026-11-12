@@ -71,3 +71,10 @@ La landing definió como identidad «señalética de transporte; una ruta con pa
 ## Accessibility & Inclusion
 
 No hay un estándar formal declarado; el objetivo de trabajo es **WCAG 2.1 AA** (issue #30) con contraste pensado para luz solar, objetivos táctiles ≥ 44 px, `prefers-reduced-motion` y funcionamiento sin color como único indicador del estado del bus.
+
+## Landing de feria
+
+- **Propósito:** presentar UpcTrack en la XV Feria de Emprendimiento UPC. Contenido fiel a `docs/docmuento feria de emprendimiento.md`: justificación, objetivos, factor diferencial, mercado meta, sector económico, SbN y ODS, equipo y bibliografía. Sin video.
+- **Usuarios:** jurados, visitantes de la feria y comunidad universitaria de la UPC Seccional Aguachica, desde celular o pantalla del stand.
+- **Marca:** «Tu ruta en tiempo real»; verde y amarillo del logo (`frontend/public/brand/upc-track-logo.png`) y de la universidad. Identidad de señalética de transporte; una ruta con paraderos recorre la página.
+- **Anti-referencias:** la landing no usa el estilo oscuro, neón ni brutalista.
