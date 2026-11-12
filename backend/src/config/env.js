@@ -4,13 +4,13 @@
 import dotenv from 'dotenv'
 dotenv.config()
  
+// La base de datos se configura con DATABASE_URL (Neon) o con las variables DB_*
+// (desarrollo local); ver config/conexion.js.
 const required = [
   'PORT',
-  'DB_HOST',
-  'DB_PORT',
-  'DB_USER',
-  'DB_PASSWORD',
-  'DB_NAME',
+  ...(process.env.DATABASE_URL
+    ? []
+    : ['DB_HOST', 'DB_PORT', 'DB_USER', 'DB_PASSWORD', 'DB_NAME']),
   'JWT_SECRET',
   'JWT_EXPIRES_IN',
   'CLIENT_URL'
@@ -25,13 +25,6 @@ for (const key of required) {
  
 export const env = {
   port:          process.env.PORT,
-  db: {
-    host:        process.env.DB_HOST,
-    port:        Number(process.env.DB_PORT),
-    user:        process.env.DB_USER,
-    password:    process.env.DB_PASSWORD,
-    name:        process.env.DB_NAME,
-  },
   jwt: {
     secret:      process.env.JWT_SECRET,
     expiresIn:   process.env.JWT_EXPIRES_IN,
