@@ -1,0 +1,18 @@
+/* Rutas: cada ruta es un talón. Horarios en mono (son datos que se miden); sin chips de color por turno. */
+
+.ruta-icono { font-size: 1.125rem; } /* en tinta: el verde no es acento decorativo */
+
+.ruta-horarios { padding: var(--e3) var(--e4) var(--e2); }
+.ruta-horarios-titulo { font-size: var(--t-md); font-weight: 700; }
+.ruta-horarios-lista { list-style: none; margin-top: var(--e1); }
+.ruta-horarios-lista li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e3);
+  min-height: 44px;
+}
+.ruta-horarios-lista li + li { border-top: 1px solid var(--borde); }
+.ruta-horarios-vacio { margin-top: var(--e1); color: var(--texto-suave); }
+
+.ruta-accion { width: calc(100% - var(--e4) * 2); min-height: 48px; margin: var(--e2) var(--e4) var(--e4); }

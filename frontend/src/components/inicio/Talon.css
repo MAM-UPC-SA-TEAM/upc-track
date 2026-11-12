@@ -1,0 +1,155 @@
+/* El talón: ETA a tu parada impreso como tiquete. Color plano, borde de 2px, sin sombras.
+   Un dato validado se imprime; un dato vencido se anula con un sello, nunca se esconde. */
+
+.talon {
+  position: relative;
+  background: var(--superficie);
+  border: var(--grosor) solid var(--trazo);
+}
+
+.talon-cuerpo { position: relative; padding: var(--e4) var(--e4) var(--e3); }
+
+/* La parada es el título del talón: icono + selector nativo, sin etiqueta encima */
+.talon-parada { display: flex; align-items: center; gap: var(--e2); }
+.talon-parada-icono { flex-shrink: 0; font-size: 1.25rem; color: var(--acento-texto); }
+.talon-parada select {
+  appearance: none;
+  min-height: var(--toque);
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
+  padding: 0 28px 0 0;
+  background: transparent no-repeat right 2px center / 16px
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%2314261a' stroke-width='2.5'%3E%3Cpath d='M3 6l5 5 5-5'/%3E%3C/svg%3E");
+  border: 0;
+  color: var(--texto);
+  font: 700 var(--t-xl)/1.15 var(--f-ui);
+  font-stretch: 92%;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+body[data-tema='oscuro'] .talon-parada select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23f1eedf' stroke-width='2.5'%3E%3Cpath d='M3 6l5 5 5-5'/%3E%3C/svg%3E");
+}
+.talon-parada select option { color: #14261a; background: #fbfaf4; font-weight: 500; }
+.talon-parada--vacia { font-weight: 700; font-size: var(--t-lg); }
+
+.talon-eta { position: relative; display: flex; align-items: baseline; gap: var(--e2); margin-top: var(--e1); min-height: 5.75rem; }
+.talon-cifra {
+  font-size: var(--t-eta);
+  line-height: 0.9;
+  font-weight: 800;
+  font-stretch: 76%;
+  letter-spacing: -0.03em;
+  font-family: var(--f-ui);
+  font-variant-numeric: tabular-nums;
+  color: var(--texto);
+}
+.talon-unidad { font-size: 1.75rem; font-weight: 700; }
+.talon-sin { padding: var(--e3) 0 var(--e1); font-size: 2.25rem; line-height: 1; font-weight: 800; font-stretch: 76%; letter-spacing: -0.02em; }
+.talon--viejo .talon-unidad, .talon--sin-red .talon-unidad { opacity: 0.28; }
+/* La franja es el tiempo de validez del dato: se vacía de 0 a 30 s; al llegar un dato nuevo se «imprime» otra vez */
+.talon-franja {
+  width: 100%;
+  height: 10px;
+  margin-top: var(--e2);
+  background: var(--amarillo);
+  transform: scaleX(var(--frescura, 1));
+  transform-origin: left;
+  transition: transform 1s linear;
+  animation: imprime 260ms var(--ease-out) backwards;
+}
+@keyframes imprime { from { transform: scaleX(0); } }
+.talon-esqueleto { align-self: center; display: block; width: 88px; height: 14px; background: var(--linea-suave); }
+
+/* Anulado o sin dato: la cifra baja de tono, no desaparece */
+.talon--viejo .talon-cifra, .talon--sin-red .talon-cifra { opacity: 0.28; }
+.talon--sin-buses .talon-cifra, .talon--cargando .talon-cifra { opacity: 0.35; }
+.talon--viejo .talon-franja, .talon--sin-red .talon-franja,
+.talon--sin-buses .talon-franja, .talon--cargando .talon-franja, .talon--sin-red-vacio .talon-franja { background: var(--linea-suave); transform: none; }
+
+/* Perforación con muescas: separa lo que importa (la cifra) del detalle */
+.talon-perf { position: relative; margin: 0 calc(var(--grosor) * -1); border-top: 3px dashed var(--trazo); }
+.talon-perf::before, .talon-perf::after {
+  content: '';
+  position: absolute;
+  top: -13px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: var(--grosor) solid var(--trazo);
+}
+.talon-perf::before { left: -14px; }
+.talon-perf::after { right: -14px; }
+
+.talon-datos {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--e2) var(--e3);
+  padding: var(--e3) var(--e4);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.talon-datos-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.talon-estado { padding: 2px 8px; background: var(--verde); color: var(--sobre-verde); }
+.talon-estado--viejo { background: transparent; color: var(--sello); box-shadow: inset 0 0 0 2px var(--sello); }
+
+.talon-vacio { padding: var(--e4); font-weight: 600; }
+
+.talon-accion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e2);
+  width: calc(100% - var(--e4) * 2);
+  min-height: 48px;
+  margin: 0 var(--e4) var(--e4);
+  background: var(--verde);
+  color: var(--sobre-verde);
+  font-size: var(--t-md);
+  font-weight: 700;
+}
+.talon-nota { padding: 0 var(--e4) var(--e4); margin-top: calc(var(--e2) * -1); font-size: var(--t-sm); color: var(--texto-suave); }
+
+/* El sello: el único momento animado. Cae sobre la cifra y la anula. */
+.sello {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  translate: 0 -50%;
+  rotate: -8deg;
+  max-width: 8.75rem; /* «Sin conexión» se parte en dos líneas y no invade la unidad */
+  padding: 4px 10px;
+  text-align: center;
+  line-height: 1.05;
+  border: 3px solid var(--sello);
+  color: var(--sello);
+  background: color-mix(in srgb, var(--superficie) 72%, transparent);
+  font-size: var(--t-lg);
+  font-weight: 800;
+  font-stretch: 76%;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  pointer-events: none;
+  animation: sello-cae 240ms var(--ease-out) both;
+}
+@keyframes sello-cae { from { opacity: 0; scale: 1.35; } to { opacity: 1; scale: 1; } }
+body[data-tema='oscuro'] .sello { color: #ff8a80; border-color: #ff8a80; }
+body[data-tema='oscuro'] .talon-estado--viejo { color: #ff8a80; box-shadow: inset 0 0 0 2px #ff8a80; }
+
+/* Aviso del conductor: talón amarillo relleno */
+.aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--e3);
+  padding: var(--e3) var(--e4);
+  background: var(--amarillo);
+  color: #14261a;
+  border: var(--grosor) solid #14261a;
+}
+.aviso-icono { margin-top: 4px; flex-shrink: 0; }
+.aviso-texto { flex: 1; font-weight: 700; }
+.aviso-hace { margin-top: 4px; font-size: var(--t-sm); font-weight: 600; white-space: nowrap; }

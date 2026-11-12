@@ -1,0 +1,28 @@
+/* Inicio del estudiante: un talón, el aviso del conductor y un mapa que lleva al mapa completo. */
+.inicio { display: flex; flex-direction: column; gap: var(--e4); width: 100%; max-width: 560px; margin: 0 auto; }
+
+@media (min-width: 1024px) {
+  .inicio { max-width: 1040px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+  .inicio > :first-child { grid-row: span 3; }
+  .inicio-mapa { height: 300px; }
+  .inicio-enlaces { grid-column: 1 / -1; }
+}
+
+.inicio-mapa {
+  position: relative;
+  display: block;
+  height: 200px;
+  overflow: hidden;
+  border: var(--grosor) solid var(--trazo);
+}
+
+.inicio-enlaces { display: flex; gap: var(--e5); }
+.inicio-enlaces a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--toque);
+  color: var(--acento-texto);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}

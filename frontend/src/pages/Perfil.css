@@ -1,0 +1,48 @@
+/* Perfil: un talón cuya «cifra» es el nombre, los datos como filas y la contraseña en un desplegable en línea.
+   Hereda Talon.css, Listas.css (contenedor, botón de contorno) y Acceso.css (campos, casilla, caja de mensaje). */
+
+.perfil-cabo { display: flex; flex-direction: column; align-items: flex-start; gap: var(--e2); padding-bottom: var(--e4); }
+.perfil-nombre { font-size: 2.25rem; line-height: 1; font-weight: 800; font-stretch: 76%; letter-spacing: -0.02em; overflow-wrap: anywhere; }
+.perfil-rol { text-transform: capitalize; }
+
+.perfil-cuerpo { display: flex; flex-direction: column; gap: var(--e3); padding: var(--e4); }
+.perfil-seccion { font-size: var(--t-lg); font-weight: 700; }
+
+/* Datos: filas con divisor fino; etiqueta en tinta suave, valor en 600 */
+.perfil-datos { display: flex; flex-direction: column; }
+.perfil-dato { display: flex; flex-direction: column; gap: 2px; padding: var(--e3) 0; }
+.perfil-dato + .perfil-dato { border-top: 1px solid var(--borde); }
+.perfil-dato dt { font-size: var(--t-sm); color: var(--texto-suave); }
+.perfil-dato dd { font-weight: 600; overflow-wrap: anywhere; }
+.perfil-sin { font-weight: 500; color: var(--texto-suave); }
+
+/* Contraseña: el título es el botón del desplegable (56px, como «Avisar a mi ruta» del conductor) */
+.perfil-seccion--boton { padding: 0; }
+.perfil-desplegar {
+  width: 100%;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e3);
+  padding: 0 var(--e4);
+  font-size: var(--t-md);
+  font-weight: 700;
+  text-align: left;
+}
+.perfil-desplegar span { display: inline-flex; align-items: center; gap: var(--e3); }
+.perfil-cuerpo--form { padding-top: 0; }
+
+/* Segunda acción de la pantalla: tinta, para que el verde lleno siga siendo uno solo («Guardar cambios») */
+.perfil-boton-tinta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e2);
+  min-height: 48px;
+  background: var(--tinta);
+  color: var(--papel);
+  font-size: var(--t-md);
+  font-weight: 700;
+}
+.perfil-boton-tinta:disabled { background: var(--linea-suave); color: var(--texto-suave); opacity: 1; }

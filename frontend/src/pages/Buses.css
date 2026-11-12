@@ -1,0 +1,19 @@
+/* Buses: cada fila es un enlace al mapa de ese bus. Arriba el nombre y la etiqueta de frescura; debajo, ruta y ETA
+   a todo el ancho (no se parten por la etiqueta). Mínimo 60px, sin subrayado de enlace. */
+.bus-fila {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  min-height: 60px;
+  padding: var(--e3) var(--e4);
+  color: var(--texto);
+  text-decoration: none;
+}
+.bus-fila-cab { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--e3); }
+.bus-fila-cab strong { min-width: 0; overflow-wrap: anywhere; }
+.bus-fila-ruta { color: var(--texto-suave); font-size: var(--t-sm); overflow-wrap: anywhere; }
+.buses-eta { font-size: var(--t-sm); font-weight: 600; text-transform: uppercase; }
+.lista-nota { font-size: var(--t-sm); color: var(--texto-suave); }
+
+@media (hover: hover) and (pointer: fine) { .bus-fila:hover { background: var(--papel-hundido); } }

@@ -1,0 +1,20 @@
+# Base de datos local de desarrollo (PostgreSQL 16, el mismo motor que Neon en produccion).
+# Puerto 5433 en el host para no chocar con un PostgreSQL instalado en la maquina.
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: monitoreo-buses-pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: bd_monitoreo_buses
+    ports:
+      - "5433:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+
+volumes:
+  pg_data:

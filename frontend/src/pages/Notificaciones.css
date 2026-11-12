@@ -1,0 +1,28 @@
+/* Notificaciones: lo nuevo es la losa amarilla del aviso del conductor (relleno, no borde de color);
+   lo leído es la hoja blanca. La diferencia no depende solo del color: lo nuevo lleva la palabra «Nueva». */
+
+.notif-lista { list-style: none; display: flex; flex-direction: column; gap: var(--e3); }
+
+.notif {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--e3);
+  padding: var(--e3) var(--e4);
+  background: var(--superficie);
+  color: var(--texto);
+  border: var(--grosor) solid var(--trazo);
+}
+.notif-icono { flex-shrink: 0; margin-top: 4px; font-size: 1.125rem; }
+.notif-cuerpo { flex: 1; min-width: 0; }
+.notif-titulo { font-size: var(--t-md); font-weight: 700; overflow-wrap: anywhere; }
+.notif-mensaje { margin-top: var(--e1); overflow-wrap: anywhere; }
+.notif-pie { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e2) var(--e3); margin-top: var(--e2); }
+.notif-pie .dato { font-size: var(--t-sm); font-weight: 600; text-transform: uppercase; color: var(--texto-suave); }
+.notif-leer { margin-left: auto; }
+
+/* Nueva: losa amarilla, siempre con tinta (nunca amarillo como texto sobre papel) */
+.notif--nueva { background: var(--amarillo); color: #14261a; border-color: #14261a; }
+.notif--nueva .notif-pie .dato { color: #14261a; }
+.notif--nueva .etiqueta--neutro { color: #14261a; box-shadow: inset 0 0 0 2px #14261a; }
+.notif--nueva .boton-contorno { background: transparent; color: #14261a; border-color: #14261a; }
+@media (hover: hover) and (pointer: fine) { .notif--nueva .boton-contorno:hover { background: rgba(20, 38, 26, 0.12); } }

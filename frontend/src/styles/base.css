@@ -1,0 +1,85 @@
+/* Base: lo que el navegador dibuja por defecto también lleva el diseño. */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  scrollbar-color: var(--trazo) var(--papel-hundido);
+  scrollbar-width: thin;
+}
+
+html, body, #root { min-height: 100vh; min-height: 100dvh; width: 100%; background: var(--bg); }
+
+body {
+  color: var(--texto);
+  font-family: var(--f-ui);
+  font-size: var(--t-md);
+  line-height: 1.5;
+  font-stretch: 92%;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overscroll-behavior-y: none;
+}
+
+h1, h2, h3 { text-wrap: balance; line-height: 1.15; letter-spacing: -0.01em; }
+p { text-wrap: pretty; }
+
+/* Cifras y datos: ancho fijo para que no salten al actualizarse */
+.dato, [data-dato] { font-family: var(--f-dato); font-variant-numeric: tabular-nums; letter-spacing: 0; }
+.cifra { font-variant-numeric: tabular-nums; }
+
+::selection { background: var(--amarillo); color: #14261a; }
+::placeholder { color: var(--texto-suave); opacity: 1; }
+input, select, textarea { caret-color: var(--verde); accent-color: var(--verde); }
+
+/* Foco visible y con el color del sistema */
+:focus-visible {
+  outline: 3px solid var(--trazo);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+button, a, [role='button'], select, summary { touch-action: manipulation; }
+button { font: inherit; color: inherit; cursor: pointer; background: none; border: 0; }
+a { color: inherit; }
+
+/* Objetivos táctiles de 44 px en pantallas táctiles (no solo en <768 px) */
+@media (pointer: coarse) {
+  button, select, [role='button'], a.boton { min-height: var(--toque); }
+  input:not([type='checkbox']):not([type='radio']), select, textarea { font-size: 16px; }
+}
+
+/* Respuesta al toque: el botón confirma que el dedo se registró */
+button:not(:disabled):active, a.boton:active, [role='button']:active {
+  transform: scale(0.97);
+}
+button, a.boton, [role='button'] {
+  transition: transform var(--d-toque) var(--ease-out), background-color var(--d-ui) var(--ease-out),
+    color var(--d-ui) var(--ease-out), opacity var(--d-ui) var(--ease-out);
+}
+button:disabled { cursor: not-allowed; opacity: 0.55; }
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--papel-hundido); }
+::-webkit-scrollbar-thumb { background: var(--trazo); border-radius: 0; }
+
+/* Movimiento reducido: se conserva el cambio de estado, se quita el desplazamiento */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+  button:not(:disabled):active, a.boton:active, [role='button']:active { transform: none; }
+}
+
+/* Solo para lectores de pantalla */
+.solo-lectura {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

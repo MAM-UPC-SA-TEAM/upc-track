@@ -1,0 +1,58 @@
+/* Lenguaje de los mapas (Inicio y Mapa): marcadores propios, etiquetas planas, trazos y controles.
+   Nada de emoji ni sombras: el bus es tinta, la parada es el amarillo del talón. */
+
+/* Marcadores. El contenedor mide 44px (área táctil); el punto visible es más pequeño. */
+.mk-wrap { width: 44px; height: 44px; display: grid; place-items: center; }
+.mk { display: block; border-radius: 50%; border: 3px solid #fbfaf4; }
+.mk-bus { width: 28px; height: 28px; background: #14261a; }
+.mk-parada { width: 22px; height: 22px; background: var(--amarillo); border-color: #14261a; }
+/* Bus sin señal: marcador hueco con anillo discontinuo; no desaparece, se anula */
+.mk-bus--viejo { background: #fbfaf4; border: 3px dashed #14261a; }
+
+/* Etiquetas sobre el mapa: siempre papel con tinta, en cualquier tema */
+.leaflet-tooltip.etiqueta-mapa {
+  padding: 2px 8px;
+  background: #fbfaf4;
+  color: #14261a;
+  border: 2px solid #14261a;
+  border-radius: 0;
+  box-shadow: none;
+  font: 700 var(--t-sm) / 1.3 var(--f-ui);
+}
+.leaflet-tooltip.etiqueta-mapa::before { display: none; }
+
+/* Trazos de ruta: el color sale de los tokens, así también se leen en oscuro */
+.leaflet-overlay-pane path.ruta-casing { stroke: var(--papel); }
+.leaflet-overlay-pane path.ruta-verde { stroke: var(--acento-texto); }
+.leaflet-overlay-pane path.ruta-tinta { stroke: var(--tinta); }
+.leaflet-overlay-pane path.parada-punto { stroke: #14261a; fill: #fbfaf4; fill-opacity: 1; }
+.leaflet-overlay-pane path.parada-punto--inactiva { stroke-dasharray: 3 3; fill-opacity: 0.4; }
+
+.leaflet-container { font-family: var(--f-ui); background: var(--papel-hundido); }
+
+/* Controles de Leaflet con el lenguaje del sistema: planos, 2px, objetivo de 44px */
+.leaflet-bar, .leaflet-touch .leaflet-bar { border: 0; border-radius: 0; box-shadow: none; }
+.leaflet-bar a, .leaflet-bar a:hover, .leaflet-touch .leaflet-bar a {
+  width: var(--toque);
+  height: var(--toque);
+  line-height: 40px;
+  background: var(--superficie);
+  color: var(--texto);
+  border: var(--grosor) solid var(--trazo);
+  border-radius: 0;
+  font-size: 1.25rem;
+}
+.leaflet-bar a + a, .leaflet-touch .leaflet-bar a + a { border-top: 0; }
+.leaflet-touch .leaflet-bar a:first-child, .leaflet-touch .leaflet-bar a:last-child { border-radius: 0; }
+.leaflet-control-attribution {
+  padding: 2px 6px;
+  background: var(--papel) !important;
+  color: var(--texto-suave) !important;
+  font-size: var(--t-xs);
+}
+.leaflet-control-attribution a { color: var(--acento-texto) !important; }
+
+/* Calles reales, calmadas: sin color saturado, con el tono del papel; así la ruta y el bus son lo que se lee */
+.tiles-calmos { filter: grayscale(0.85) sepia(0.2) saturate(0.7) contrast(0.78) brightness(1.08); opacity: 0.72; /* se funde con el papel: las calles quedan de fondo y la ruta manda */ }
+/* En oscuro el fondo se inclina hacia el verde-negro del papel, no hacia un gris neutro */
+body[data-tema='oscuro'] .tiles-calmos { filter: invert(0.9) hue-rotate(180deg) grayscale(0.5) sepia(0.35) hue-rotate(60deg) brightness(0.8) contrast(0.78); }

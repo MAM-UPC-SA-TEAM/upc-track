@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+
+    <!-- ── Viewport y PWA base ── -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="BusUPCSA" />
+
+    <!-- ── Tema y color ── -->
+    <meta name="theme-color" content="#1e6b2e" />
+    <meta name="msapplication-TileColor" content="#1e6b2e" />
+
+    <!-- ── SEO / descripción ── -->
+    <meta name="description" content="Sistema de monitoreo de buses universitarios en tiempo real — Universidad Popular del Cesar" />
+    <meta name="application-name" content="BusUPCSA" />
+
+    <!-- ── Iconos ── -->
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
+
+    <!-- ── Open Graph (compartir en redes) ── -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Monitoreo de Rutas UPCSA" />
+    <meta property="og:description" content="Consulta en tiempo real dónde está el bus universitario" />
+    <meta property="og:image" content="/pwa-512x512.png" />
+
+    <title>Monitoreo de Rutas — UPCSA</title>
+
+
+    <!-- ── Splash screen: color de fondo mientras carga ── -->
+    <style>
+      html, body { background: #fbfaf4; }
+      /* Hasta que React monta: papel y la marca de UpcTrack */
+      #root:empty { display: flex; align-items: center; justify-content: center; min-height: 100dvh; background: #fbfaf4; }
+      #root:empty::after { content: url(/brand/upc-track-mark.png); width: 96px; height: 96px; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

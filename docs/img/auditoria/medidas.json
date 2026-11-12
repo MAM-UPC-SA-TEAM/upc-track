@@ -1,0 +1,1543 @@
+[
+ {
+  "nombre": "landing",
+  "tema": "claro",
+  "ruta": "/",
+  "overflowX": 0,
+  "scrollHeight": 8315,
+  "h1": 1,
+  "landmarks": {
+   "main": true,
+   "nav": false,
+   "header": true
+  },
+  "interactivos": 5,
+  "pequenos44": [],
+  "pequenos24": 0,
+  "sinNombre": [],
+  "inputsSinEtiqueta": [],
+  "imgSinAlt": 0,
+  "divClicables": 0,
+  "textoMin": 12,
+  "texto_lt12": [],
+  "inputs_lt16": 0,
+  "contrasteEvaluados": 74,
+  "contrasteFallos": [
+   {
+    "ratio": 4.13,
+    "n": 2,
+    "ej": "MT",
+    "px": 18
+   }
+  ],
+  "viewportMeta": "width=device-width, initial-scale=1.0, viewport-fit=cover",
+  "urlFinal": "/",
+  "consola": [],
+  "fallidas": []
+ },
+ {
+  "nombre": "login",
+  "tema": "claro",
+  "ruta": "/login",
+  "overflowX": 0,
+  "scrollHeight": 844,
+  "h1": 1,
+  "landmarks": {
+   "main": false,
+   "nav": false,
+   "header": false
+  },
+  "interactivos": 4,
+  "pequenos44": [
+   {
+    "el": "input",
+    "txt": "Ingrese su nombre de u",
+    "w": 240,
+    "h": 42
+   },
+   {
+    "el": "input",
+    "txt": "Ingrese su contraseña",
+    "w": 220,
+    "h": 42
+   },
+   {
+    "el": "button.login-toggle-pass",
+    "txt": "",
+    "w": 20,
+    "h": 36
+   }
+  ],
+  "pequenos24": 1,
+  "sinNombre": [
+   {
+    "el": "button.login-toggle-pass",
+    "titulo": null
+   }
+  ],
+  "inputsSinEtiqueta": [
+   {
+    "el": "input",
+    "placeholder": "Ingrese su nombre de usuario"
+   },
+   {
+    "el": "input",
+    "placeholder": "Ingrese su contraseña"
+   }
+  ],
+  "imgSinAlt": 0,
+  "divClicables": 0,
+  "textoMin": 12,
+  "texto_lt12": [],
+  "inputs_lt16": 0,
+  "contrasteEvaluados": 8,
+  "contrasteFallos": [
+   {
+    "ratio": 2.85,
+    "n": 1,
+    "ej": "© Universidad Popular del Ce",
+    "px": 12
+   }
+  ],
+  "viewportMeta": "width=device-width, initial-scale=1.0, viewport-fit=cover",
+  "urlFinal": "/login",
+  "consola": [],
+  "fallidas": []
+ },
+ {
+  "nombre": "login",
+  "tema": "oscuro",
+  "ruta": "/login",
+  "overflowX": 0,
+  "scrollHeight": 844,
+  "h1": 1,
+  "landmarks": {
+   "main": false,
+   "nav": false,
+   "header": false
+  },
+  "interactivos": 4,
+  "pequenos44": [
+   {
+    "el": "input",
+    "txt": "Ingrese su nombre de u",
+    "w": 240,
+    "h": 42
+   },
+   {
+    "el": "input",
+    "txt": "Ingrese su contraseña",
+    "w": 220,
+    "h": 42
+   },
+   {
+    "el": "button.login-toggle-pass",
+    "txt": "",
+    "w": 20,
+    "h": 36
+   }
+  ],
+  "pequenos24": 1,
+  "sinNombre": [
+   {
+    "el": "button.login-toggle-pass",
+    "titulo": null
+   }
+  ],
+  "inputsSinEtiqueta": [
+   {
+    "el": "input",
+    "placeholder": "Ingrese su nombre de usuario"
+   },
+   {
+    "el": "input",
+    "placeholder": "Ingrese su contraseña"
+   }
+  ],
+  "imgSinAlt": 0,
+  "divClicables": 0,
+  "textoMin": 12,
+  "texto_lt12": [],
+  "inputs_lt16": 0,
+  "contrasteEvaluados": 8,
+  "contrasteFallos": [
+   {
+    "ratio": 2.85,
+    "n": 1,
+    "ej": "© Universidad Popular del Ce",
+    "px": 12
+   }
+  ],
+  "viewportMeta": "width=device-width, initial-scale=1.0, viewport-fit=cover",
+  "urlFinal": "/login",
+  "consola": [],
+  "fallidas": []
+ },
+ {
+  "nombre": "registro",
+  "tema": "claro",
+  "ruta": "/registro",
+  "overflowX": 0,
+  "scrollHeight": 844,
+  "h1": 1,
+  "landmarks": {
+   "main": false,
+   "nav": false,
+   "header": false
+  },
+  "interactivos": 8,
+  "pequenos44": [
+   {
+    "el": "input",
+    "txt": "Tu nombre completo",
+    "w": 263,
+    "h": 42
+   },
+   {
+    "el": "input",
+    "txt": "ej. juan.perez o jpere",
+    "w": 263,
+    "h": 42
+   },
+   {
+    "el": "input",
+    "txt": "correo@ejemplo.com",
+    "w": 263,
+    "h": 42
+   },
+   {
+    "el": "input",
+    "txt": "Mínimo 8 caracteres",
+    "w": 245,
+    "h": 42
+   },
+   {
+    "el": "button.reg-toggle-pass",
+    "txt": "",
+    "w": 18,
+    "h": 36
+   },
+   {
+    "el": "input",
+    "txt": "Repite tu contraseña",
+    "w": 245,
+    "h": 42
+   },
+   {
+    "el": "button.reg-toggle-pass",
+    "txt": "",
+    "w": 18,
+    "h": 36
+   }
+  ],
+  "pequenos24": 2,
+  "sinNombre": [
+   {
+    "el": "button.reg-toggle-pass",
+    "titulo": null
+   },
+   {
+    "el": "button.reg-toggle-pass",
+    "titulo": null
+   }
+  ],
+  "inputsSinEtiqueta": [
+   {
+    "el": "input",
+    "placeholder": "Tu nombre completo"
+   },
+   {
+    "el": "input",
+    "placeholder": "ej. juan.perez o jperez2024"
+   },
+   {
+    "el": "input",
+    "placeholder": "correo@ejemplo.com"
+   },
+   {
+    "el": "input",
+    "placeholder": "Mínimo 8 caracteres"
+   },
+   {
+    "el": "input",
+    "placeholder": "Repite tu contraseña"
+   }
+  ],
+  "imgSinAlt": 0,
+  "divClicables": 0,
+  "textoMin": 12,
+  "texto_lt12": [],
+  "inputs_lt16": 0,
+  "contrasteEvaluados": 11,
+  "contrasteFallos": [
+   {
+    "ratio": 2.85,
+    "n": 1,
+    "ej": "© Universidad Popular del Ce",
+    "px": 12
+   }
+  ],
+  "viewportMeta": "width=device-width, initial-scale=1.0, viewport-fit=cover",
+  "urlFinal": "/registro",
+  "consola": [],
+  "fallidas": []
+ },
+ {
+  "nombre": "est-inicio",
+  "tema": "claro",
+  "ruta": "/inicio",
+  "overflowX": 43,
+  "scrollHeight": 938,
+  "h1": 0,
+  "landmarks": {
+   "main": true,
+   "nav": true,
+   "header": true
+  },
+  "interactivos": 14,
+  "pequenos44": [
+   {
+    "el": "button.topbar-menu-btn",
+    "txt": "",
+    "w": 41,
+    "h": 40
+   },
+   {
+    "el": "button.topbar-btn",
+    "txt": "Cambiar tema",
+    "w": 40,
+    "h": 36
+   },
+   {
+    "el": "button.topbar-btn",
+    "txt": "Notificaciones",
+    "w": 40,
+    "h": 36
+   },
+   {
+    "el": "div.leaflet-marker-icon",
+    "txt": "🚌",
+    "w": 22,
+    "h": 22
+   },
+   {
+    "el": "button.dash-mapa-btn",
+    "txt": "Ver mapa completo →",
+    "w": 149,
+    "h": 36
+   }
+  ],
+  "pequenos24": 1,
+  "sinNombre": [
+   {
+    "el": "button.topbar-menu-btn",
+    "titulo": null
+   },
+   {
+    "el": "button.topbar-btn",
+    "titulo": "Cambiar tema"
+   },
+   {
+    "el": "button.topbar-btn",
+    "titulo": "Notificaciones"
+   }
+  ],
+  "inputsSinEtiqueta": [],
+  "imgSinAlt": 0,
+  "divClicables": 0,
+  "textoMin": 12,
+  "texto_lt12": [],
+  "inputs_lt16": 0,
+  "contrasteEvaluados": 27,
+  "contrasteFallos": [],
+  "viewportMeta": "width=device-width, initial-scale=1.0, viewport-fit=cover",
+  "urlFinal": "/inicio",
+  "consola": [],
+  "fallidas": []
+ },
+ {
+  "nombre": "est-inicio",
+  "tema": "oscuro",
+  "ruta": "/inicio",
+  "overflowX": 43,
+  "scrollHeight": 938,
+  "h1": 0,
+  "landmarks": {
+   "main": true,
+   "nav": true,
+   "header": true
+  },
+  "interactivos": 14,
+  "pequenos44": [
+   {
+    "el": "button.topbar-menu-btn",
+    "txt": "",
+    "w": 41,
+    "h": 40
+   },
+   {
+    "el": "button.topbar-btn",
+    "txt": "Cambiar tema",
+    "w": 40,
+    "h": 36
+   },
+   {
+    "el": "button.topbar-btn",
+    "txt": "Notificaciones",
+    "w": 40,
+    "h": 36
+   },
+   {
+    "el": "div.leaflet-marker-icon",
+    "txt": "🚌",
+    "w": 22,
+    "h": 22
+   },
+   {
+    "el": "button.dash-mapa-btn",
+    "txt": "Ver mapa completo →",
+    "w": 149,
+    "h": 36
+   }
+  ],
+  "pequenos24": 1,
+  "sinNombre": [
+   {
+    "el": "button.topbar-menu-btn",
+    "titulo": null
+   },
+   {
+    "el": "button.topbar-btn",
+    "titulo": "Cambiar tema"
+   },
+   {
+    "el": "button.topbar-btn",
+    "titulo": "Notificaciones"
+   }
+  ],
+  "inputsSinEtiqueta": [],
+  "imgSinAlt": 0,
+  "divClicables": 0,
+  "textoMin": 12,
+  "texto_lt12": [],
+  "inputs_lt16": 0,
+  "contrasteEvaluados": 27,
+  "contrasteFallos": [
+   {
+    "ratio": 2.85,
+    "n": 1,
+    "ej": "Estudiante",
+    "px": 16
+   },
+   {
+    "ratio": 2.54,
+    "n": 1,
+    "ej": "Activo",
+    "px": 18
+   }
+  ],
+  "viewportMeta": "width=device-width, initial-scale=1.0, viewport-fit=cover",
+  "urlFinal": "/inicio",
+  "consola": [],
+  "fallidas": []
+ },
+ {
+  "nombre": "est-mapa",
+  "tema": "claro",
+  "ruta": "/mapa",
+  "overflowX": 0,
+  "scrollHeight": 844,
+  "h1": 0,
+  "landmarks": {
+   "main": true,
+   "nav": true,
+   "header": true
+  },
+  "interactivos": 20,
+  "pequenos44": [
+   {
+    "el": "button.topbar-menu-btn",
+    "txt": "",
+    "w": 41,
+    "h": 40
+   },
+   {
+    "el": "button.topbar-btn",
+    "txt": "Cambiar tema",
+    "w": 40,
+    "h": 36
+   },
+   {
+    "el": "button.topbar-btn",
+    "txt": "Notificaciones",
+    "w": 40,
+    "h": 36
+   },
+   {
+    "el": "input",
+    "txt": "Buscar bus…",
+    "w": 303,
+    "h": 18
+   },
+   {
+    "el": "button.mapa-ruta-chip",
+    "txt": "Centro - UPC",
+    "w": 88,
+    "h": 36
+   },
+   {
+    "el": "div.leaflet-marker-icon",
+    "txt": "",
+    "w": 14,
+    "h": 14
+   },
+   {
+    "el": "div.leaflet-marker-icon",
+    "txt": "",
+    "w": 14,
+    "h": 14
+   },
+   {
+    "el": "div.leaflet-marker-icon",
+    "txt": "🚌",
+    "w": 40,
+    "h": 40
+   },
+   {
+    "el": "a.leaflet-control-zoom-in",
+    "txt": "+",
+    "w": 30,
+    "h": 30
+   },
+   {
+    "el": "a.leaflet-control-zoom-out",
+    "txt": "−",
+    "w": 30,
+    "h": 30
+   },
+   {
+    "el": "a",
+    "txt": "Leaflet",
+    "w": 48,
+    "h": 12
+   },
+   {
+    "el": "button.mapa-panel-header",
+    "txt": "1 buses en ruta",
+    "w": 338,
+    "h": 36
+   }
+  ],
+  "pequenos24": 4,
+  "sinNombre": [
+   {
+    "el": "button.topbar-menu-btn",
+    "titulo": null
+   },
+   {
+    "el": "button.topbar-btn",
+    "titulo": "Cambiar tema"
+   },
+   {
+    "el": "button.topbar-btn",
+    "titulo": "Notificaciones"
+   }
+  ],
+  "inputsSinEtiqueta": [
+   {
+    "el": "input",
+    "placeholder": "Buscar bus…"
+   }
+  ],
+  "imgSinAlt": 0,
+  "divClicables": 0,
+  "textoMin": 11,
+  "texto_lt12": [
+   "button.mapa-ruta-chip:11px",
+   "div.leaflet-control-attribution:11.25px",
+   "a:11.25px",
+   "span:11.25px"
+  ],
+  "inputs_lt16": 0,
+  "contrasteEvaluados": 11,
+  "contrasteFallos": [],
+  "viewportMeta": "width=device-width, initial-scale=1.0, viewport-fit=cover",
+  "urlFinal": "/mapa",
+  "consola": [],
+  "fallidas": []
+ },
+ {
+  "nombre": "est-mapa",
+  "tema": "oscuro",
+  "ruta": "/mapa",
+  "overflowX": 0,
+  "scrollHeight": 844,
+  "h1": 0,
+  "landmarks": {
+   "main": true,
+   "nav": true,
+   "header": true
+  },
+  "interactivos": 20,
+  "pequenos44": [
+   {
+    "el": "button.topbar-menu-btn",
+    "txt": "",
+    "w": 41,
+    "h": 40
+   },
+   {
+    "el": "button.topbar-btn",
+    "txt": "Cambiar tema",
+    "w": 40,
+    "h": 36
+   },
+   {
+    "el": "button.topbar-btn",
+    "txt": "Notificaciones",
+    "w": 40,
+    "h": 36
+   },
+   {
+    "el": "input",
+    "txt": "Buscar bus…",
+    "w": 303,
+    "h": 18
+   },
+   {
+    "el": "button.mapa-ruta-chip",
+    "txt": "Centro - UPC",
+    "w": 88,
+    "h": 36
+   },
+   {
+    "el": "div.leaflet-marker-icon",
+    "txt": "",
+    "w": 14,
+    "h": 14
+   },
+   {
+    "el": "div.leaflet-marker-icon",
+    "txt": "",
+    "w": 14,
+    "h": 14
+   },
+   {
+    "el": "div.leaflet-marker-icon",
+    "txt": "🚌",
+    "w": 40,
+    "h": 40
+   },
+   {
+    "el": "a.leaflet-control-zoom-in",
+    "txt": "+",
+    "w": 30,
+    "h": 30
+   },
+   {
+    "el": "a.leaflet-control-zoom-out",
+    "txt": "−",
+    "w": 30,
+    "h": 30
+   },
+   {
+    "el": "a",
+    "txt": "Leaflet",
+    "w": 48,
+    "h": 12
+   },
+   {
+    "el": "button.mapa-panel-header",
+    "txt": "1 buses en ruta",
+    "w": 338,
+    "h": 36
+   }
+  ],
+  "pequenos24": 4,
+  "sinNombre": [
+   {
+    "el": "button.topbar-menu-btn",
+    "titulo": null
+   },
+   {
+    "el": "button.topbar-btn",
+    "titulo": "Cambiar tema"
+   },
+   {
+    "el": "button.topbar-btn",
+    "titulo": "Notificaciones"
+   }
+  ],
+  "inputsSinEtiqueta": [
+   {
+    "el": "input",
+    "placeholder": "Buscar bus…"
+   }
+  ],
+  "imgSinAlt": 0,
+  "divClicables": 0,
+  "textoMin": 11,
+  "texto_lt12": [
+   "button.mapa-ruta-chip:11px",
+   "div.leaflet-control-attribution:11.25px",
+   "a:11.25px",
+   "span:11.25px"
+  ],
+  "inputs_lt16": 0,
+  "contrasteEvaluados": 11,
+  "contrasteFallos": [
+   {
+    "ratio": 2.66,
+    "n": 1,
+    "ej": "1 buses en ruta",
+    "px": 12
+   }
+  ],
+  "viewportMeta": "width=device-width, initial-scale=1.0, viewport-fit=cover",
+  "urlFinal": "/mapa",
+  "consola": [],
+  "fallidas": []
+ },
+ {
+  "nombre": "est-rutas",
+  "tema": "claro",
+  "ruta": "/rutas",
+  "overflowX": 0,
+  "scrollHeight": 844,
+  "h1": 0,
+  "landmarks": {
+   "main": true,
+   "nav": true,
+   "header": true
+  },
+  "interactivos": 12,
+  "pequenos44": [
+   {
+    "el": "button.topbar-menu-btn",
+    "txt": "",
+    "w": 41,
+    "h": 40
+   },
+   {
+    "el": "button.topbar-btn",
+    "txt": "Cambiar tema",
+    "w": 40,
+    "h": 36
+   },
+   {
+    "el": "button.topbar-btn",
+    "txt": "Notificaciones",
+    "w": 40,
+    "h": 36
+   },
+   {
+    "el": "button.ruta-btn-mapa",
+    "txt": "Ver en mapa",
+    "w": 332,
+    "h": 38
+   }
+  ],
+  "pequenos24": 0,
+  "sinNombre": [
+   {
+    "el": "button.topbar-menu-btn",
+    "titulo": null
+   },
+   {
+    "el": "button.topbar-btn",
+    "titulo": "Cambiar tema"
+   },
+   {
+    "el": "button.topbar-btn",
+    "titulo": "Notificaciones"
+   }
+  ],
+  "inputsSinEtiqueta": [],
+  "imgSinAlt": 0,
+  "divClicables": 0,
+  "textoMin": 12,
+  "texto_lt12": [],
+  "inputs_lt16": 0,
+  "contrasteEvaluados": 18,
+  "contrasteFallos": [],
+  "viewportMeta": "width=device-width, initial-scale=1.0, viewport-fit=cover",
+  "urlFinal": "/rutas",
+  "consola": [],
+  "fallidas": []
+ },
+ {
+  "nombre": "est-buses",
+  "tema": "claro",
+  "ruta": "/buses",
+  "overflowX": 0,
+  "scrollHeight": 844,
+  "h1": 0,
+  "landmarks": {
+   "main": true,
+   "nav": true,
+   "header": true
+  },
+  "interactivos": 11,
+  "pequenos44": [
+   {
+    "el": "button.topbar-menu-btn",
+    "txt": "",
+    "w": 41,
+    "h": 40
+   },
+   {
+    "el": "button.topbar-btn",
+    "txt": "Cambiar tema",
+    "w": 40,
+    "h": 36
+   },
+   {
+    "el": "button.topbar-btn",
+    "txt": "Notificaciones",
+    "w": 40,
+    "h": 36
+   }
+  ],
+  "pequenos24": 0,
+  "sinNombre": [
+   {
+    "el": "button.topbar-menu-btn",
+    "titulo": null
+   },
+   {
+    "el": "button.topbar-btn",
+    "titulo": "Cambiar tema"
+   },
+   {
+    "el": "button.topbar-btn",
+    "titulo": "Notificaciones"
+   }
+  ],
+  "inputsSinEtiqueta": [],
+  "imgSinAlt": 0,
+  "divClicables": 0,
+  "textoMin": 12,
+  "texto_lt12": [],
+  "inputs_lt16": 0,
+  "contrasteEvaluados": 15,
+  "contrasteFallos": [],
+  "viewportMeta": "width=device-width, initial-scale=1.0, viewport-fit=cover",
+  "urlFinal": "/buses",
+  "consola": [],
+  "fallidas": []
+ },
+ {
+  "nombre": "est-notificaciones",
+  "tema": "claro",
+  "ruta": "/notificaciones",
+  "overflowX": 0,
+  "scrollHeight": 844,
+  "h1": 0,
+  "landmarks": {
+   "main": true,
+   "nav": true,
+   "header": true
+  },
+  "interactivos": 12,
+  "pequenos44": [
+   {
+    "el": "button.topbar-menu-btn",
+    "txt": "",
+    "w": 41,
+    "h": 40
+   },
+   {
+    "el": "button.topbar-btn",
+    "txt": "Cambiar tema",
+    "w": 40,
+    "h": 36
+   },
+   {
+    "el": "button.topbar-btn",
+    "txt": "Notificaciones",
+    "w": 40,
+    "h": 36
+   },
+   {
+    "el": "button.notifs-btn-leer",
+    "txt": "Marcar todas como leíd",
+    "w": 210,
+    "h": 36
+   }
+  ],
+  "pequenos24": 0,
+  "sinNombre": [
+   {
+    "el": "button.topbar-menu-btn",
+    "titulo": null
+   },
+   {
+    "el": "button.topbar-btn",
+    "titulo": "Cambiar tema"
+   },
+   {
+    "el": "button.topbar-btn",
+    "titulo": "Notificaciones"
+   }
+  ],
+  "inputsSinEtiqueta": [],
+  "imgSinAlt": 0,
+  "divClicables": 0,
+  "textoMin": 11,
+  "texto_lt12": [
+   "span.notif-hace:11px",
+   "span.notif-hace:11px"
+  ],
+  "inputs_lt16": 0,
+  "contrasteEvaluados": 19,
+  "contrasteFallos": [],
+  "viewportMeta": "width=device-width, initial-scale=1.0, viewport-fit=cover",
+  "urlFinal": "/notificaciones",
+  "consola": [],
+  "fallidas": []
+ },
+ {
+  "nombre": "est-perfil",
+  "tema": "claro",
+  "ruta": "/perfil",
+  "overflowX": 0,
+  "scrollHeight": 844,
+  "h1": 0,
+  "landmarks": {
+   "main": true,
+   "nav": true,
+   "header": true
+  },
+  "interactivos": 13,
+  "pequenos44": [
+   {
+    "el": "button.topbar-menu-btn",
+    "txt": "",
+    "w": 41,
+    "h": 40
+   },
+   {
+    "el": "button.topbar-btn",
+    "txt": "Cambiar tema",
+    "w": 40,
+    "h": 36
+   },
+   {
+    "el": "button.topbar-btn",
+    "txt": "Notificaciones",
+    "w": 40,
+    "h": 36
+   },
+   {
+    "el": "button.perfil-tab",
+    "txt": "Información",
+    "w": 176,
+    "h": 36
+   },
+   {
+    "el": "button.perfil-tab",
+    "txt": "Seguridad",
+    "w": 176,
+    "h": 36
+   },
+   {
+    "el": "button.perfil-btn-sec",
+    "txt": "Editar",
+    "w": 89,
+    "h": 36
+   }
+  ],
+  "pequenos24": 0,
+  "sinNombre": [
+   {
+    "el": "button.topbar-menu-btn",
+    "titulo": null
+   },
+   {
+    "el": "button.topbar-btn",
+    "titulo": "Cambiar tema"
+   },
+   {
+    "el": "button.topbar-btn",
+    "titulo": "Notificaciones"
+   }
+  ],
+  "inputsSinEtiqueta": [],
+  "imgSinAlt": 0,
+  "divClicables": 0,
+  "textoMin": 12,
+  "texto_lt12": [],
+  "inputs_lt16": 0,
+  "contrasteEvaluados": 24,
+  "contrasteFallos": [],
+  "viewportMeta": "width=device-width, initial-scale=1.0, viewport-fit=cover",
+  "urlFinal": "/perfil",
+  "consola": [],
+  "fallidas": []
+ },
+ {
+  "nombre": "cond-recorrido",
+  "tema": "claro",
+  "ruta": "/conductor",
+  "overflowX": 0,
+  "scrollHeight": 860,
+  "h1": 0,
+  "landmarks": {
+   "main": true,
+   "nav": true,
+   "header": true
+  },
+  "interactivos": 14,
+  "pequenos44": [
+   {
+    "el": "button.topbar-menu-btn",
+    "txt": "",
+    "w": 41,
+    "h": 40
+   },
+   {
+    "el": "button.topbar-btn",
+    "txt": "Cambiar tema",
+    "w": 40,
+    "h": 36
+   },
+   {
+    "el": "button.topbar-btn",
+    "txt": "Notificaciones",
+    "w": 40,
+    "h": 36
+   },
+   {
+    "el": "a",
+    "txt": "Leaflet",
+    "w": 48,
+    "h": 12
+   },
+   {
+    "el": "div.conductor-panel-handle",
+    "txt": "Expandir o contraer pa",
+    "w": 342,
+    "h": 12
+   },
+   {
+    "el": "button.conductor-toggle-btn",
+    "txt": "Expandir o contraer",
+    "w": 32,
+    "h": 36
+   },
+   {
+    "el": "button.conductor-toggle-btn",
+    "txt": "Ver mapa completo",
+    "w": 32,
+    "h": 36
+   }
+  ],
+  "pequenos24": 2,
+  "sinNombre": [
+   {
+    "el": "button.topbar-menu-btn",
+    "titulo": null
+   },
+   {
+    "el": "button.topbar-btn",
+    "titulo": "Cambiar tema"
+   },
+   {
+    "el": "button.topbar-btn",
+    "titulo": "Notificaciones"
+   }
+  ],
+  "inputsSinEtiqueta": [],
+  "imgSinAlt": 0,
+  "divClicables": 0,
+  "textoMin": 10,
+  "texto_lt12": [
+   "div.leaflet-control-attribution:11.25px",
+   "a:11.25px",
+   "span:11.25px",
+   "p.conductor-panel-kicker:10px"
+  ],
+  "inputs_lt16": 0,
+  "contrasteEvaluados": 9,
+  "contrasteFallos": [
+   {
+    "ratio": 2.08,
+    "n": 1,
+    "ej": "Detener",
+    "px": 13
+   },
+   {
+    "ratio": 2.31,
+    "n": 1,
+    "ej": "Finalizar",
+    "px": 13
+   }
+  ],
+  "viewportMeta": "width=device-width, initial-scale=1.0, viewport-fit=cover",
+  "urlFinal": "/conductor",
+  "consola": [],
+  "fallidas": []
+ },
+ {
+  "nombre": "cond-recorrido",
+  "tema": "oscuro",
+  "ruta": "/conductor",
+  "overflowX": 0,
+  "scrollHeight": 860,
+  "h1": 0,
+  "landmarks": {
+   "main": true,
+   "nav": true,
+   "header": true
+  },
+  "interactivos": 14,
+  "pequenos44": [
+   {
+    "el": "button.topbar-menu-btn",
+    "txt": "",
+    "w": 41,
+    "h": 40
+   },
+   {
+    "el": "button.topbar-btn",
+    "txt": "Cambiar tema",
+    "w": 40,
+    "h": 36
+   },
+   {
+    "el": "button.topbar-btn",
+    "txt": "Notificaciones",
+    "w": 40,
+    "h": 36
+   },
+   {
+    "el": "a",
+    "txt": "Leaflet",
+    "w": 48,
+    "h": 12
+   },
+   {
+    "el": "div.conductor-panel-handle",
+    "txt": "Expandir o contraer pa",
+    "w": 342,
+    "h": 12
+   },
+   {
+    "el": "button.conductor-toggle-btn",
+    "txt": "Expandir o contraer",
+    "w": 32,
+    "h": 36
+   },
+   {
+    "el": "button.conductor-toggle-btn",
+    "txt": "Ver mapa completo",
+    "w": 32,
+    "h": 36
+   }
+  ],
+  "pequenos24": 2,
+  "sinNombre": [
+   {
+    "el": "button.topbar-menu-btn",
+    "titulo": null
+   },
+   {
+    "el": "button.topbar-btn",
+    "titulo": "Cambiar tema"
+   },
+   {
+    "el": "button.topbar-btn",
+    "titulo": "Notificaciones"
+   }
+  ],
+  "inputsSinEtiqueta": [],
+  "imgSinAlt": 0,
+  "divClicables": 0,
+  "textoMin": 10,
+  "texto_lt12": [
+   "div.leaflet-control-attribution:11.25px",
+   "a:11.25px",
+   "span:11.25px",
+   "p.conductor-panel-kicker:10px"
+  ],
+  "inputs_lt16": 0,
+  "contrasteEvaluados": 7,
+  "contrasteFallos": [],
+  "viewportMeta": "width=device-width, initial-scale=1.0, viewport-fit=cover",
+  "urlFinal": "/conductor",
+  "consola": [],
+  "fallidas": []
+ },
+ {
+  "nombre": "adm-panel",
+  "tema": "claro",
+  "ruta": "/admin",
+  "overflowX": 0,
+  "scrollHeight": 844,
+  "h1": 0,
+  "landmarks": {
+   "main": true,
+   "nav": true,
+   "header": true
+  },
+  "interactivos": 8,
+  "pequenos44": [
+   {
+    "el": "button.topbar-menu-btn",
+    "txt": "",
+    "w": 41,
+    "h": 40
+   },
+   {
+    "el": "button.topbar-btn",
+    "txt": "Cambiar tema",
+    "w": 40,
+    "h": 36
+   },
+   {
+    "el": "button.topbar-btn",
+    "txt": "Notificaciones",
+    "w": 40,
+    "h": 36
+   }
+  ],
+  "pequenos24": 0,
+  "sinNombre": [
+   {
+    "el": "button.topbar-menu-btn",
+    "titulo": null
+   },
+   {
+    "el": "button.topbar-btn",
+    "titulo": "Cambiar tema"
+   },
+   {
+    "el": "button.topbar-btn",
+    "titulo": "Notificaciones"
+   }
+  ],
+  "inputsSinEtiqueta": [],
+  "imgSinAlt": 0,
+  "divClicables": 0,
+  "textoMin": 12,
+  "texto_lt12": [],
+  "inputs_lt16": 0,
+  "contrasteEvaluados": 14,
+  "contrasteFallos": [],
+  "viewportMeta": "width=device-width, initial-scale=1.0, viewport-fit=cover",
+  "urlFinal": "/admin",
+  "consola": [],
+  "fallidas": []
+ },
+ {
+  "nombre": "adm-usuarios",
+  "tema": "claro",
+  "ruta": "/admin/usuarios",
+  "overflowX": 308,
+  "scrollHeight": 1511,
+  "h1": 0,
+  "landmarks": {
+   "main": true,
+   "nav": true,
+   "header": true
+  },
+  "interactivos": 15,
+  "pequenos44": [
+   {
+    "el": "button.topbar-menu-btn",
+    "txt": "",
+    "w": 41,
+    "h": 40
+   },
+   {
+    "el": "button.topbar-btn",
+    "txt": "Cambiar tema",
+    "w": 40,
+    "h": 36
+   },
+   {
+    "el": "button.topbar-btn",
+    "txt": "Notificaciones",
+    "w": 40,
+    "h": 36
+   },
+   {
+    "el": "button.gestion-btn-agregar",
+    "txt": "Agregar usuario",
+    "w": 153,
+    "h": 36
+   },
+   {
+    "el": "button.btn-accion",
+    "txt": "",
+    "w": 36,
+    "h": 36
+   },
+   {
+    "el": "button.btn-accion",
+    "txt": "",
+    "w": 36,
+    "h": 36
+   },
+   {
+    "el": "button.btn-accion",
+    "txt": "",
+    "w": 36,
+    "h": 36
+   },
+   {
+    "el": "button.btn-accion",
+    "txt": "",
+    "w": 36,
+    "h": 36
+   },
+   {
+    "el": "button.btn-accion",
+    "txt": "",
+    "w": 36,
+    "h": 36
+   },
+   {
+    "el": "button.btn-accion",
+    "txt": "",
+    "w": 36,
+    "h": 36
+   }
+  ],
+  "pequenos24": 0,
+  "sinNombre": [
+   {
+    "el": "button.topbar-menu-btn",
+    "titulo": null
+   },
+   {
+    "el": "button.topbar-btn",
+    "titulo": "Cambiar tema"
+   },
+   {
+    "el": "button.topbar-btn",
+    "titulo": "Notificaciones"
+   },
+   {
+    "el": "button.btn-accion",
+    "titulo": null
+   },
+   {
+    "el": "button.btn-accion",
+    "titulo": null
+   },
+   {
+    "el": "button.btn-accion",
+    "titulo": null
+   },
+   {
+    "el": "button.btn-accion",
+    "titulo": null
+   },
+   {
+    "el": "button.btn-accion",
+    "titulo": null
+   },
+   {
+    "el": "button.btn-accion",
+    "titulo": null
+   }
+  ],
+  "inputsSinEtiqueta": [],
+  "imgSinAlt": 0,
+  "divClicables": 0,
+  "textoMin": 12,
+  "texto_lt12": [],
+  "inputs_lt16": 0,
+  "contrasteEvaluados": 31,
+  "contrasteFallos": [],
+  "viewportMeta": "width=device-width, initial-scale=1.0, viewport-fit=cover",
+  "urlFinal": "/admin/usuarios",
+  "consola": [],
+  "fallidas": []
+ },
+ {
+  "nombre": "adm-buses",
+  "tema": "claro",
+  "ruta": "/admin/buses",
+  "overflowX": 45,
+  "scrollHeight": 942,
+  "h1": 0,
+  "landmarks": {
+   "main": true,
+   "nav": true,
+   "header": true
+  },
+  "interactivos": 11,
+  "pequenos44": [
+   {
+    "el": "button.topbar-menu-btn",
+    "txt": "",
+    "w": 41,
+    "h": 40
+   },
+   {
+    "el": "button.topbar-btn",
+    "txt": "Cambiar tema",
+    "w": 40,
+    "h": 36
+   },
+   {
+    "el": "button.topbar-btn",
+    "txt": "Notificaciones",
+    "w": 40,
+    "h": 36
+   },
+   {
+    "el": "button.gestion-btn-agregar",
+    "txt": "Agregar bus",
+    "w": 129,
+    "h": 36
+   },
+   {
+    "el": "button.btn-accion",
+    "txt": "",
+    "w": 36,
+    "h": 36
+   },
+   {
+    "el": "button.btn-accion",
+    "txt": "",
+    "w": 36,
+    "h": 36
+   }
+  ],
+  "pequenos24": 0,
+  "sinNombre": [
+   {
+    "el": "button.topbar-menu-btn",
+    "titulo": null
+   },
+   {
+    "el": "button.topbar-btn",
+    "titulo": "Cambiar tema"
+   },
+   {
+    "el": "button.topbar-btn",
+    "titulo": "Notificaciones"
+   },
+   {
+    "el": "button.btn-accion",
+    "titulo": null
+   },
+   {
+    "el": "button.btn-accion",
+    "titulo": null
+   }
+  ],
+  "inputsSinEtiqueta": [],
+  "imgSinAlt": 0,
+  "divClicables": 0,
+  "textoMin": 12,
+  "texto_lt12": [],
+  "inputs_lt16": 0,
+  "contrasteEvaluados": 19,
+  "contrasteFallos": [],
+  "viewportMeta": "width=device-width, initial-scale=1.0, viewport-fit=cover",
+  "urlFinal": "/admin/buses",
+  "consola": [],
+  "fallidas": []
+ },
+ {
+  "nombre": "adm-rutas",
+  "tema": "claro",
+  "ruta": "/admin/rutas",
+  "overflowX": 14,
+  "scrollHeight": 873,
+  "h1": 0,
+  "landmarks": {
+   "main": true,
+   "nav": true,
+   "header": true
+  },
+  "interactivos": 12,
+  "pequenos44": [
+   {
+    "el": "button.topbar-menu-btn",
+    "txt": "",
+    "w": 41,
+    "h": 40
+   },
+   {
+    "el": "button.topbar-btn",
+    "txt": "Cambiar tema",
+    "w": 40,
+    "h": 36
+   },
+   {
+    "el": "button.topbar-btn",
+    "txt": "Notificaciones",
+    "w": 40,
+    "h": 36
+   },
+   {
+    "el": "button.gestion-btn-agregar",
+    "txt": "Agregar ruta",
+    "w": 130,
+    "h": 36
+   },
+   {
+    "el": "button.btn-accion",
+    "txt": "",
+    "w": 36,
+    "h": 36
+   },
+   {
+    "el": "button.btn-accion",
+    "txt": "",
+    "w": 36,
+    "h": 36
+   },
+   {
+    "el": "button.btn-accion",
+    "txt": "",
+    "w": 36,
+    "h": 36
+   }
+  ],
+  "pequenos24": 0,
+  "sinNombre": [
+   {
+    "el": "button.topbar-menu-btn",
+    "titulo": null
+   },
+   {
+    "el": "button.topbar-btn",
+    "titulo": "Cambiar tema"
+   },
+   {
+    "el": "button.topbar-btn",
+    "titulo": "Notificaciones"
+   },
+   {
+    "el": "button.btn-accion",
+    "titulo": null
+   },
+   {
+    "el": "button.btn-accion",
+    "titulo": null
+   },
+   {
+    "el": "button.btn-accion",
+    "titulo": null
+   }
+  ],
+  "inputsSinEtiqueta": [],
+  "imgSinAlt": 0,
+  "divClicables": 0,
+  "textoMin": 12,
+  "texto_lt12": [],
+  "inputs_lt16": 0,
+  "contrasteEvaluados": 17,
+  "contrasteFallos": [],
+  "viewportMeta": "width=device-width, initial-scale=1.0, viewport-fit=cover",
+  "urlFinal": "/admin/rutas",
+  "consola": [],
+  "fallidas": []
+ }
+]

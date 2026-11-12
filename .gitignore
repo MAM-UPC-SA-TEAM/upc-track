@@ -147,3 +147,15 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# Herramientas locales de asistentes (no son parte del producto)
+.agents/
+.claude/
+skills-lock.json
+
+# Impeccable: se versionan las briefs (.impeccable/surfaces) y el diseño documentado; lo demás es efímero
+.impeccable/mocks/
+.impeccable/review/
+.impeccable/build/
+.impeccable/live/
+.impeccable/config.local.json

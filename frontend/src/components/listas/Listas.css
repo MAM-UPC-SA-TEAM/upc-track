@@ -1,0 +1,47 @@
+/* Listas de la app (Rutas, Buses, Notificaciones): el talón como contenedor, filas de 60px o más,
+   bordes de 2px, color plano, sin sombras. Una sola acción verde por vista; el resto, contorno de tinta. */
+
+.lista-pagina { display: flex; flex-direction: column; gap: var(--e4); width: 100%; max-width: 560px; margin: 0 auto; }
+@media (min-width: 1024px) { .lista-pagina { max-width: 720px; } }
+
+.lista-barra { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--e3); }
+.lista-titulo { font-size: var(--t-xl); font-weight: 700; font-stretch: 92%; line-height: 1.15; }
+.lista-cuenta { font-weight: 600; }
+
+.lista-cabecera { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--e3); }
+.lista-nombre { min-width: 0; font-size: var(--t-xl); font-weight: 700; font-stretch: 92%; line-height: 1.15; overflow-wrap: anywhere; }
+.lista-dato { margin-top: var(--e1); font-size: var(--t-sm); font-weight: 600; text-transform: uppercase; color: var(--texto-suave); }
+
+/* Botón de contorno: la acción que no es la primaria */
+.boton-contorno {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e2);
+  min-height: var(--toque);
+  padding: 0 var(--e4);
+  background: var(--superficie);
+  color: var(--texto);
+  border: var(--grosor) solid var(--trazo);
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+}
+.boton-contorno:disabled { opacity: 0.55; cursor: not-allowed; }
+@media (hover: hover) and (pointer: fine) { .boton-contorno:not(:disabled):hover { background: var(--papel-hundido); } }
+
+/* Estado apagado (suspendido, inactivo): contorno discontinuo, no un color */
+.etiqueta.etiqueta--apagada { box-shadow: none; outline: 2px dashed var(--trazo); outline-offset: -2px; }
+
+/* Filas dentro de un talón (buses): la fila entera es el enlace */
+.lista-filas { list-style: none; }
+.lista-filas li + li { border-top: 1px solid var(--borde); }
+
+/* Estados sin filas */
+.lista-estado .talon-sin { padding-top: var(--e1); }
+.lista-estado .talon-accion { text-decoration: none; }
+.lista-esqueleto { display: flex; flex-direction: column; gap: var(--e3); }
+.lista-esqueleto span { display: block; height: 14px; background: var(--linea-suave); }
+.lista-esqueleto span:nth-child(1) { width: 55%; height: 22px; }
+.lista-esqueleto span:nth-child(2) { width: 80%; }
+.lista-esqueleto span:nth-child(3) { width: 40%; }

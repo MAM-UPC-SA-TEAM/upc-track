@@ -1,0 +1,91 @@
+/* Mapa en tiempo real: barra de papel arriba (buscador y chips), mapa de calles calmadas,
+   y una hoja inferior que reutiliza el talón. Color plano, bordes de 2px, sin sombras. */
+
+.mapa-page { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+
+.mapa-barra {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--e2);
+  padding: var(--e3) var(--e4);
+  background: var(--bg);
+  border-bottom: var(--grosor) solid var(--trazo);
+}
+
+.mapa-buscar {
+  display: flex;
+  align-items: center;
+  gap: var(--e2);
+  min-height: var(--toque);
+  padding: 0 var(--e3);
+  background: var(--superficie);
+  border: var(--grosor) solid var(--trazo);
+  color: var(--texto-suave);
+}
+.mapa-buscar input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--texto); font: inherit; }
+.mapa-buscar input:focus-visible { outline: none; }
+.mapa-buscar:focus-within { outline: 3px solid var(--trazo); outline-offset: 2px; }
+
+.mapa-chips { display: flex; align-items: center; gap: var(--e2); overflow-x: auto; scrollbar-width: none; }
+.mapa-chips::-webkit-scrollbar { display: none; }
+.chip {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e2);
+  min-height: var(--toque);
+  padding: 0 var(--e3);
+  background: var(--superficie);
+  border: var(--grosor) solid var(--trazo);
+  font-weight: 700;
+  white-space: nowrap;
+}
+/* El chip activo es tinta, no verde: el único verde lleno de la pantalla queda para lo válido */
+.chip--activo { background: var(--tinta); color: var(--papel); }
+.mapa-calculando {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border: 3px solid var(--linea-suave);
+  border-top-color: var(--trazo);
+  border-radius: 50%;
+  animation: gira 700ms linear infinite;
+}
+@keyframes gira { to { rotate: 360deg; } }
+
+.mapa-contenido { position: relative; flex: 1; min-height: 0; }
+.mapa-leaflet { position: absolute; inset: 0; }
+
+/* Hoja inferior: lista de buses o talón de la selección */
+.mapa-hoja {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 800;
+  max-height: 72%;
+  overflow-y: auto;
+  background: var(--superficie);
+  border-top: var(--grosor) solid var(--trazo);
+}
+
+/* En escritorio la hoja es una tarjeta a la izquierda (no se estira por todo el mapa) */
+@media (min-width: 1024px) {
+  .mapa-hoja { left: var(--e4); right: auto; bottom: var(--e4); width: min(440px, calc(100% - var(--e5) * 2)); max-height: calc(100% - var(--e5) * 2); border: var(--grosor) solid var(--trazo); }
+}
+
+/* Carga y error de carga: mensaje claro en el centro, nunca una pantalla vacía */
+.mapa-aviso {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e4);
+  padding: var(--e5);
+  text-align: center;
+  font-weight: 600;
+}
+.mapa-aviso .talon-accion { width: min(100%, 320px); margin: 0; }
+.sello--fijo { position: static; translate: none; }
