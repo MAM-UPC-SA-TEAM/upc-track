@@ -12,4 +12,4 @@
 - [ ] Documentación actualizada si cambia el comportamiento
 
 Refs #
-<!-- Se fusiona a `develop`, donde `Closes #N` NO cierra el issue: ciérralo a mano al integrar. -->
+<!-- PR hacia `develop`: `Closes #N` NO cierra el issue, ciérralo a mano al integrar. PR hacia `main`: sí lo cierra. -->
