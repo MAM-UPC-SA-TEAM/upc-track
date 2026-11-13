@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">UpcTrack</string>
+    <string name="title_activity_main">UpcTrack</string>
+    <string name="package_name">co.edu.unicesar.upctrack</string>
+    <string name="custom_url_scheme">co.edu.unicesar.upctrack</string>
+</resources>

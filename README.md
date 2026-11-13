@@ -105,6 +105,26 @@ USUARIO_CLAVE='clave-de-12-o-mas-caracteres' npm run db:usuario -- --nombre "Adm
 4. CORS y Socket.IO aceptan el origen del frontend.
 5. Flujo conductor -> GPS -> mapa estudiante validado en el dominio publico.
 
+## App Android (Capacitor)
+
+El frontend se empaqueta como app Android con Capacitor 7 (`frontend/android/`).
+
+Requisitos del entorno:
+
+- Node >= 20
+- JDK 21 (el que trae Android Studio, «jbr», sirve; Capacitor 7 no compila con JDK 22+)
+- Android Studio Ladybug 2024.2.1 o superior, con Android SDK Platform 35 y un emulador (AVD) o un telefono con depuracion USB
+- Variable `ANDROID_HOME` apuntando al SDK (en Windows: `%LOCALAPPDATA%\Android\Sdk`)
+
+Pasos:
+
+1. `cd frontend && npm ci`
+2. Crear `frontend/.env.native` (no se versiona) con `VITE_API_URL=https://upc-track.onrender.com`
+3. `npm run cap:sync` (compila en modo nativo y copia a `android/`)
+4. `npm run cap:open` (abre Android Studio) y ejecutar en el emulador con el boton Run
+
+`appId`: `co.edu.unicesar.upctrack` · `minSdk` 23 · `targetSdk` 35. El backend ya acepta los origenes `https://localhost` y `capacitor://localhost` (ver `backend/src/utils/cors.js`). Tras cambiar el frontend hay que volver a ejecutar `npm run cap:sync`.
+
 ## Desarrollo local
 
 ### Requisitos
