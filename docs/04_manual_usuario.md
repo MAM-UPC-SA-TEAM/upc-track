@@ -20,6 +20,11 @@ Guiar al usuario final (estudiante, conductor y administrador) en el uso del sis
 - Ver mapa en tiempo real.
 - Ver rutas y horarios.
 - Ver notificaciones del dia.
+- Recibir avisos del bus (cambio de estado, retraso, cambio de ruta):
+  - Unos segundos despues de entrar aparece el aviso «Activa los avisos para saber cuando cambia tu bus». Al tocar **Activar**, el telefono pide el permiso de notificaciones (en Android 13 o superior es obligatorio).
+  - Con la app a la vista, el aviso sale dentro de la app (mensaje emergente y sonido). Con la app en segundo plano, llega como notificacion del telefono; al tocarla se abre la lista de notificaciones.
+  - Si se descarto el aviso o se nego el permiso, se puede activar luego en Ajustes > Aplicaciones > UpcTrack > Notificaciones (en el navegador, en los permisos del sitio).
+  - **Limitacion:** no hay notificaciones push desde el servidor. Los avisos llegan solo con la app abierta o en segundo plano reciente; si el sistema cerro la app, se veran al volver a abrirla, en la seccion Notificaciones.
 
 ### 4.2 Conductor
 - Iniciar recorrido.
