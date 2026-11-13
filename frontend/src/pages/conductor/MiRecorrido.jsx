@@ -6,6 +6,7 @@ import L from 'leaflet'
 import Layout from '../../components/shared/Layout'
 import TalonConductor, { FRESCO_MAX_S } from '../../components/conductor/TalonConductor'
 import api from '../../services/api'
+import { watchPosition, disponible } from '../../services/geolocation'
 
 const CENTRO_DEFECTO = [8.3086, -73.6194]
 const INTERVALO_ENVIO_MS = 4000
@@ -130,9 +131,7 @@ export default function MiRecorrido() {
 
   useEffect(() => {
     return () => {
-      if (watchRef.current !== null && navigator.geolocation) {
-        navigator.geolocation.clearWatch(watchRef.current)
-      }
+      watchRef.current?.detener()
     }
   }, [])
 
@@ -180,12 +179,7 @@ export default function MiRecorrido() {
   }, [enRecorrido, colgado])
 
   function iniciarRecorrido() {
-    if (!window.isSecureContext) {
-      setErrorGps('GPS bloqueado: esta página debe abrirse por HTTPS (o localhost) para usar la ubicación.')
-      return
-    }
-
-    if (!navigator.geolocation) {
+    if (!disponible()) {
       setErrorGps('GPS no disponible en este dispositivo.')
       return
     }
@@ -199,12 +193,10 @@ export default function MiRecorrido() {
     ultimoEnvioRef.current = 0
     actualizarEstadoBus('en_recorrido')
 
-    if (watchRef.current !== null) navigator.geolocation.clearWatch(watchRef.current)
-    watchRef.current = navigator.geolocation.watchPosition(
-      (pos) => {
+    watchRef.current?.detener()
+    watchRef.current = watchPosition(
+      ({ lat, lng }) => {
         const t = Date.now()
-        const lat = pos.coords.latitude
-        const lng = pos.coords.longitude
         setErrorGps('')
         setGps({ lat, lng })
         setHistorialGps(prev => [...prev.slice(-19), { lat, lng, id: t }])
@@ -214,9 +206,9 @@ export default function MiRecorrido() {
         }
       },
       (err) => {
-        setErrorGps(`Error de GPS: ${err.message}`)
+        setErrorGps(err.mensaje)
       },
-      { enableHighAccuracy: true, maximumAge: 3000, timeout: 10000 }
+      { precisionAlta: true, maximumAge: 3000, timeout: 10000 }
     )
 
     if ('wakeLock' in navigator) {
@@ -231,10 +223,8 @@ export default function MiRecorrido() {
     setHistorialGps([])
     setErrorGps('')
     ultimoEnvioRef.current = 0
-    if (watchRef.current !== null) {
-      navigator.geolocation.clearWatch(watchRef.current)
-      watchRef.current = null
-    }
+    watchRef.current?.detener()
+    watchRef.current = null
     actualizarEstadoBus('fuera_de_servicio')
   }
 
