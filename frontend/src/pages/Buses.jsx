@@ -5,6 +5,7 @@ import Layout from '../components/shared/Layout'
 import EstadoLista from '../components/listas/EstadoLista'
 import api from '../services/api'
 import socket from '../services/socket'
+import { useAlReanudar } from '../hooks/useCicloVida'
 import { distanciaKm, formatearETA } from '../utils/calcularETA'
 import { busViejo, etiquetaBus } from '../utils/estadoBus'
 import '../components/mapa/Mapa.css'
@@ -75,6 +76,9 @@ export default function Buses() {
       socket.off('bus:location', alLlegarPosicion)
     }
   }, [cargar])
+
+  // Al volver de segundo plano se recarga la lista (los eventos perdidos no se reenvían)
+  useAlReanudar(cargar)
 
   // Reloj de 1 s para la antigüedad del dato (solo mientras hay buses)
   const hayBuses = buses.length > 0

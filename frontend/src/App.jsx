@@ -5,6 +5,7 @@ import { useAuth } from './context/AuthContext'
 import { esNativa } from './utils/platform'
 import RutaProtegida from './components/shared/RutaProtegida'
 import ServidorDespertando from './components/shared/ServidorDespertando'
+import CicloVidaNativo from './components/shared/CicloVidaNativo'
 
 // Pages — las iremos creando en los siguientes issues
 const Login = lazy(() => import('./pages/Login'))
@@ -40,6 +41,7 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <ServidorDespertando />
+        {esNativa && <CicloVidaNativo />}
         <Suspense fallback={null}>
         <Routes>
           {/* Pública */}

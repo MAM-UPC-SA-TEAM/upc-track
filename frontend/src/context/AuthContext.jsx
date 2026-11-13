@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-import socket from '../services/socket'
+import socket, { olvidarRutas } from '../services/socket'
+import { alReanudar } from '../services/cicloVida'
+import { alCambiarRed } from '../services/red'
 import api from '../services/api'
 
 const AuthContext = createContext(null)
@@ -87,8 +89,24 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('token')
     localStorage.removeItem('usuario')
     setUsuario(null)
+    olvidarRutas()
     socket.disconnect()
   }
+
+  // Volver de segundo plano o recuperar la red: el socket puede seguir «conectado» pero
+  // muerto (el servidor ya lo descartó). Tras un rato fuera se recicla; al reconectar,
+  // socket.js re-une las salas y cada pantalla refresca sus datos con su 'connect'.
+  useEffect(() => {
+    if (!usuario) return undefined
+    const quitarReanudar = alReanudar((msFuera) => {
+      if (msFuera >= 30_000 && socket.connected) socket.disconnect()
+      if (!socket.connected) socket.connect()
+    })
+    const quitarRed = alCambiarRed((conectado) => {
+      if (conectado && !socket.connected) socket.connect()
+    })
+    return () => { quitarReanudar(); quitarRed() }
+  }, [usuario])
 
   useEffect(() => {
     if (!usuario) return

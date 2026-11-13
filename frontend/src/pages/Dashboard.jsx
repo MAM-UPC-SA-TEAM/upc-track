@@ -5,6 +5,8 @@ import TalonETA from '../components/inicio/TalonETA'
 import AvisoConductor from '../components/inicio/AvisoConductor'
 import api from '../services/api'
 import socket from '../services/socket'
+import { alCambiarRed } from '../services/red'
+import { useAlReanudar, useEnLinea } from '../hooks/useCicloVida'
 import { calcularETA } from '../utils/calcularETA'
 import './Dashboard.css'
 import { MapContainer, Polyline, Marker, CircleMarker, Tooltip } from 'react-leaflet'
@@ -28,7 +30,7 @@ export default function Dashboard() {
   const [cargando, setCargando]         = useState(true)
   const [tardando, setTardando]         = useState(false)
   const [fallos, setFallos]             = useState(0)
-  const [enLinea, setEnLinea]           = useState(() => navigator.onLine)
+  const enLinea                        = useEnLinea()
   const [recibidoEn, setRecibidoEn]     = useState(() => Date.now())
   const [ahora, setAhora]               = useState(() => Date.now())
   const [aviso, setAviso]               = useState(null)
@@ -90,13 +92,9 @@ export default function Dashboard() {
     return () => { clearInterval(poll); clearInterval(reloj); clearTimeout(espera) }
   }, [])
 
-  useEffect(() => {
-    const subir = () => { setEnLinea(true); cargarEstado() }
-    const bajar = () => setEnLinea(false)
-    window.addEventListener('online', subir)
-    window.addEventListener('offline', bajar)
-    return () => { window.removeEventListener('online', subir); window.removeEventListener('offline', bajar) }
-  }, [])
+  // Al volver la red o la app desde segundo plano, el dato se trae de nuevo sin esperar al sondeo
+  useEffect(() => alCambiarRed(conectado => { if (conectado) cargarEstado() }), [])
+  useAlReanudar(() => { cargarEstado(); cargarAviso() })
 
   useEffect(() => {
     function refrescar(delay = 300) {
