@@ -17,6 +17,10 @@
       "overlaysWebView": false,
       "style": "LIGHT",
       "backgroundColor": "#fbfaf4"
+    },
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_upctrack",
+      "iconColor": "#1E6B2E"
     }
   }
 }

@@ -64,22 +64,6 @@ function reproducirSonidoNotif() {
   }
 }
 
-async function solicitarPermisoNotificacion() {
-  if (!('Notification' in window)) return
-  if (Notification.permission === 'default') {
-    await Notification.requestPermission()
-  }
-}
-
-function mostrarNotificacionSistema(titulo, mensaje) {
-  if (Notification.permission !== 'granted') return
-  new Notification(titulo, {
-    body:    mensaje,
-    icon:    '/favicon.ico',
-    silent:  true, // el sonido lo maneja nuestra función
-    tag:     'bus-notif', // reemplaza la anterior en vez de apilar
-  })
-}
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faHouse, faLocationDot, faRoute, faBus,
@@ -92,6 +76,8 @@ import logoUpc from '../../assets/logo-upc.png'
 import api from '../../services/api'
 import socket, { unirseRuta, salirRuta } from '../../services/socket'
 import { useCerrarConAtras } from '../../hooks/useCicloVida'
+import { enPrimerPlano } from '../../services/cicloVida'
+import { notificador } from '../../services/notificaciones'
 import { usePWA } from '../../hooks/usePWA'
 import { aplicarTema, temaInicialOscuro } from '../../utils/tema'
 import './Layout.css'
@@ -149,6 +135,7 @@ export default function Layout({ children, titulo, sinPadding = false }) {
   const [notifs, setNotifs] = useState([])
   const [toasts, setToasts] = useState([])
   const [bannerInstalacion, setBannerInstalacion] = useState(false)
+  const [bannerAvisos, setBannerAvisos] = useState(false)
   const perfilRef = useRef(null)
   const notifRef = useRef(null)
 
@@ -180,25 +167,53 @@ export default function Layout({ children, titulo, sinPadding = false }) {
       .catch(() => setNotifs([]))
   }, [notifPanel])
 
-  // Pedir permiso de notificaciones del sistema al montar
+  // El permiso de notificaciones no se pide al montar: el estudiante lo concede desde
+  // un aviso propio, cuando ya está usando la app (y puede descartarlo).
+  const esEstudiante = usuario?.tipo_usuario === 'estudiante'
   useEffect(() => {
-    solicitarPermisoNotificacion()
-  }, [])
+    if (!esEstudiante) return undefined
+    try { if (localStorage.getItem('avisos-descartado')) return undefined } catch { /* sin almacenamiento */ }
+    let vigente = true
+    const t = setTimeout(() => {
+      notificador.estado().then(e => { if (vigente && e === 'pendiente') setBannerAvisos(true) })
+    }, 4000)
+    return () => { vigente = false; clearTimeout(t) }
+  }, [esEstudiante])
 
-  // Nuevas notificaciones en tiempo real
+  async function activarAvisos() {
+    setBannerAvisos(false)
+    await notificador.pedirPermiso()
+    try { localStorage.setItem('avisos-descartado', '1') } catch { /* sin almacenamiento */ }
+  }
+
+  function descartarAvisos() {
+    setBannerAvisos(false)
+    try { localStorage.setItem('avisos-descartado', '1') } catch { /* sin almacenamiento */ }
+  }
+
+  // Tocar la notificación del sistema lleva a la lista de avisos
+  useEffect(() => notificador.alTocar(() => navigate('/notificaciones')), [navigate])
+
+  // Nuevas notificaciones en tiempo real. Con la app a la vista: toast y sonido;
+  // en segundo plano: notificación del sistema (nativa en el APK).
   useEffect(() => {
-    socket.on('notificacion:nueva', (n) => {
+    const alLlegar = (n) => {
       setNotifs(prev => [{ ...n, hace: 'Ahora' }, ...prev].slice(0, 6))
-      reproducirSonidoNotif()
       const titulo = n.nombre_ruta ? `${tituloNotif(n.tipo)} — ${n.nombre_ruta}` : tituloNotif(n.tipo)
-      mostrarNotificacionSistema(titulo, n.mensaje)
 
+      if (!enPrimerPlano()) {
+        notificador.mostrar({ titulo, cuerpo: n.mensaje }).catch(() => {})
+        return
+      }
+      reproducirSonidoNotif()
       if (rutaActualRef.current === '/inicio') return // el aviso ya se ve en la propia pantalla de inicio
       const id = Date.now()
       setToasts(prev => [...prev, { ...n, id, titulo }])
       setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 5000)
-    })
-    return () => socket.off('notificacion:nueva')
+    }
+    // Manejador propio: off(evento) sin función quitaría también los de otras pantallas
+    socket.on('notificacion:nueva', alLlegar)
+    return () => socket.off('notificacion:nueva', alLlegar)
   }, [])
 
   // Suscribirse a rooms de rutas activas para recibir notificaciones en tiempo real
@@ -425,8 +440,26 @@ export default function Layout({ children, titulo, sinPadding = false }) {
           </div>
         )}
 
+        {/* ── Banner para activar los avisos (permiso de notificaciones) ── */}
+        {bannerAvisos && !estaOffline && (
+          <div className="pwa-banner pwa-banner--install">
+            <FontAwesomeIcon icon={faBell} />
+            <span>Activa los avisos para saber cuándo cambia tu bus</span>
+            <button className="pwa-banner-btn" onClick={activarAvisos}>
+              Activar
+            </button>
+            <button
+              className="pwa-banner-btn pwa-banner-btn--cerrar"
+              onClick={descartarAvisos}
+              aria-label="Cerrar aviso de notificaciones"
+            >
+              <FontAwesomeIcon icon={faXmark} />
+            </button>
+          </div>
+        )}
+
         {/* ── Banner instalación ── */}
-        {bannerInstalacion && !estaOffline && (
+        {bannerInstalacion && !bannerAvisos && !estaOffline && (
           <div className="pwa-banner pwa-banner--install">
             <FontAwesomeIcon icon={faDownload} />
             <span>Instala la app para acceso rápido</span>

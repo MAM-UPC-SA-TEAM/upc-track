@@ -10,7 +10,7 @@ import { esNativa } from '../utils/platform'
 
 const reanudar = new Set()
 const atras = [] // pila: el último en registrarse (p. ej. el panel abierto) atiende primero
-let ocultaDesde = null
+let ocultaDesde = typeof document !== 'undefined' && document.visibilityState === 'hidden' ? Date.now() : null
 
 function cambioVisibilidad(activa) {
   if (!activa) {
@@ -27,6 +27,11 @@ if (esNativa) {
   App.addListener('appStateChange', ({ isActive }) => cambioVisibilidad(isActive))
 } else if (typeof document !== 'undefined') {
   document.addEventListener('visibilitychange', () => cambioVisibilidad(document.visibilityState === 'visible'))
+}
+
+// false mientras la app está en segundo plano (o la pestaña oculta)
+export function enPrimerPlano() {
+  return ocultaDesde === null
 }
 
 export function alReanudar(cb) {
