@@ -125,6 +125,22 @@ Pasos:
 
 `appId`: `co.edu.unicesar.upctrack` · `minSdk` 23 · `targetSdk` 35. El backend ya acepta los origenes `https://localhost` y `capacitor://localhost` (ver `backend/src/utils/cors.js`). Tras cambiar el frontend hay que volver a ejecutar `npm run cap:sync`.
 
+### APK firmado (release)
+
+La keystore del equipo **no está en el repositorio** (`*.jks`, `*.keystore` y `keystore.properties` están ignorados). Se guarda fuera del repo, con copia de respaldo: si se pierde, ningún APK nuevo podrá instalarse como actualización del anterior.
+
+- **En CI** (`.github/workflows/android.yml`): *Actions > Android APK > Run workflow* deja el APK como artefacto; un tag `vX.Y.Z` además lo adjunta a la Release de GitHub. Usa los secretos `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` y `ANDROID_KEY_PASSWORD`. `versionCode` es el número de corrida y `versionName` el tag sin la «v».
+- **En local**: crear `frontend/android/keystore.properties` (o exportar las variables `UPCTRACK_KEYSTORE_FILE`, `UPCTRACK_KEYSTORE_PASSWORD`, `UPCTRACK_KEY_ALIAS`, `UPCTRACK_KEY_PASSWORD`):
+
+  ```properties
+  storeFile=C:/ruta/fuera/del/repo/upctrack-release.jks
+  storePassword=...
+  keyAlias=upctrack
+  keyPassword=...
+  ```
+
+  y ejecutar `npm run cap:sync && cd android && .\gradlew.bat assembleRelease`. El APK queda en `app/build/outputs/apk/release/app-release.apk`. Sin keystore, Gradle genera `app-release-unsigned.apk`, que Android no instala.
+
 ## Desarrollo local
 
 ### Requisitos

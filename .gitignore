@@ -159,3 +159,8 @@ skills-lock.json
 .impeccable/build/
 .impeccable/live/
 .impeccable/config.local.json
+
+# Firma de release de Android: la keystore nunca se versiona
+*.jks
+*.keystore
+keystore.properties

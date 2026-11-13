@@ -1,5 +1,19 @@
 apply plugin: 'com.android.application'
 
+// ── Firma de release (M10) ─────────────────────────────────────────────
+// La keystore NUNCA va al repositorio. Los datos se leen, en este orden, de:
+//   1. variables de entorno (CI): UPCTRACK_KEYSTORE_FILE, UPCTRACK_KEYSTORE_PASSWORD,
+//      UPCTRACK_KEY_ALIAS, UPCTRACK_KEY_PASSWORD
+//   2. android/keystore.properties (local, ignorado por git): storeFile, storePassword,
+//      keyAlias, keyPassword
+// Sin ellos, assembleRelease genera un APK sin firmar (no instalable).
+def firmaProps = new Properties()
+def firmaArchivo = rootProject.file('keystore.properties')
+if (firmaArchivo.exists()) firmaArchivo.withInputStream { firmaProps.load(it) }
+def firma = { String env, String prop -> System.getenv(env) ?: firmaProps.getProperty(prop) }
+def keystorePath = firma('UPCTRACK_KEYSTORE_FILE', 'storeFile')
+def hayFirma = keystorePath && file(keystorePath).exists()
+
 android {
     namespace "co.edu.unicesar.upctrack"
     compileSdk rootProject.ext.compileSdkVersion
@@ -7,8 +21,9 @@ android {
         applicationId "co.edu.unicesar.upctrack"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        // CI: UPCTRACK_VERSION_CODE = número de corrida, UPCTRACK_VERSION_NAME = tag sin la «v»
+        versionCode((System.getenv('UPCTRACK_VERSION_CODE') ?: '1') as int)
+        versionName(System.getenv('UPCTRACK_VERSION_NAME') ?: '1.0.0')
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,8 +31,19 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (hayFirma) {
+                storeFile file(keystorePath)
+                storePassword firma('UPCTRACK_KEYSTORE_PASSWORD', 'storePassword')
+                keyAlias firma('UPCTRACK_KEY_ALIAS', 'keyAlias')
+                keyPassword firma('UPCTRACK_KEY_PASSWORD', 'keyPassword')
+            }
+        }
+    }
     buildTypes {
         release {
+            if (hayFirma) signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
