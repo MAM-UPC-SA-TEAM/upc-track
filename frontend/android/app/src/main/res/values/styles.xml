@@ -9,14 +9,22 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <!-- Tema de la app ya cargada: fondo «papel» para que nunca asome un blanco puro -->
     <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:background">@null</item>
+        <item name="android:windowBackground">@color/upc_papel</item>
+        <item name="android:statusBarColor">@color/upc_papel</item>
+        <item name="android:windowLightStatusBar">true</item>
     </style>
 
-
+    <!-- Splash de arranque. Android 12+ usa el ícono sobre «papel»; versiones previas, splash.png -->
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="android:background">@drawable/splash</item>
+        <item name="windowSplashScreenBackground">@color/upc_papel</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
+        <item name="windowSplashScreenIconBackgroundColor">@color/upc_verde</item>
+        <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
     </style>
 </resources>

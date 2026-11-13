@@ -39,11 +39,11 @@ export default defineConfig(({ mode }) => {
 
       // ── Web App Manifest ─────────────────────────────────────
       manifest: {
-        name: 'Monitoreo de Rutas — UPCSA',
-        short_name: 'BusUPCSA',
-        description: 'Sistema de monitoreo de buses universitarios en tiempo real de la Universidad Popular del Cesar',
-        theme_color: '#1e6b2e',
-        background_color: '#1e6b2e',
+        name: 'UpcTrack · Tu ruta en tiempo real',
+        short_name: 'UpcTrack',
+        description: 'El bus universitario de la Universidad Popular del Cesar, seccional Aguachica, en tiempo real',
+        theme_color: '#fbfaf4',
+        background_color: '#fbfaf4',
         display: 'standalone',
         orientation: 'portrait-primary',
         scope: '/',

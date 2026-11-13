@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- «papel» y «verde-upc» de la marca (docs/brand/tokens.json) -->
+    <color name="upc_papel">#FBFAF4</color>
+    <color name="upc_verde">#1E6B2E</color>
+</resources>

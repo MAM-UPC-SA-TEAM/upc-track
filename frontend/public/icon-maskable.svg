@@ -1,22 +1,26 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- Fondo verde completo (ocupa todo el área incluyendo safe-zone) -->
-  <rect width="512" height="512" fill="#1e6b2e"/>
-  <!-- Bus centrado con padding 20% para safe-zone maskable -->
-  <!-- Cuerpo del bus (equivalente a las coordenadas originales escaladas con padding) -->
-  <rect x="102" y="168" width="308" height="200" rx="32" fill="#ffffff"/>
-  <!-- Ventanas -->
-  <rect x="128" y="200" width="68" height="60" rx="12" fill="#1e6b2e"/>
-  <rect x="222" y="200" width="68" height="60" rx="12" fill="#1e6b2e"/>
-  <rect x="316" y="200" width="68" height="60" rx="12" fill="#1e6b2e"/>
-  <!-- Puerta -->
-  <rect x="222" y="264" width="68" height="104" rx="8" fill="#cce8d0"/>
-  <!-- Ruedas -->
-  <circle cx="156" cy="384" r="44" fill="#1e6b2e"/>
-  <circle cx="156" cy="384" r="22" fill="#ffffff"/>
-  <circle cx="356" cy="384" r="44" fill="#1e6b2e"/>
-  <circle cx="356" cy="384" r="22" fill="#ffffff"/>
-  <!-- Franja delantera -->
-  <rect x="102" y="168" width="40" height="200" rx="32" fill="#145220"/>
-  <!-- Línea de ruta superior -->
-  <rect x="110" y="148" width="292" height="24" rx="12" fill="#a5d6a7"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <rect width="1024" height="1024" fill="#1e6b2e"/>
+  <path d="M582.4,185.6 A150,150 0 0 1 654.7,271.6" fill="none" stroke="#f5c400" stroke-width="26" stroke-linecap="round"/>
+  <path d="M608.2,137.0 A205,205 0 0 1 707.0,254.7" fill="none" stroke="#f5c400" stroke-width="26" stroke-linecap="round"/>
+  <rect x="300" y="560" width="32" height="74" rx="14" fill="#5aa823" stroke="#0f3d22" stroke-width="18"/>
+  <rect x="692" y="560" width="32" height="74" rx="14" fill="#5aa823" stroke="#0f3d22" stroke-width="18"/>
+  <rect x="372" y="760" width="64" height="70" rx="16" fill="#0f3d22"/>
+  <rect x="588" y="760" width="64" height="70" rx="16" fill="#0f3d22"/>
+  <rect x="334" y="478" width="356" height="312" rx="56" fill="#fbfaf4" stroke="#0f3d22" stroke-width="26"/>
+  <path d="M347.0,712 H677.0 V734 a43.0,43.0 0 0 1 -43.0,43.0 H390 a43.0,43.0 0 0 1 -43.0,-43.0 Z" fill="#5aa823"/>
+  <line x1="334" y1="712" x2="690" y2="712" stroke="#0f3d22" stroke-width="18"/>
+  <rect x="452" y="506" width="120" height="26" rx="13" fill="#5aa823" stroke="#0f3d22" stroke-width="16"/>
+  <rect x="376" y="556" width="272" height="122" rx="22" fill="#1e6b2e" stroke="#0f3d22" stroke-width="26"/>
+  <path d="M402,654 L470,580 L520,580 L452,654 Z" fill="#fbfaf4" opacity=".28"/>
+  <circle cx="392" cy="742" r="24" fill="#fbfaf4" stroke="#0f3d22" stroke-width="16"/>
+  <circle cx="632" cy="742" r="24" fill="#fbfaf4" stroke="#0f3d22" stroke-width="16"/>
+  <rect x="458" y="728" width="108" height="12" rx="6" fill="#0f3d22"/>
+  <rect x="458" y="756" width="108" height="12" rx="6" fill="#0f3d22"/>
+  <clipPath id="pc"><path d="M512,492 L432.0,404.7 A118,118 0 1 1 592.0,404.7 Z"/></clipPath>
+  <path d="M512,492 L432.0,404.7 A118,118 0 1 1 592.0,404.7 Z" fill="#5aa823"/>
+  <rect x="512" y="150" width="200" height="400" fill="#1e6b2e" opacity=".55" clip-path="url(#pc)"/>
+  <path d="M450,410 L512,358 L574,410 L512,492 Z" fill="#f5c400" clip-path="url(#pc)"/>
+  <path d="M512,358 L574,410 L512,492 Z" fill="#d9a400" clip-path="url(#pc)"/>
+  <path d="M512,492 L432.0,404.7 A118,118 0 1 1 592.0,404.7 Z" fill="none" stroke="#0f3d22" stroke-width="26" stroke-linejoin="round"/>
+  <circle cx="512" cy="318" r="48" fill="#fbfaf4" stroke="#0f3d22" stroke-width="26" />
 </svg>
