@@ -1,0 +1,119 @@
+name: Android APK
+
+# Compila el APK firmado de UpcTrack (M10).
+#  - Manual (Actions > Android APK > Run workflow): deja el APK como artefacto de la corrida.
+#  - Tag vX.Y.Z (p. ej. `git tag v1.0.0 && git push origin v1.0.0`): además lo adjunta a la Release.
+#  - PR que toque el proyecto Android o este workflow: lo compila como verificación (solo artefacto).
+#
+# Secretos del repositorio (Settings > Secrets and variables > Actions):
+#   ANDROID_KEYSTORE_BASE64   keystore .jks en base64 (`base64 -w0 upctrack-release.jks`)
+#   ANDROID_KEYSTORE_PASSWORD contraseña de la keystore
+#   ANDROID_KEY_ALIAS         alias de la llave
+#   ANDROID_KEY_PASSWORD      contraseña de la llave
+# Variable opcional: VITE_API_URL (por defecto el backend de Render).
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+  pull_request:
+    branches: [develop, main]
+    paths:
+      - '.github/workflows/android.yml'
+      - 'frontend/android/**'
+      - 'frontend/capacitor.config.json'
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write # crear la Release y subir el APK
+
+jobs:
+  apk:
+    name: APK firmado
+    runs-on: ubuntu-latest
+    env:
+      VITE_API_URL: ${{ vars.VITE_API_URL || 'https://upc-track.onrender.com' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: Versión
+        id: version
+        run: |
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            nombre="${GITHUB_REF_NAME#v}"
+          else
+            nombre="0.0.0-dev.${GITHUB_RUN_NUMBER}"
+          fi
+          echo "nombre=$nombre" >> "$GITHUB_OUTPUT"
+          echo "Versión $nombre (código $GITHUB_RUN_NUMBER)"
+
+      - name: Keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [[ -z "$KEYSTORE_BASE64" ]]; then
+            echo "::error::Falta el secreto ANDROID_KEYSTORE_BASE64: sin keystore el APK no se puede firmar ni instalar."
+            exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/upctrack-release.jks"
+
+      - name: Build web (modo nativo) y sync
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build:native
+          npx cap sync android
+
+      - name: assembleRelease
+        working-directory: frontend/android
+        env:
+          UPCTRACK_KEYSTORE_FILE: ${{ runner.temp }}/upctrack-release.jks
+          UPCTRACK_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          UPCTRACK_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          UPCTRACK_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          UPCTRACK_VERSION_CODE: ${{ github.run_number }}
+          UPCTRACK_VERSION_NAME: ${{ steps.version.outputs.nombre }}
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+          apk="UpcTrack-${{ steps.version.outputs.nombre }}.apk"
+          cp app/build/outputs/apk/release/app-release.apk "$GITHUB_WORKSPACE/$apk"
+          apksigner="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)/apksigner"
+          "$apksigner" verify --print-certs "$GITHUB_WORKSPACE/$apk" | head -2
+          echo "APK=$apk" >> "$GITHUB_ENV"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APK }}
+          path: ${{ env.APK }}
+          if-no-files-found: error
+
+      - name: Adjuntar a la Release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "$APK" --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" "$APK" --title "UpcTrack $GITHUB_REF_NAME" --generate-notes
+          fi
+
+      - name: Limpiar keystore
+        if: always()
+        run: rm -f "$RUNNER_TEMP/upctrack-release.jks"
