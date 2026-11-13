@@ -1,0 +1,34 @@
+.servidor-despertando {
+  position: fixed;
+  left: var(--e4);
+  right: var(--e4);
+  bottom: calc(var(--nav-alto) + var(--e4));
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: var(--e3);
+  padding: var(--e3) var(--e4);
+  background: var(--superficie);
+  color: var(--texto);
+  border: var(--grosor) solid var(--trazo);
+  border-radius: var(--e2);
+  font-family: var(--f-ui);
+  font-size: var(--t-sm);
+}
+
+.servidor-despertando__punto {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--amarillo);
+  animation: servidor-despertando-pulso 1.2s var(--ease-out) infinite;
+}
+
+@keyframes servidor-despertando-pulso {
+  50% { opacity: 0.25; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .servidor-despertando__punto { animation: none; }
+}

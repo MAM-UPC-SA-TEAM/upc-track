@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { useAuth } from './context/AuthContext'
 import RutaProtegida from './components/shared/RutaProtegida'
+import ServidorDespertando from './components/shared/ServidorDespertando'
 
 // Pages — las iremos creando en los siguientes issues
 import Login from './pages/Login'
@@ -37,6 +38,7 @@ export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <ServidorDespertando />
         <Routes>
           {/* Pública */}
           <Route path="/login"    element={<Login />} />
