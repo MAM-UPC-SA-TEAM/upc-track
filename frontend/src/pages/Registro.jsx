@@ -98,7 +98,7 @@ export default function Registro() {
   }
 
   return (
-    <AccesoLayout titulo="Crear cuenta" subtitulo="Regístrate como estudiante UPCSA.">
+    <AccesoLayout titulo="Crear cuenta" subtitulo="Regístrate como estudiante de la UPC.">
       <form onSubmit={handleSubmit} className="acceso-form" noValidate>
         {errorGlobal && (
           <p className="acceso-aviso" role="alert">

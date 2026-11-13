@@ -92,6 +92,7 @@ import logoUpc from '../../assets/logo-upc.png'
 import api from '../../services/api'
 import socket from '../../services/socket'
 import { usePWA } from '../../hooks/usePWA'
+import { aplicarTema, temaInicialOscuro } from '../../utils/tema'
 import './Layout.css'
 
 const navEstudiante = [
@@ -141,7 +142,7 @@ export default function Layout({ children, titulo, sinPadding = false }) {
   const { pathname } = useLocation()
   const rutaActualRef = useRef(pathname)
   useEffect(() => { rutaActualRef.current = pathname }, [pathname])
-  const [oscuro, setOscuro] = useState(() => localStorage.getItem('tema') === 'oscuro')
+  const [oscuro, setOscuro] = useState(temaInicialOscuro)
   const [perfilMenu, setPerfilMenu] = useState(false)
   const [notifPanel, setNotifPanel] = useState(false)
   const [notifs, setNotifs] = useState([])
@@ -160,8 +161,8 @@ export default function Layout({ children, titulo, sinPadding = false }) {
   }, [puedeInstalar])
 
   useEffect(() => {
-    document.body.dataset.tema = oscuro ? 'oscuro' : 'claro'
-    localStorage.setItem('tema', oscuro ? 'oscuro' : 'claro')
+    aplicarTema(oscuro)
+    try { localStorage.setItem('tema', oscuro ? 'oscuro' : 'claro') } catch { /* sin almacenamiento */ }
   }, [oscuro])
 
   // Cargar notificaciones al abrir panel
