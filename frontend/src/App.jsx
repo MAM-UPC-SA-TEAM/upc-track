@@ -2,23 +2,24 @@ import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { useAuth } from './context/AuthContext'
+import { esNativa } from './utils/platform'
 import RutaProtegida from './components/shared/RutaProtegida'
 import ServidorDespertando from './components/shared/ServidorDespertando'
 
 // Pages — las iremos creando en los siguientes issues
-import Login from './pages/Login'
-import Registro from './pages/Registro'
-import Dashboard from './pages/Dashboard'
-import MapaTiempoReal from './pages/MapaTiempoReal'
-import Rutas from './pages/Rutas'
-import Buses from './pages/Buses'
-import Notificaciones from './pages/Notificaciones'
-import Perfil from './pages/Perfil'
-import PanelAdmin from './pages/admin/PanelAdmin'
-import GestionUsuarios from './pages/admin/GestionUsuarios'
-import GestionBuses from './pages/admin/GestionBuses'
-import GestionRutas from './pages/admin/GestionRutas'
-import MiRecorrido from './pages/conductor/MiRecorrido'
+const Login = lazy(() => import('./pages/Login'))
+const Registro = lazy(() => import('./pages/Registro'))
+const Dashboard = lazy(() => import('./pages/Dashboard'))
+const MapaTiempoReal = lazy(() => import('./pages/MapaTiempoReal'))
+const Rutas = lazy(() => import('./pages/Rutas'))
+const Buses = lazy(() => import('./pages/Buses'))
+const Notificaciones = lazy(() => import('./pages/Notificaciones'))
+const Perfil = lazy(() => import('./pages/Perfil'))
+const PanelAdmin = lazy(() => import('./pages/admin/PanelAdmin'))
+const GestionUsuarios = lazy(() => import('./pages/admin/GestionUsuarios'))
+const GestionBuses = lazy(() => import('./pages/admin/GestionBuses'))
+const GestionRutas = lazy(() => import('./pages/admin/GestionRutas'))
+const MiRecorrido = lazy(() => import('./pages/conductor/MiRecorrido'))
 
 // La landing carga aparte para no pesar en el bundle de la app (ni en el APK).
 const LandingPage = lazy(() => import('./features/landing/LandingPage'))
@@ -39,6 +40,7 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <ServidorDespertando />
+        <Suspense fallback={null}>
         <Routes>
           {/* Pública */}
           <Route path="/login"    element={<Login />} />
@@ -114,9 +116,11 @@ export default function App() {
           } />
 
           {/* Redirecciones */}
-          <Route path="/" element={<Suspense fallback={null}><LandingPage /></Suspense>} />
+          {/* En la app nativa no hay landing: se arranca en el login */}
+          <Route path="/" element={esNativa ? <Navigate to="/login" replace /> : <LandingPage />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
+        </Suspense>
       </BrowserRouter>
     </AuthProvider>
   )

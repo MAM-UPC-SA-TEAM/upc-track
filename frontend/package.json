@@ -11,9 +11,11 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "generate-pwa-assets": "pwa-assets-generator --config pwa-assets.config.js"
+    "generate-pwa-assets": "pwa-assets-generator --config pwa-assets.config.js",
+    "build:native": "vite build --mode native"
   },
   "dependencies": {
+    "@capacitor/core": "^8.6.2",
     "@fontsource-variable/archivo": "^5.3.0",
     "@fontsource-variable/instrument-sans": "^5.3.0",
     "@fontsource-variable/spline-sans-mono": "^5.3.0",

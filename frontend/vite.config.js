@@ -1,13 +1,26 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  const nativo = mode === 'native'
+
+  // El build nativo sirve la app desde https://localhost dentro de la WebView: una URL
+  // relativa no llegaria al backend, asi que VITE_API_URL debe ser absoluta.
+  if (nativo) {
+    const api = (loadEnv(mode, '.', 'VITE_').VITE_API_URL || '').trim()
+    if (!/^https?:[/][/]/.test(api)) {
+      throw new Error('Build nativo: define VITE_API_URL con una URL absoluta (p. ej. https://upc-track.onrender.com)')
+    }
+  }
+
+  return {
   plugins: [
     react(),
 
-    VitePWA({
+    // En nativo no hay service worker ni manifiesto: la app va empaquetada en el APK.
+    ...(nativo ? [] : [VitePWA({
       // 'autoUpdate' registra el SW automáticamente y actualiza en segundo plano
       registerType: 'autoUpdate',
 
@@ -154,11 +167,12 @@ export default defineConfig({
         enabled: false, // true solo si quieres testear el SW en dev
         type: 'module',
       },
-    }),
+    })]),
   ],
 
   build: {
-    chunkSizeWarningLimit: 900,
+    // En nativo se mantiene el aviso por defecto (500 kB): las paginas ya van en chunks lazy.
+    ...(nativo ? {} : { chunkSizeWarningLimit: 900 }),
   },
 
   server: {
@@ -177,4 +191,5 @@ export default defineConfig({
       },
     },
   },
+  }
 })
