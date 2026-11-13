@@ -7,6 +7,7 @@ import Layout from '../../components/shared/Layout'
 import TalonConductor, { FRESCO_MAX_S } from '../../components/conductor/TalonConductor'
 import api from '../../services/api'
 import { watchPosition, disponible } from '../../services/geolocation'
+import { alCambiarRed, hayRed } from '../../services/red'
 
 const CENTRO_DEFECTO = [8.3086, -73.6194]
 const INTERVALO_ENVIO_MS = 4000
@@ -63,7 +64,7 @@ export default function MiRecorrido() {
   const [estado, setEstado] = useState('fuera_de_servicio') // estado del bus en el servidor
   const [gps, setGps] = useState(null)
   const [historialGps, setHistorialGps] = useState([])
-  const [estadoConexion, setEstadoConexion] = useState(() => (navigator.onLine ? 'online' : 'offline'))
+  const [estadoConexion, setEstadoConexion] = useState(() => (hayRed() ? 'online' : 'offline'))
   const [ultimoEnvioMs, setUltimoEnvioMs] = useState(null)
   const [inicioMs, setInicioMs] = useState(null)
   const [ahora, setAhora] = useState(() => Date.now())
@@ -153,23 +154,9 @@ export default function MiRecorrido() {
     }
   }, [])
 
-  useEffect(() => {
-    function handleOnline() {
-      setEstadoConexion(prev => (prev === 'offline' ? 'retrying' : prev))
-    }
-
-    function handleOffline() {
-      setEstadoConexion('offline')
-    }
-
-    window.addEventListener('online', handleOnline)
-    window.addEventListener('offline', handleOffline)
-
-    return () => {
-      window.removeEventListener('online', handleOnline)
-      window.removeEventListener('offline', handleOffline)
-    }
-  }, [])
+  useEffect(() => alCambiarRed((conectado) => {
+    setEstadoConexion(prev => (conectado ? (prev === 'offline' ? 'retrying' : prev) : 'offline'))
+  }), [])
 
   // Reloj de 1 s para la antigüedad del último envío (solo mientras importa)
   useEffect(() => {
@@ -260,7 +247,7 @@ export default function MiRecorrido() {
       setEstadoConexion('online')
       setUltimoEnvioMs(Date.now())
     } catch {
-      setEstadoConexion(navigator.onLine ? 'retrying' : 'offline')
+      setEstadoConexion(hayRed() ? 'retrying' : 'offline')
     }
   }
 

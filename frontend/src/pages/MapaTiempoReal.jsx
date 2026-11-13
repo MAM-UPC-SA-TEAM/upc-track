@@ -11,7 +11,8 @@ import ChipsRutas from '../components/mapa/ChipsRutas'
 import HojaBuses from '../components/mapa/HojaBuses'
 import TalonMapa from '../components/mapa/TalonMapa'
 import { FRESCO_MAX_S, etiquetaBus } from '../utils/estadoBus'
-import socket from '../services/socket'
+import socket, { unirseRuta } from '../services/socket'
+import { useAlReanudar, useEnLinea } from '../hooks/useCicloVida'
 import api from '../services/api'
 import { distanciaKm } from '../utils/calcularETA'
 import './MapaTiempoReal.css'
@@ -103,7 +104,7 @@ export default function MapaTiempoReal() {
   const [geometriaRuta, setGeometriaRuta] = useState([])
   const [geometriasRutas, setGeometriasRutas] = useState([])
   const [cargandoRuta, setCargandoRuta] = useState(false)
-  const [enLinea, setEnLinea] = useState(() => navigator.onLine)
+  const enLinea = useEnLinea()
   const [ahora, setAhora] = useState(() => Date.now())
 
   const ultimaUbicacion = useRef({})
@@ -165,18 +166,17 @@ export default function MapaTiempoReal() {
 
   // ── Conexión y reloj (la frescura se mide con el tiempo, no solo con eventos) ──
   useEffect(() => {
-    const subir = () => setEnLinea(true)
-    const bajar = () => setEnLinea(false)
-    window.addEventListener('online', subir)
-    window.addEventListener('offline', bajar)
     const reloj = setInterval(() => setAhora(Date.now()), 1000)
-    return () => { window.removeEventListener('online', subir); window.removeEventListener('offline', bajar); clearInterval(reloj) }
+    return () => clearInterval(reloj)
   }, [])
+
+  // Al volver de segundo plano las posiciones guardadas ya son viejas: se piden de nuevo
+  useAlReanudar(() => { refrescarBusesActivos().catch(() => {}) })
 
   // ── Socket.io ──────────────────────────────────────────────
   useEffect(() => {
     if (!socket.connected) socket.connect()
-    rutas.filter(esActiva).forEach(r => socket.emit('join:ruta', { id_ruta: r.id_ruta }))
+    rutas.filter(esActiva).forEach(r => unirseRuta(Number(r.id_ruta)))
 
     socket.on('bus:location', ({ id_bus, lat, lng }) => {
       ultimaUbicacion.current[id_bus] = Date.now()

@@ -90,7 +90,8 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import logoUpc from '../../assets/logo-upc.png'
 import api from '../../services/api'
-import socket from '../../services/socket'
+import socket, { unirseRuta, salirRuta } from '../../services/socket'
+import { useCerrarConAtras } from '../../hooks/useCicloVida'
 import { usePWA } from '../../hooks/usePWA'
 import { aplicarTema, temaInicialOscuro } from '../../utils/tema'
 import './Layout.css'
@@ -221,9 +222,7 @@ export default function Layout({ children, titulo, sinPadding = false }) {
           .map(r => Number(r.id_ruta))
           .filter(id => Number.isFinite(id))
 
-        rutasSuscritas.forEach((id_ruta) => {
-          socket.emit('join:ruta', { id_ruta })
-        })
+        rutasSuscritas.forEach(unirseRuta)
       } catch (error) {
         console.error('No se pudieron suscribir rutas para notificaciones:', error)
       }
@@ -233,11 +232,12 @@ export default function Layout({ children, titulo, sinPadding = false }) {
 
     return () => {
       cancelado = true
-      rutasSuscritas.forEach((id_ruta) => {
-        socket.emit('leave:ruta', { id_ruta })
-      })
+      rutasSuscritas.forEach(salirRuta)
     }
   }, [usuario])
+
+  // El botón atrás de Android cierra el panel abierto antes de navegar
+  useCerrarConAtras(perfilMenu || notifPanel, () => { setPerfilMenu(false); setNotifPanel(false) })
 
   // Escape cierra los paneles abiertos
   useEffect(() => {

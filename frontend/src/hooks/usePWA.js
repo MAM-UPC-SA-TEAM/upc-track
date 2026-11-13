@@ -5,11 +5,12 @@
  *   const { puedeInstalar, instalar, estaOffline, actualizacionDisponible } = usePWA()
  */
 import { useState, useEffect, useCallback } from 'react'
+import { useEnLinea } from './useCicloVida'
 
 export function usePWA() {
   const [promptInstalacion, setPromptInstalacion] = useState(null)
   const [puedeInstalar, setPuedeInstalar]          = useState(false)
-  const [estaOffline, setEstaOffline]              = useState(!navigator.onLine)
+  const estaOffline                                = !useEnLinea()
   const [actualizacionDisponible, setActualizacion] = useState(false)
 
   useEffect(() => {
@@ -29,12 +30,6 @@ export function usePWA() {
       window.addEventListener('beforeinstallprompt', handleBeforeInstall)
     }
 
-    // ── Monitorear red online/offline ──
-    const onOnline  = () => setEstaOffline(false)
-    const onOffline = () => setEstaOffline(true)
-    window.addEventListener('online',  onOnline)
-    window.addEventListener('offline', onOffline)
-
     // ── Service Worker: detectar actualización disponible ──
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.addEventListener('controllerchange', () => {
@@ -44,8 +39,6 @@ export function usePWA() {
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstall)
-      window.removeEventListener('online',  onOnline)
-      window.removeEventListener('offline', onOffline)
     }
   }, [])
 
