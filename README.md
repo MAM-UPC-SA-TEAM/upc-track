@@ -112,7 +112,7 @@ El frontend se empaqueta como app Android con Capacitor 7 (`frontend/android/`).
 Requisitos del entorno:
 
 - Node >= 20
-- JDK 21 (el que trae Android Studio, «jbr», sirve; Capacitor 7 no compila con JDK 22+)
+- JDK 21 exacto (p. ej. Temurin 21: `winget install EclipseAdoptium.Temurin.21.JDK`). El «jbr» de Android Studio reciente es JDK 25 y Gradle 8.11 no lo soporta; Capacitor 7 no compila con JDK 22+. Para compilar por terminal: `JAVA_HOME` = el JDK 21
 - Android Studio Ladybug 2024.2.1 o superior, con Android SDK Platform 35 y un emulador (AVD) o un telefono con depuracion USB
 - Variable `ANDROID_HOME` apuntando al SDK (en Windows: `%LOCALAPPDATA%\Android\Sdk`)
 
@@ -121,7 +121,7 @@ Pasos:
 1. `cd frontend && npm ci`
 2. Crear `frontend/.env.native` (no se versiona) con `VITE_API_URL=https://upc-track.onrender.com`
 3. `npm run cap:sync` (compila en modo nativo y copia a `android/`)
-4. `npm run cap:open` (abre Android Studio) y ejecutar en el emulador con el boton Run
+4. `npm run cap:open` (abre Android Studio, en Settings > Build Tools > Gradle poner el JDK 21) y ejecutar en el emulador con el boton Run. Por terminal: `cd android && .\gradlew.bat assembleDebug` y `adb install -r app/build/outputs/apk/debug/app-debug.apk`
 
 `appId`: `co.edu.unicesar.upctrack` · `minSdk` 23 · `targetSdk` 35. El backend ya acepta los origenes `https://localhost` y `capacitor://localhost` (ver `backend/src/utils/cors.js`). Tras cambiar el frontend hay que volver a ejecutar `npm run cap:sync`.
 
