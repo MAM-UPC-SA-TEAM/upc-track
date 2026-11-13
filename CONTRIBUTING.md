@@ -18,8 +18,17 @@ feature/<issue>-<tema>  ──PR──▶  develop  ──PR (paso a producción
 2. El PR apunta a **`develop`** y enlaza el issue (`Refs #N`).
 3. El CI debe estar en verde: `frontend (lint + build)` y `backend (lint + test)`.
 4. No se exigen aprobaciones de otra persona (equipo de una sola persona); en su lugar, se completa la lista de verificación de la plantilla y se pega una revisión asistida (`/code-review`) como comentario.
-5. Se fusiona con *merge commit* (conserva los commits de la rama).
-6. `Closes #N` solo cierra issues al fusionar en `main`; al fusionar en `develop` el issue se cierra a mano cuando cumple todos sus criterios.
+5. Se fusiona con *merge commit* (conserva los commits de la rama) **en cuanto el CI está en verde**; no se dejan PR abiertos ni se apilan ramas sobre otra que aún no está en `develop`.
+6. La rama se borra al fusionar. El repositorio tiene activado *Automatically delete head branches*; desde la terminal, `gh pr merge N --merge --delete-branch`. `develop` y `main` están protegidas y nunca se borran.
+7. Después de fusionar, limpia tu copia local:
+
+   ```bash
+   git switch develop && git pull --ff-only
+   git fetch --prune                 # olvida las ramas remotas ya borradas
+   git branch -d feature/<issue>-<tema>
+   ```
+
+8. `Closes #N` solo cierra issues al fusionar en `main`; al fusionar en `develop` el issue se cierra a mano cuando cumple todos sus criterios.
 
 ### De `develop` a `main` (paso a producción)
 
