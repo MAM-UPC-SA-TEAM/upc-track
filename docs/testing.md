@@ -15,6 +15,37 @@ frontend/test/
 
 Convención: `<modulo>.test.js` (o `.test.jsx`), con la misma ruta relativa que el archivo probado en `src/`.
 
+## Pruebas end-to-end (Playwright)
+
+Un navegador real (Chromium) recorre la aplicación completa: frontend en Vite + backend Express + PostgreSQL real.
+Viven en `e2e/` (config en `playwright.config.js`).
+
+```
+e2e/
+  global-setup.js        verifica que la BD es local y aplica esquema + seed
+  helpers.js             iniciarSesion(page, rol), datos únicos por corrida
+  tests/
+    acceso.spec.js       login/registro/guardas de rol/cierre de sesión
+    estudiante.spec.js   rutas con paradas y horarios, buses
+    admin.spec.js        panel, alta y baja de usuarios, buses y rutas
+    tiempo-real.spec.js  conductor transmite (GPS simulado) y el estudiante lo ve en vivo
+```
+
+**Aislamiento:** el e2e usa su propia base (`docker-compose.e2e.yml`, puerto 5434, sin volumen) y fuerza `DATABASE_URL`
+vacío, de modo que **nunca** toca la base de desarrollo ni la de la nube, aunque `backend/.env` apunte a ella.
+Puertos propios: backend 3100, frontend 5180.
+
+```bash
+npm run e2e:db:up      # levanta Postgres desechable (requiere Docker)
+npm run e2e            # corre los tests; Playwright arranca backend y frontend solo
+npm run e2e:ui         # modo interactivo
+npm run e2e:report     # abre el reporte HTML
+npm run e2e:db:down    # destruye la base
+```
+
+Primera vez: `npx playwright install chromium`. En CI el job `e2e (playwright)` usa un servicio Postgres y sube el reporte
+como artefacto `playwright-report`.
+
 ## Herramientas
 
 | Paquete  | Ejecutor / aserciones         | Extras                                   | Cobertura |
