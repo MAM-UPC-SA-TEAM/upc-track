@@ -15,7 +15,7 @@ Object.assign(process.env, {
   CLIENT_URL: 'http://localhost:5173, https://upctrack.vercel.app/',
 })
 
-const { origenPermitido, corsOptions, socketCorsOptions } = await import('./cors.js')
+const { origenPermitido, corsOptions, socketCorsOptions } = await import('../../src/utils/cors.js')
 
 function en(entorno, fn) {
   const previo = process.env.NODE_ENV

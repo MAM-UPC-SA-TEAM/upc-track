@@ -2,7 +2,6 @@
 // Endpoints para enviar y consultar notificaciones
 
 import { Notificacion } from '../models/Notificacion.js'
-import { io }           from '../server.js'
 import { pool }         from '../config/database.js'
 
 // POST /api/notificaciones — conductor envía alerta (RF-04)
@@ -53,7 +52,7 @@ export async function enviarNotificacion(req, res) {
     }
 
     // Emitir a todos los usuarios del room de la ruta (RF-04 — < 5 segundos)
-    io.to(`ruta_${id_ruta}`).emit('notificacion:nueva', notificacion)
+    req.app.get('io').to(`ruta_${id_ruta}`).emit('notificacion:nueva', notificacion)
 
     return res.status(201).json({ ok: true, notificacion })
 

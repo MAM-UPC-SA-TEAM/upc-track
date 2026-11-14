@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { opcionesPool, usaTLS } from './conexion.js'
+import { opcionesPool, usaTLS } from '../../src/config/conexion.js'
 
 test('sin DATABASE_URL usa las variables DB_* y no activa TLS', () => {
   const o = opcionesPool({ DB_HOST: 'h', DB_PORT: '5433', DB_USER: 'u', DB_PASSWORD: 'p', DB_NAME: 'n' })
