@@ -164,3 +164,8 @@ skills-lock.json
 *.jks
 *.keystore
 keystore.properties
+
+# Playwright (e2e)
+playwright-report/
+test-results/
+blob-report/

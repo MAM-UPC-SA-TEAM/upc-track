@@ -1,0 +1,22 @@
+# Base de datos DESECHABLE para las pruebas e2e (Playwright). Nunca se mezcla con la de desarrollo:
+# puerto 5434, sin volumen (los datos se pierden al bajarla) y nombre de base propio.
+#
+#   npm run e2e:db:up      # levanta y espera a que acepte conexiones
+#   npm run e2e:db:down    # la destruye
+services:
+  db-e2e:
+    image: postgres:16-alpine
+    container_name: upc-track-e2e-pg
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: bd_e2e
+    ports:
+      - "5434:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d bd_e2e"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
