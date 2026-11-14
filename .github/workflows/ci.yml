@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   frontend:
-    name: frontend (lint + test + build)
+    name: frontend (lint + build)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -38,7 +38,7 @@ jobs:
       - run: npm run build
 
   backend:
-    name: backend (lint + test + coverage)
+    name: backend (lint + test)
     runs-on: ubuntu-latest
     defaults:
       run:
