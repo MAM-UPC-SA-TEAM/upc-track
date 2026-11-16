@@ -22,6 +22,7 @@ describe('Configuración — datos personales', () => {
     expect(await screen.findByLabelText('Nombre completo')).toHaveValue('Ana')
     expect(screen.getByLabelText('Correo electrónico')).toHaveValue('ana@unicesar.edu.co')
     expect(screen.queryByRole('button', { name: /^editar/i })).toBeNull()
+    expect(screen.queryByLabelText('Documento')).toBeNull() // campo retirado: el backend nunca lo guardaba
   })
 
   it('valida nombre vacío y correo inválido sin llamar al backend', async () => {
@@ -48,7 +49,7 @@ describe('Configuración — datos personales', () => {
     await user.click(screen.getByRole('button', { name: /guardar cambios/i }))
 
     expect(await screen.findByRole('status')).toHaveTextContent('Datos guardados.')
-    expect(backend.llamadasA('PATCH', '/api/usuarios/perfil')[0].cuerpo).toMatchObject({ nombre: 'Ana María', correo: 'maria@unicesar.edu.co' })
+    expect(backend.llamadasA('PATCH', '/api/usuarios/perfil')[0].cuerpo).toEqual({ nombre: 'Ana María', correo: 'maria@unicesar.edu.co' })
     expect(screen.getByLabelText('Nombre completo')).toHaveValue('Ana María')
     expect(JSON.parse(localStorage.getItem('usuario')).nombre).toBe('Ana María')
   })

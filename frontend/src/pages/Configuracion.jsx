@@ -33,7 +33,7 @@ export default function Configuracion() {
 
   // ── Datos personales ────────────────────────────────────────
   const [formInfo, setFormInfo] = useState(() => ({
-    nombre: usuario?.nombre || '', correo: correoActual, documento: usuario?.documento || '',
+    nombre: usuario?.nombre || '', correo: correoActual,
   }))
   const [erroresInfo, setErroresInfo] = useState({})
   const [guardandoInfo, setGuardandoInfo] = useState(false)
@@ -54,7 +54,6 @@ export default function Configuracion() {
       const data = await api.patch('/api/usuarios/perfil', {
         nombre: formInfo.nombre,
         correo: formInfo.correo,
-        documento: formInfo.documento,
       })
       if (actualizarUsuario && data.usuario) actualizarUsuario(data.usuario)
       setMsgInfo({ tipo: 'ok', texto: 'Datos guardados.' })
@@ -120,8 +119,6 @@ export default function Configuracion() {
             <form className="acceso-form" onSubmit={guardarInfo} noValidate>
               <Campo id="perfil-campo-nombre" label="Nombre completo" value={formInfo.nombre} error={erroresInfo.nombre}
                 autoComplete="name" onChange={cambiar(setFormInfo, erroresInfo, setErroresInfo, 'nombre')} />
-              <Campo id="perfil-campo-documento" label="Documento" value={formInfo.documento} inputMode="numeric"
-                autoComplete="off" onChange={cambiar(setFormInfo, erroresInfo, setErroresInfo, 'documento')} />
               <Campo id="perfil-campo-correo" label="Correo electrónico" type="email" value={formInfo.correo} error={erroresInfo.correo}
                 autoComplete="email" inputMode="email" autoCapitalize="none" spellCheck={false}
                 onChange={cambiar(setFormInfo, erroresInfo, setErroresInfo, 'correo')} />
