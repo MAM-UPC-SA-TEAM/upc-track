@@ -29,7 +29,7 @@
 .leaflet-overlay-pane path.parada-punto { stroke: #14261a; fill: #fbfaf4; fill-opacity: 1; }
 .leaflet-overlay-pane path.parada-punto--inactiva { stroke-dasharray: 3 3; fill-opacity: 0.4; }
 
-.leaflet-container { font-family: var(--f-ui); background: var(--papel-hundido); }
+.leaflet-container { font-family: var(--f-ui); background: var(--papel-hundido); isolation: isolate; /* sus capas internas (400–1000) no salen del mapa: ni sus controles tapan la barra ni sus menús */ }
 /* El mapa es siempre papel claro, también con el tema oscuro: las calles calmadas no se invierten y la ruta, las
    paradas y los controles conservan el contraste para el que se diseñaron. Dentro del mapa los tokens vuelven a sus valores claros. */
 body[data-tema='oscuro'] .leaflet-container {

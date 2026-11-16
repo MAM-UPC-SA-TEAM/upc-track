@@ -110,7 +110,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 800;
+  z-index: var(--z-hoja);
   max-height: 78%;
   overflow-y: auto;
   overflow-x: hidden; /* las muescas de la perforación y el sello rotado sobresalen del borde */
