@@ -95,7 +95,7 @@ export default function Registro() {
     return (
       <AccesoLayout titulo="Cuenta creada">
         <div className="acceso-exito" role="status">
-          <p>Tu cuenta de estudiante quedó registrada. Ya puedes iniciar sesión.</p>
+          <p>Tu cuenta de estudiante quedó registrada y está pendiente de aprobación. Un administrador la activará y entonces podrás iniciar sesión.</p>
           <button type="button" className="talon-accion" onClick={() => navigate('/login')}>
             <FontAwesomeIcon icon={faRightToBracket} /> Ir a iniciar sesión
           </button>

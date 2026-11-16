@@ -29,12 +29,13 @@ test('POST /registro: contraseña corta → 400', async () => {
   assert.match(res.body.error, /8 caracteres/)
 })
 
-test('POST /registro: crea estudiante, normaliza datos y devuelve 201 con token', async () => {
+test('POST /registro: crea estudiante inactivo, normaliza datos y devuelve 201 pendiente, sin token', async () => {
   query.mock.mockImplementation(async () => ({ rows: [{ id_usuario: 10 }] }))
   const res = await request(app).post('/api/auth/registro')
     .send({ nombre: '  Ana  ', nombre_usuario: ' ANA ', correo: ' ANA@UNICESAR.EDU.CO ', password: 'clave1234' })
   assert.equal(res.status, 201)
-  assert.ok(res.body.token)
+  assert.equal(res.body.pendiente, true)
+  assert.equal(res.body.token, undefined)
   assert.equal(res.body.usuario.tipo_usuario, 'estudiante')
   const [, params] = query.mock.calls[0].arguments
   assert.deepEqual([params[0], params[1], params[2]], ['Ana', 'ana', 'ana@unicesar.edu.co'])
@@ -140,6 +141,15 @@ test('POST /login: éxito → 200 con token y sin hash', async () => {
   assert.equal(res.status, 200)
   assert.ok(res.body.token)
   assert.equal(JSON.stringify(res.body).includes('password_hash'), false)
+})
+
+test('POST /login: cuenta pendiente de aprobación → 403 con código, solo si la contraseña es correcta', async () => {
+  const password_hash = await bcrypt.hash('clave1234', 4)
+  query.mock.mockImplementation(async () => ({ rows: [{ id_usuario: 6, nombre_usuario: 'luis', password_hash, activo: 0 }] }))
+  const res = await request(app).post('/api/auth/login').send({ nombre_usuario: 'luis', password: 'clave1234' })
+  assert.equal(res.status, 403)
+  assert.equal(res.body.codigo, 'CUENTA_INACTIVA')
+  assert.equal(res.body.token, undefined)
 })
 
 test('POST /login: sin campos → 400', async () => {

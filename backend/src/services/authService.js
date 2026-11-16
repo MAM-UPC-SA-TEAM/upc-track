@@ -8,7 +8,7 @@ import { generarToken } from '../utils/jwt.js'
 import { pool, esDuplicado } from '../config/database.js'
 
 export async function login(nombre_usuario, password) {
-  const usuario = await Usuario.porNombreUsuario(nombre_usuario)
+  const usuario = await Usuario.porNombreUsuarioConEstado(nombre_usuario)
 
   if (!usuario) {
     throw new Error('CREDENCIALES_INVALIDAS')
@@ -18,6 +18,12 @@ export async function login(nombre_usuario, password) {
   const passwordValida = await bcrypt.compare(password, usuario.password_hash)
   if (!passwordValida) {
     throw new Error('CREDENCIALES_INVALIDAS')
+  }
+
+  // La contraseña es correcta pero la cuenta aún no está activa (registro pendiente de aprobación o suspendida).
+  // Se dice solo después de comprobar la contraseña, para no revelar qué usuarios existen.
+  if (Number(usuario.activo) === 0) {
+    throw new Error('CUENTA_INACTIVA')
   }
 
   // 4. Generar JWT con datos del usuario
@@ -41,13 +47,15 @@ export async function login(nombre_usuario, password) {
   }
 }
 
+// El registro público deja la cuenta INACTIVA hasta que un administrador la apruebe (A01, opción C):
+// validar el dominio no prueba que el correo sea de quien se registra, así que no hay token ni sesión.
 export async function registrarEstudiante({ nombre, nombre_usuario, correo, password }) {
   const passwordHash = await bcrypt.hash(password, 10)
 
   try {
     const { rows } = await pool.query(
       `INSERT INTO usuario (nombre, nombre_usuario, correo, password_hash, tipo_usuario, activo)
-       VALUES ($1, $2, $3, $4, 'estudiante', 1)
+       VALUES ($1, $2, $3, $4, 'estudiante', 0)
        RETURNING id_usuario`,
       [nombre, nombre_usuario, correo, passwordHash]
     )
@@ -60,9 +68,7 @@ export async function registrarEstudiante({ nombre, nombre_usuario, correo, pass
       tipo_usuario: 'estudiante',
     }
 
-    const token = generarToken(usuario)
-
-    return { token, usuario }
+    return { pendiente: true, usuario }
   } catch (error) {
     if (esDuplicado(error)) {
       if (error.constraint?.includes('nombre_usuario')) {

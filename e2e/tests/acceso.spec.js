@@ -50,7 +50,7 @@ test.describe('Acceso', () => {
     await expect(page.getByRole('heading', { name: 'Rutas disponibles' })).toBeVisible()
   })
 
-  test('un estudiante nuevo se registra y queda con la sesión iniciada', async ({ page }) => {
+  test('un estudiante nuevo se registra, queda pendiente y entra cuando el admin lo aprueba', async ({ page }) => {
     const usuario = unico('e2e')
     await page.goto('/registro')
     await page.getByLabel('Nombre completo').fill('Persona de Prueba')
@@ -59,13 +59,27 @@ test.describe('Acceso', () => {
     await page.getByLabel('Contraseña', { exact: true }).fill(CLAVE_DEMO)
     await page.getByLabel('Confirmar contraseña').fill(CLAVE_DEMO)
     await page.getByRole('button', { name: 'Crear cuenta' }).click()
-    await expect(page).toHaveURL(/\/inicio$/)
+    await expect(page.getByText(/pendiente de aprobación/i)).toBeVisible()
 
-    // y puede volver a entrar con esa cuenta
+    // mientras no esté aprobada no puede entrar
+    const entrar = async () => {
+      await page.goto('/login')
+      await page.getByLabel('Usuario').fill(usuario)
+      await page.getByLabel('Contraseña', { exact: true }).fill(CLAVE_DEMO)
+      await page.getByRole('button', { name: 'Entrar' }).click()
+    }
+    await entrar()
+    await expect(page.getByRole('alert')).toContainText('administrador debe aprobarla')
+
+    // el admin la aprueba
+    await iniciarSesion(page, 'admin')
+    await page.goto('/admin/usuarios')
+    await page.getByRole('button', { name: 'Aprobar Persona de Prueba' }).click()
+    await expect(page.getByRole('button', { name: 'Aprobar Persona de Prueba' })).toHaveCount(0)
     await page.getByRole('button', { name: /cerrar sesión/i }).click()
-    await page.getByLabel('Usuario').fill(usuario)
-    await page.getByLabel('Contraseña', { exact: true }).fill(CLAVE_DEMO)
-    await page.getByRole('button', { name: 'Entrar' }).click()
+
+    // y ahora sí entra
+    await entrar()
     await expect(page).toHaveURL(/\/inicio$/)
   })
 

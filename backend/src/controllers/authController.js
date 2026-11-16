@@ -31,6 +31,12 @@ export async function loginController(req, res) {
         error: 'Usuario o contraseña incorrectos'
       })
     }
+    if (error.message === 'CUENTA_INACTIVA') {
+      return res.status(403).json({
+        error: 'Tu cuenta aún no está activa. Un administrador debe aprobarla.',
+        codigo: 'CUENTA_INACTIVA'
+      })
+    }
     console.error('Error en login:', error)
     return res.status(500).json({
       error: 'Error interno del servidor'
@@ -66,7 +72,10 @@ export async function registroController(req, res) {
       correo:         normalizarCorreo(correo),
       password,
     })
-    return res.status(201).json(resultado)
+    return res.status(201).json({
+      ...resultado,
+      mensaje: 'Cuenta creada. Un administrador debe aprobarla antes de que puedas iniciar sesión.',
+    })
   } catch (error) {
     if (error.message === 'CORREO_YA_REGISTRADO') {
       return res.status(400).json({ error: 'Ya existe una cuenta con ese correo' })
