@@ -10,6 +10,7 @@ import '../../components/inicio/Talon.css'
 import '../../components/mapa/Mapa.css'
 import '../../components/listas/Listas.css'
 import '../../components/conductor/Conductor.css'
+import { EsqueletoFilas } from '../../components/shared/Esqueleto'
 
 const TIPOS_AVISO = [
   { valor: 'info', texto: 'Info' },
@@ -108,7 +109,7 @@ export default function Avisar() {
 
         <section className="talon" aria-labelledby="avisar-enviados">
           <h2 id="avisar-enviados" className="avisar-titulo">Enviados</h2>
-          {faseLista === 'cargando' && <p className="avisar-vacio" role="status">Cargando…</p>}
+          {faseLista === 'cargando' && <><EsqueletoFilas filas={2} /><p className="solo-lectura" role="status">Cargando tus avisos…</p></>}
           {faseLista === 'error' && (
             <p className="avisar-vacio" role="alert">
               <FontAwesomeIcon icon={faTriangleExclamation} /> No se pudieron cargar tus avisos.{' '}

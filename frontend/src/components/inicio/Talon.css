@@ -64,7 +64,6 @@ body[data-tema='oscuro'] .talon-parada select {
   animation: imprime 260ms var(--ease-out) backwards;
 }
 @keyframes imprime { from { transform: scaleX(0); } }
-.talon-esqueleto { align-self: center; display: block; width: 88px; height: 14px; background: var(--linea-suave); }
 
 /* Anulado o sin dato: la cifra baja de tono, no desaparece */
 .talon--viejo .talon-cifra, .talon--sin-red .talon-cifra { opacity: 0.28; }

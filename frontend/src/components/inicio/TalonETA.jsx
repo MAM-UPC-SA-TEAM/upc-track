@@ -3,6 +3,7 @@ import { faMap, faRoute, faLocationDot, faRotate } from '@fortawesome/free-solid
 import { textoEdad } from '../../utils/formato'
 import { tieneVelocidadReciente } from '../../utils/calcularETA'
 import { NOTA_ETA, NOTA_ETA_VELOCIDAD } from '../../utils/textosETA'
+import { EsqueletoCifra } from '../shared/Esqueleto'
 import './Talon.css'
 
 // Fases: vivo (validado) · viejo y sin-red (cifra anulada con sello) · sin-red-vacio (no hay datos y no hay red)
@@ -60,7 +61,7 @@ export default function TalonETA({
           {hayEta && <span key={cifra} className="talon-cifra" aria-hidden="true">{cifra}</span>}
           {hayEta && <span className="talon-unidad" aria-hidden="true">min</span>}
           {!hayEta && fase === 'sin-buses' && <span className="talon-sin" aria-hidden="true">Sin bus ahora</span>}
-          {!hayEta && fase !== 'sin-buses' && <span className="talon-esqueleto" aria-hidden="true" />}
+          {!hayEta && fase !== 'sin-buses' && <EsqueletoCifra />}
           {(anulado || sinDatosPorRed) && <span className="sello" aria-hidden="true">{SELLOS[fase]}</span>}
         </div>
         <div key={datoDesde} className="talon-franja" style={{ '--frescura': frescura }} aria-hidden="true" />
