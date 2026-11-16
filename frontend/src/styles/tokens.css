@@ -14,6 +14,7 @@
 
   /* Marca y estados (el rojo solo existe para el sello de dato vencido) */
   --verde: #1e6b2e;
+  --aviso-fondo: #dcebd6; /* verde suave de los avisos informativos; el texto va en tinta */
   --verde-profundo: #145220;
   --amarillo: #f5c400;
   --sello: #c62828;
@@ -74,4 +75,5 @@ body[data-tema='oscuro'] {
   --borde: var(--linea-suave);
   --trazo: #a9b8a8;
   --acento-texto: #7fd38b; /* el verde de marca no pasa contraste sobre fondo oscuro */
+  --aviso-fondo: #1f3a26;
 }

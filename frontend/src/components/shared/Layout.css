@@ -174,7 +174,7 @@ body[data-tema='oscuro'] .topbar-marca { padding: 2px; background: #fbfaf4; }
 }
 .pwa-banner span { flex: 1; }
 .pwa-banner--offline { background: var(--sello); color: #fff; }
-.pwa-banner--update  { background: var(--amarillo); color: #14261a; }
+.pwa-banner--update  { background: var(--aviso-fondo); color: var(--texto); }
 .pwa-banner--install { background: var(--tinta); color: var(--papel); }
 .pwa-banner-btn {
   min-height: 36px;
@@ -185,7 +185,7 @@ body[data-tema='oscuro'] .topbar-marca { padding: 2px; background: #fbfaf4; }
 }
 .pwa-banner-btn--cerrar { border: 0; padding: 0 var(--e2); }
 
-/* ── Avisos del conductor: un talón amarillo, no un bloque con borde de color ── */
+/* ── Avisos del conductor: verde suave si informan; con franja amarilla si son retraso o cambio de ruta ── */
 .notif-toast-wrap {
   position: fixed;
   z-index: 1200;
@@ -205,14 +205,15 @@ body[data-tema='oscuro'] .topbar-marca { padding: 2px; background: #fbfaf4; }
   align-items: flex-start;
   gap: var(--e3);
   padding: var(--e3) var(--e4);
-  background: var(--amarillo);
-  color: #14261a;
-  border: var(--grosor) solid #14261a;
+  background: var(--aviso-fondo);
+  color: var(--texto);
+  border: var(--grosor) solid var(--trazo);
   transition: opacity var(--d-ui) var(--ease-out), transform var(--d-ui) var(--ease-out);
 }
 @starting-style {
   .notif-toast { opacity: 0; transform: translateY(16px); }
 }
+.notif-toast--retraso, .notif-toast--cambio_ruta { background: var(--superficie); border-top: 8px solid var(--amarillo); }
 .notif-toast-icono { flex-shrink: 0; margin-top: 3px; }
 .notif-toast-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .notif-toast-titulo { font-weight: 800; font-size: var(--t-sm); }

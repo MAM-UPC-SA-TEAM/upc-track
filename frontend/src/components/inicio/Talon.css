@@ -140,16 +140,23 @@ body[data-tema='oscuro'] .talon-parada select {
 body[data-tema='oscuro'] .sello { color: #ff8a80; border-color: #ff8a80; }
 body[data-tema='oscuro'] .talon-estado--viejo { color: #ff8a80; box-shadow: inset 0 0 0 2px #ff8a80; }
 
-/* Aviso del conductor: talón amarillo relleno */
+/* Aviso del conductor. Informativo (p. ej. inicio de recorrido): verde suave. Retraso y cambio de ruta: papel con
+   borde de tinta, franja amarilla de marca y un rótulo, para que no se lean como «todo bien» (no solo por color). */
 .aviso {
   display: flex;
   align-items: flex-start;
   gap: var(--e3);
   padding: var(--e3) var(--e4);
-  background: var(--amarillo);
-  color: #14261a;
-  border: var(--grosor) solid #14261a;
+  background: var(--aviso-fondo);
+  color: var(--texto);
+  border: var(--grosor) solid var(--trazo);
 }
+.aviso--retraso, .aviso--cambio_ruta {
+  background: var(--superficie);
+  border-top: 8px solid var(--amarillo);
+}
+.aviso-cuerpo { flex: 1; min-width: 0; }
+.aviso-rotulo { display: block; font: 800 var(--t-xs) / 1.3 var(--f-ui); letter-spacing: 0.04em; text-transform: uppercase; }
 .aviso-icono { margin-top: 4px; flex-shrink: 0; }
-.aviso-texto { flex: 1; font-weight: 700; }
+.aviso-texto { font-weight: 700; margin: 0; }
 .aviso-hace { margin-top: 4px; font-size: var(--t-sm); font-weight: 600; white-space: nowrap; }

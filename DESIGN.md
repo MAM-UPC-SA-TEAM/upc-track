@@ -193,7 +193,8 @@ Paleta de papel y tinta con dos colores de marca de trabajo fijo y un rojo de us
 - **Verde UPC** (`verde-upc`, #1e6b2e): el unico relleno de accion y de estado valido: boton primario "Ver en el mapa", pestana activa de la navegacion, avatar, sello "Validado", trazo de la ruta en los mapas, enlaces de texto (en claro). Blanco (#ffffff) sobre el es el texto estandar.
 
 ### Secondary
-- **Amarillo franja** (`amarillo-franja`, #f5c400): la franja de validez bajo la cifra (se vacia de 0 a 30 s), la losa completa del aviso del conductor, el aviso de actualizacion y el marcador de la parada elegida o propia (en reposo las paradas del Mapa son anillos de papel, no amarillas). Texto sobre el siempre en tinta (#14261a). Tambien es el color de seleccion de texto.
+- **Aviso fondo** (`aviso-fondo`, #dcebd6 claro / #1f3a26 oscuro): verde suave de los avisos informativos del conductor (inicio de recorrido), del aviso de actualizacion y de los toasts informativos; texto en tinta. Un retraso o un cambio de ruta NO va en verde (se leeria como buena noticia): va en superficie con borde de tinta, franja amarilla y rotulo ("Retraso", "Cambio de ruta").
+- **Amarillo franja** (`amarillo-franja`, #f5c400): la franja de validez bajo la cifra (se vacia de 0 a 30 s), la franja superior (8px) de los avisos de retraso y cambio de ruta y el marcador de la parada elegida o propia (en reposo las paradas del Mapa son anillos de papel, no amarillas). Texto sobre el siempre en tinta (#14261a). Tambien es el color de seleccion de texto.
 
 ### Tertiary
 - **Sello rojo** (`sello`, #c62828): reservado para anular. Sello sobre la cifra, estado "Hace N s" vencido y el aviso de conexion perdida. No es peligro generico: "Cerrar sesion" va en tinta.
