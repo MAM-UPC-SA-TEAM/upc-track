@@ -47,6 +47,18 @@ describe('Notificaciones', () => {
     expect(screen.getAllByText('Nueva')).toHaveLength(3)
   })
 
+  it('una alerta nueva lleva la marca «Nueva» y su variante; una leída no (el amarillo es solo la franja)', async () => {
+    backend.respuestas['GET /api/notificaciones'] = lista()
+    const user = userEvent.setup()
+    abrir()
+    await screen.findByText('3 sin leer')
+    expect(articulos()[0]).toHaveClass('notif--nueva')
+    expect(within(articulos()[0]).getByText('Nueva')).toBeInTheDocument()
+    await user.click(within(articulos()[0]).getByRole('button', { name: 'Marcar como leída' }))
+    expect(articulos()[0]).not.toHaveClass('notif--nueva')
+    expect(within(articulos()[0]).queryByText('Nueva')).toBeNull()
+  })
+
   it('«Marcar como leída» baja el contador y se recuerda al recargar la pantalla', async () => {
     backend.respuestas['GET /api/notificaciones'] = lista()
     const user = userEvent.setup()
