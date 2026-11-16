@@ -2,10 +2,8 @@
 // jsdom no calcula estilos de hojas importadas, así que se comprueba el contrato en el propio CSS.
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
 
-// vitest corre con la raíz del frontend como directorio de trabajo
-const css = readFileSync(resolve(process.cwd(), 'src/styles/mapa.css'), 'utf8')
+const css = readFileSync(`${import.meta.dirname}/../../src/styles/mapa.css`, 'utf8')
 
 describe('estilos del mapa', () => {
   it('ninguna regla invierte las teselas en tema oscuro', () => {
