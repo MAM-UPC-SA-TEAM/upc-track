@@ -23,6 +23,7 @@ const GestionUsuarios = lazy(() => import('./pages/admin/GestionUsuarios'))
 const GestionBuses = lazy(() => import('./pages/admin/GestionBuses'))
 const GestionRutas = lazy(() => import('./pages/admin/GestionRutas'))
 const MiRecorrido = lazy(() => import('./pages/conductor/MiRecorrido'))
+const Avisar = lazy(() => import('./pages/conductor/Avisar'))
 
 // La landing carga aparte para no pesar en el bundle de la app (ni en el APK).
 const LandingPage = lazy(() => import('./features/landing/LandingPage'))
@@ -77,7 +78,7 @@ export default function App() {
           } />
 
           <Route path="/notificaciones" element={
-            <RutaProtegida roles={['estudiante', 'conductor', 'admin']}>
+            <RutaProtegida roles={['estudiante', 'admin']}>
               <Notificaciones />
             </RutaProtegida>
           } />
@@ -98,6 +99,12 @@ export default function App() {
           <Route path="/conductor" element={
             <RutaProtegida roles={['conductor']}>
               <MiRecorrido/>
+            </RutaProtegida>
+          } />
+
+          <Route path="/avisar" element={
+            <RutaProtegida roles={['conductor']}>
+              <Avisar />
             </RutaProtegida>
           } />
 

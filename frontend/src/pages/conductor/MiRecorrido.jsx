@@ -52,7 +52,7 @@ export default function MiRecorrido() {
   const {
     busInfo, enRecorrido, estado, colgado, gps, historialGps, estadoConexion, ultimoEnvioMs, inicioMs,
     errorCargaBus, errorGps, errorAccion,
-    iniciarRecorrido, finalizarRecorrido, alternarDetenido, enviarAviso,
+    iniciarRecorrido, finalizarRecorrido, alternarDetenido,
   } = useRecorrido()
   const [ahora, setAhora] = useState(() => Date.now())
   const [paradasRuta, setParadasRuta] = useState([])
@@ -166,7 +166,6 @@ export default function MiRecorrido() {
             onIniciar={iniciarRecorrido}
             onDetener={alternarDetenido}
             onFinalizar={finalizarRecorrido}
-            onAviso={enviarAviso}
           />
         </div>
       </div>

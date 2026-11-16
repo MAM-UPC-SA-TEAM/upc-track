@@ -99,3 +99,23 @@ test('GET /notificaciones → 500 si falla el modelo', async () => {
   mock.method(Notificacion, 'hoy', async () => fallo())
   assert.equal((await request(app).get('/api/notificaciones').set(estudiante())).status, 500)
 })
+
+// ── Avisos enviados por el conductor ────────────────────────
+test('GET /notificaciones/mias sin token → 401; estudiante → 403', async () => {
+  assert.equal((await request(app).get('/api/notificaciones/mias')).status, 401)
+  assert.equal((await request(app).get('/api/notificaciones/mias').set(estudiante())).status, 403)
+})
+
+test('GET /notificaciones/mias devuelve solo lo del conductor autenticado', async () => {
+  const filas = [{ id_notificacion: 9, tipo: 'retraso', mensaje: 'Tráfico', fecha_hora: '2026-11-16T14:00:00Z', id_ruta: 3, nombre_ruta: 'Centro - UPC' }]
+  const porConductor = mock.method(Notificacion, 'porConductor', async () => filas)
+  const res = await request(app).get('/api/notificaciones/mias').set(conductor(7))
+  assert.equal(res.status, 200)
+  assert.deepEqual(res.body.notificaciones, filas)
+  assert.equal(porConductor.mock.calls[0].arguments[0], 7)
+})
+
+test('GET /notificaciones/mias: fallo de BD → 500', async () => {
+  mock.method(Notificacion, 'porConductor', fallo)
+  assert.equal((await request(app).get('/api/notificaciones/mias').set(conductor(7))).status, 500)
+})
