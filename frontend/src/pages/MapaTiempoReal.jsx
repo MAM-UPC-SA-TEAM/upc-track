@@ -189,7 +189,7 @@ export default function MapaTiempoReal() {
         return
       }
       setBuses(prev => prev.map(b => (b.id_bus === id_bus ? { ...b, estado: b.estado === 'sin_senal' ? 'en_recorrido' : b.estado, lat: latNum, lng: lngNum, velocidad_kmh: velocidad_kmh ?? b.velocidad_kmh } : b)))
-      setBusSeleccionado(prev => (prev?.id_bus === id_bus ? { ...prev, lat: latNum, lng: lngNum, estado: prev.estado === 'sin_senal' ? 'en_recorrido' : prev.estado } : prev))
+      setBusSeleccionado(prev => (prev?.id_bus === id_bus ? { ...prev, lat: latNum, lng: lngNum, velocidad_kmh: velocidad_kmh ?? prev.velocidad_kmh, estado: prev.estado === 'sin_senal' ? 'en_recorrido' : prev.estado } : prev))
     })
 
     socket.on('bus:estado', ({ id_bus, estado }) => {

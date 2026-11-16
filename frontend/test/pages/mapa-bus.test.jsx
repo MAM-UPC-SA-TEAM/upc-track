@@ -1,8 +1,9 @@
 // «Ver bus» abre el mapa en la ruta del bus elegido, no en la primera ruta activa. (Issue U12)
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, act } from '@testing-library/react'
 import { backend, socketFalso } from '../helpers/mundoFalso'
 import { abrirApp, estudiante } from '../helpers/abrirApp'
+import { distanciaKm } from '../../src/utils/calcularETA'
 
 vi.mock('../../src/services/api', async () => (await import('../helpers/mundoFalso.js')).moduloApiFalso)
 vi.mock('../../src/services/socket', async () => (await import('../helpers/mundoFalso.js')).moduloSocketFalso)
@@ -60,5 +61,32 @@ describe('Mapa: ?bus=ID', () => {
     abrirApp('/mapa?ruta=1&bus=2', estudiante)
     await waitFor(() => expect(rutasPedidas()).toContain('/api/paradas?ruta_id=1'))
     expect(rutasPedidas()).not.toContain('/api/paradas?ruta_id=2')
+  })
+})
+
+describe('Mapa: ETA del bus elegido con su velocidad reciente (U24)', () => {
+  // Bus a ~5 km de su próxima (única) parada
+  const LEJOS = { lat: 8.31, lng: -73.572 }
+  const PARADA = { lat: 8.31, lng: -73.617 }
+  const km = distanciaKm(LEJOS.lat, LEJOS.lng, PARADA.lat, PARADA.lng)
+
+  it('una velocidad nueva por socket actualiza el ETA y la nota de la hoja del bus', async () => {
+    backend.respuestas['GET /api/buses/activos'] = {
+      buses: [{ id_bus: 1, nombre: 'Bus 1', id_ruta: 1, nombre_ruta: 'Centro - UPC', estado: 'en_recorrido', ...LEJOS, edad_segundos: 1 }],
+    }
+    backend.respuestas['GET /api/paradas?ruta_id=1'] = { paradas: [{ id_parada: 1, nombre: 'Parque', ...PARADA, orden: 1 }] }
+    abrirApp('/mapa?bus=1', estudiante)
+
+    // Sin velocidad medida: 25 km/h y nota de línea recta
+    expect(await screen.findByText('Tiempo estimado por distancia en línea recta.')).toBeInTheDocument()
+    const a25 = Math.round((km / 25) * 60)
+    const a40 = Math.round((km / 40) * 60)
+    expect(a40).toBeLessThan(a25)
+    expect(await screen.findByText(new RegExp(`: ${a25} minutos`))).toBeInTheDocument()
+
+    // Llega una posición con velocidad reciente de 40 km/h
+    act(() => socketFalso.desdeServidor('bus:location', { id_bus: 1, ...LEJOS, velocidad_kmh: 40 }))
+    expect(await screen.findByText(new RegExp(`: ${a40} minutos`))).toBeInTheDocument()
+    expect(screen.getByText(/velocidad actual del bus/)).toBeInTheDocument()
   })
 })
