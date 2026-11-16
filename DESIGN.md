@@ -182,7 +182,7 @@ Rechaza las tarjetas blancas redondeadas con metrica grande y acento azul. Manti
 - Papel termico y tinta verde-negra; nunca blanco puro como fondo de pagina (el blanco es solo la hoja del talon y los paneles).
 - Una sola cifra grande y condensada por pantalla; el resto es chico, firme y en mayusculas solo en la fila de datos.
 - Bordes de 2px en tinta, esquinas rectas, sin sombras; la unica curva es el circulo de la muesca de la perforacion.
-- Rojo solo para el sello de dato vencido o sin conexion; verde solo para lo accionable y lo valido.
+- Rojo solo para "algo fallo": el sello de dato vencido o sin conexion y los errores de formulario; verde solo para lo accionable y lo valido.
 - Un unico gesto animado con significado: el sello que cae sobre la cifra.
 
 ## Colors
@@ -197,7 +197,7 @@ Paleta de papel y tinta con dos colores de marca de trabajo fijo y un rojo de us
 - **Amarillo franja** (`amarillo-franja`, #f5c400): la franja de validez bajo la cifra (se vacia de 0 a 30 s), la franja superior (8px) de los avisos de retraso y cambio de ruta y el marcador de la parada elegida o propia (en reposo las paradas del Mapa son anillos de papel, no amarillas). Texto sobre el siempre en tinta (#14261a). Tambien es el color de seleccion de texto.
 
 ### Tertiary
-- **Sello rojo** (`sello`, #c62828): reservado para anular. Sello sobre la cifra, estado "Hace N s" vencido y el aviso de conexion perdida. No es peligro generico: "Cerrar sesion" va en tinta.
+- **Sello rojo** (`sello`, #c62828): reservado para anular. Sello sobre la cifra, estado "Hace N s" vencido y el aviso de conexion perdida. Tambien es el rojo de los errores de formulario (`--error`: #c62828 en claro, #ff8a80 en oscuro): borde, icono y texto de los avisos de error de login, registro, perfil y administracion. No es peligro generico: "Cerrar sesion" va en tinta.
 
 ### Neutral
 - **Papel** (`papel`, #fbfaf4): fondo de pagina, barra superior y navegacion inferior.
@@ -211,7 +211,7 @@ Paleta de papel y tinta con dos colores de marca de trabajo fijo y un rojo de us
 Mismos nombres semanticos, otros valores: papel `papel-noche` (#101a13), hundido (#0b130e), superficie (#17231b), tinta (#f1eedf), tinta suave (#b5bdb0), linea (#2c3b31), trazo (#a9b8a8) para bordes y foco. El verde de marca no pasa contraste como texto sobre oscuro, asi que el acento de texto pasa a `verde-texto-noche` (#7fd38b); los rellenos verdes se mantienen. El sello pasa a `sello-noche` (#ff8a80).
 
 ### Named Rules
-**The Rojo Es Sello Rule.** El rojo existe solo para decir "este dato ya no vale" (sello, estado vencido, sin conexion). Ninguna otra cosa (borrar, cerrar sesion, contadores, errores genericos) lo usa.
+**The Rojo Es Fallo Rule.** El rojo existe solo para decir "algo fallo": un dato que ya no vale (sello, estado vencido, sin conexion) o un error que el usuario debe corregir (campo invalido, credenciales incorrectas, el servidor rechazo la accion). Ninguna otra cosa (borrar, cerrar sesion, contadores) lo usa. Un resultado correcto ("Guardado") va en tinta, nunca en rojo.
 
 **The Un Solo Verde Lleno Rule.** El verde se llena en una accion primaria por vista, en el elemento activo de navegacion y en el estado valido. No se usa como decoracion ni como acento repartido.
 
@@ -353,7 +353,7 @@ Iconos de la biblioteca Font Awesome Solid como SVG, siempre acompanados de text
 - **Do** repetir los mismos nombres semanticos (`--bg`, `--superficie`, `--texto`, `--borde`, `--trazo`, `--acento-texto`) en modo oscuro con otros valores; en oscuro el texto verde pasa a #7fd38b.
 
 ### Don't:
-- **Don't** usar rojo para nada que no sea "dato vencido / sin conexion" (ni cerrar sesion, ni contadores, ni errores genericos).
+- **Don't** usar rojo para nada que no sea "algo fallo" (dato vencido, sin conexion, error de formulario): ni cerrar sesion, ni contadores, ni mensajes de exito.
 - **Don't** usar sombras, degradados ni esquinas redondeadas; la unica curva es la muesca de la perforacion.
 - **Don't** poner rotulos pequenos encima de los titulos ni etiquetas de seccion decorativas; el titulo es el contenido (la parada).
 - **Don't** repetir la cifra grande en mas de un lugar por pantalla ni usar Spline Sans Mono para titulos o botones.

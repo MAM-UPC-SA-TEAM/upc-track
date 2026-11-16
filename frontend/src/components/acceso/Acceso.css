@@ -1,5 +1,5 @@
 /* Acceso (login y registro): el talón de la app como marco. Papel, bordes de 2px, color plano, sin sombras.
-   Los errores van en tinta con icono: el rojo es solo para el dato vencido. */
+   Los errores van en rojo con icono (el rojo es «algo falló»). */
 
 .acceso {
   min-height: 100vh;
@@ -39,8 +39,8 @@ body[data-tema='oscuro'] .acceso-mark { padding: 2px; background: #fbfaf4; }
   border-radius: 0;
   font: inherit;
 }
-/* Con error el borde se engrosa hacia adentro (anillo inset de 1px), como el estado vencido: no es una sombra */
-.campo input[aria-invalid='true'], .campo select[aria-invalid='true'] { box-shadow: inset 0 0 0 1px var(--trazo); }
+/* Con error el borde pasa a rojo y se engrosa hacia adentro (anillo inset de 1px): no es una sombra ni depende solo del color */
+.campo input[aria-invalid='true'], .campo select[aria-invalid='true'] { border-color: var(--error); box-shadow: inset 0 0 0 1px var(--error); }
 /* Selector: la flecha nativa se cambia por la del talón, en tinta (y en claro sobre oscuro) */
 .campo select {
   appearance: none;
@@ -53,7 +53,7 @@ body[data-tema='oscuro'] .campo select {
 }
 .campo select option { color: #14261a; background: #fbfaf4; }
 .campo-ayuda { font-size: var(--t-sm); color: var(--texto-suave); }
-.campo-error { display: flex; align-items: flex-start; gap: var(--e2); font-size: var(--t-sm); font-weight: 700; }
+.campo-error { display: flex; align-items: flex-start; gap: var(--e2); font-size: var(--t-sm); font-weight: 700; color: var(--error); }
 .campo-error svg { flex-shrink: 0; margin-top: 3px; }
 
 /* Casilla «Mostrar contraseña»: fila táctil de 44px, sin botón de icono */
@@ -81,16 +81,21 @@ body[data-tema='oscuro'] .campo select {
   rotate: 45deg;
 }
 
-/* Error general (credenciales, servidor): caja de tinta con icono */
+/* Error general (credenciales, servidor): caja roja con icono; el rojo es «algo falló», así que se ve a pleno sol.
+   Un resultado correcto (--ok) va en tinta, nunca en rojo. */
 .acceso-aviso {
   display: flex;
   align-items: flex-start;
   gap: var(--e2);
   padding: var(--e3);
-  border: var(--grosor) solid var(--trazo);
+  border: var(--grosor) solid var(--error);
+  background: color-mix(in srgb, var(--error) 8%, var(--bg));
+  color: var(--error);
   font-weight: 700;
 }
+.acceso-aviso--ok { border-color: var(--trazo); background: transparent; color: var(--texto); }
 .acceso-aviso svg { flex-shrink: 0; margin-top: 4px; }
+.acceso-aviso:focus { outline: none; } /* se enfoca para anunciarlo; el borde rojo ya lo marca */
 
 /* Acción primaria: la única pieza verde llena (la del talón) */
 .acceso-form .talon-accion { width: 100%; margin: 0; }
