@@ -138,7 +138,9 @@ export function AuthProvider({ children }) {
     }
   }, [usuario])
 
-  function actualizarUsuario(cambios) {
+  // `token` (opcional): el servidor reemite el JWT cuando cambian el nombre o el nombre de usuario
+  function actualizarUsuario(cambios, token) {
+    if (token) localStorage.setItem('token', token)
     setUsuario(prev => {
       const actualizado = { ...prev, ...cambios }
       localStorage.setItem('usuario', JSON.stringify(actualizado))

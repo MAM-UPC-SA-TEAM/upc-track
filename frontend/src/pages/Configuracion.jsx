@@ -25,6 +25,7 @@ function Resultado({ msg }) {
 }
 
 const CORREO_OK = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const USUARIO_OK = /^[a-zA-Z0-9._-]{3,20}$/ // las mismas reglas que el registro
 
 // Configuración: aquí se EDITA (datos y contraseña). «Mi perfil» solo muestra los datos.
 export default function Configuracion() {
@@ -33,7 +34,7 @@ export default function Configuracion() {
 
   // ── Datos personales ────────────────────────────────────────
   const [formInfo, setFormInfo] = useState(() => ({
-    nombre: usuario?.nombre || '', correo: correoActual,
+    nombre: usuario?.nombre || '', nombre_usuario: usuario?.nombre_usuario || '', correo: correoActual,
   }))
   const [erroresInfo, setErroresInfo] = useState({})
   const [guardandoInfo, setGuardandoInfo] = useState(false)
@@ -43,9 +44,10 @@ export default function Configuracion() {
     e.preventDefault()
     const fallos = {}
     if (!formInfo.nombre.trim()) fallos.nombre = 'El nombre no puede estar vacío.'
+    if (!USUARIO_OK.test(formInfo.nombre_usuario.trim())) fallos.nombre_usuario = 'Usa de 3 a 20 caracteres: letras, números, punto, guion o guion bajo.'
     if (formInfo.correo.trim() && !CORREO_OK.test(formInfo.correo)) fallos.correo = 'Escribe un correo válido.'
     setErroresInfo(fallos)
-    const primero = ['nombre', 'correo'].find(k => fallos[k])
+    const primero = ['nombre', 'nombre_usuario', 'correo'].find(k => fallos[k])
     if (primero) { document.getElementById(`perfil-campo-${primero}`)?.focus(); return }
 
     setGuardandoInfo(true)
@@ -53,12 +55,18 @@ export default function Configuracion() {
     try {
       const data = await api.patch('/api/usuarios/perfil', {
         nombre: formInfo.nombre,
+        nombre_usuario: formInfo.nombre_usuario.trim(),
         correo: formInfo.correo,
       })
-      if (actualizarUsuario && data.usuario) actualizarUsuario(data.usuario)
+      if (actualizarUsuario && data.usuario) actualizarUsuario(data.usuario, data.token) // el servidor reemite el token
       setMsgInfo({ tipo: 'ok', texto: 'Datos guardados.' })
     } catch (err) {
-      setMsgInfo({ tipo: 'error', texto: err.message || 'No se pudieron guardar los datos. Intenta de nuevo.' })
+      if (err.status === 409) { // nombre de usuario ya tomado: se dice en el propio campo
+        setErroresInfo({ nombre_usuario: err.message || 'Ese nombre de usuario ya está en uso.' })
+        document.getElementById('perfil-campo-nombre_usuario')?.focus()
+      } else {
+        setMsgInfo({ tipo: 'error', texto: err.message || 'No se pudieron guardar los datos. Intenta de nuevo.' })
+      }
     } finally {
       setGuardandoInfo(false)
     }
@@ -119,6 +127,10 @@ export default function Configuracion() {
             <form className="acceso-form" onSubmit={guardarInfo} noValidate>
               <Campo id="perfil-campo-nombre" label="Nombre completo" value={formInfo.nombre} error={erroresInfo.nombre}
                 autoComplete="name" onChange={cambiar(setFormInfo, erroresInfo, setErroresInfo, 'nombre')} />
+              <Campo id="perfil-campo-nombre_usuario" label="Nombre de usuario" value={formInfo.nombre_usuario} error={erroresInfo.nombre_usuario}
+                ayuda="Con él inicias sesión. 3 a 20 caracteres: letras, números, punto, guion y guion bajo."
+                autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck={false}
+                onChange={cambiar(setFormInfo, erroresInfo, setErroresInfo, 'nombre_usuario')} />
               <Campo id="perfil-campo-correo" label="Correo electrónico" type="email" value={formInfo.correo} error={erroresInfo.correo}
                 autoComplete="email" inputMode="email" autoCapitalize="none" spellCheck={false}
                 onChange={cambiar(setFormInfo, erroresInfo, setErroresInfo, 'correo')} />

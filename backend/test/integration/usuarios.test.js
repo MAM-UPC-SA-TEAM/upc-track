@@ -8,7 +8,7 @@ import bcrypt from 'bcryptjs'
 const { default: app } = await import('../../src/app.js')
 const { pool } = await import('../../src/config/database.js')
 const { Usuario } = await import('../../src/models/Usuario.js')
-const { generarToken } = await import('../../src/utils/jwt.js')
+const { generarToken, verificarToken } = await import('../../src/utils/jwt.js')
 
 let query
 beforeEach(() => {
@@ -165,6 +165,49 @@ test('PATCH /perfil: correo duplicado → 400', async () => {
   query.mock.mockImplementation(duplicado('usuario_correo_key'))
   const res = await request(app).patch('/api/usuarios/perfil').set(estudiante()).send({ nombre: 'Ana', correo: 'a@u.co' })
   assert.equal(res.status, 400)
+})
+
+// ── Nombre de usuario propio (U23) ──────────────────────────
+test('PATCH /perfil: cambia el nombre de usuario (en minúsculas) y reemite el token con los datos nuevos', async () => {
+  query.mock.mockImplementation(async (sql) =>
+    sql.startsWith('SELECT')
+      ? { rows: [{ id_usuario: 4, nombre: 'Ana', nombre_usuario: 'ana.nueva', correo: 'a@u.co', tipo_usuario: 'estudiante' }] }
+      : { rows: [] })
+  const res = await request(app).patch('/api/usuarios/perfil').set(estudiante(4)).send({ nombre: 'Ana', correo: 'a@u.co', nombre_usuario: '  Ana.Nueva ' })
+  assert.equal(res.status, 200)
+  assert.match(query.mock.calls[0].arguments[0], /nombre_usuario=\$3/)
+  assert.deepEqual(query.mock.calls[0].arguments[1], ['Ana', 'a@u.co', 'ana.nueva', 4])
+  assert.equal(res.body.usuario.nombre_usuario, 'ana.nueva')
+  const payload = verificarToken(res.body.token)
+  assert.equal(payload.nombre_usuario, 'ana.nueva')
+  assert.equal(payload.id_usuario, 4)
+  assert.equal(payload.tipo_usuario, 'estudiante')
+})
+
+test('PATCH /perfil sin nombre_usuario no lo toca y también reemite el token', async () => {
+  query.mock.mockImplementation(async (sql) =>
+    sql.startsWith('SELECT') ? { rows: [{ id_usuario: 4, nombre: 'Ana', nombre_usuario: 'ana', correo: 'a@u.co', tipo_usuario: 'estudiante' }] } : { rows: [] })
+  const res = await request(app).patch('/api/usuarios/perfil').set(estudiante(4)).send({ nombre: 'Ana', correo: 'a@u.co' })
+  assert.equal(res.status, 200)
+  assert.doesNotMatch(query.mock.calls[0].arguments[0], /nombre_usuario/)
+  assert.equal(verificarToken(res.body.token).nombre_usuario, 'ana')
+})
+
+test('PATCH /perfil: nombre de usuario con formato inválido → 400 y no toca la BD', async () => {
+  for (const malo of ['ab', 'a'.repeat(21), 'con espacio', 'ñandú', '', '   ']) {
+    query.mock.resetCalls()
+    const res = await request(app).patch('/api/usuarios/perfil').set(estudiante()).send({ nombre: 'Ana', nombre_usuario: malo })
+    assert.equal(res.status, 400, `«${malo}» debía rechazarse`)
+    assert.match(res.body.error, /3 a 20 caracteres/)
+    assert.equal(query.mock.callCount(), 0)
+  }
+})
+
+test('PATCH /perfil: nombre de usuario ya tomado → 409', async () => {
+  query.mock.mockImplementation(duplicado('usuario_nombre_usuario_key'))
+  const res = await request(app).patch('/api/usuarios/perfil').set(estudiante()).send({ nombre: 'Ana', nombre_usuario: 'ocupado' })
+  assert.equal(res.status, 409)
+  assert.equal(res.body.error, 'Ese nombre de usuario ya está en uso')
 })
 
 test('PATCH /perfil: error inesperado → 500', async () => {
