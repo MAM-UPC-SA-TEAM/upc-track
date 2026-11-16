@@ -10,9 +10,11 @@ const { Ubicacion } = await import('../../src/models/Ubicacion.js')
 const { Bus } = await import('../../src/models/Bus.js')
 const { Notificacion } = await import('../../src/models/Notificacion.js')
 const { generarToken } = await import('../../src/utils/jwt.js')
+const { olvidarPosiciones } = await import('../../src/services/ubicacionService.js')
 
 let registrar, emitidos
 beforeEach(() => {
+  olvidarPosiciones()
   mock.method(console, 'error', () => {})
   registrar = mock.method(Ubicacion, 'registrarUbicacion', async () => 1)
   mock.method(Bus, 'obtenerRuta', async () => ({ id_ruta: 3 }))
@@ -131,4 +133,21 @@ test('un bus que no está en_recorrido nunca genera retraso', async () => {
   mock.timers.tick(4 * 60 * 1000)
   await enviar(mismo)
   assert.equal(guardar.mock.callCount(), 0)
+})
+
+// ── Velocidad reciente en el evento (U24) ───────────────────
+test('bus:location lleva la velocidad reciente: null al principio y ~25 km/h tras un rato en marcha', async () => {
+  mock.timers.enable({ apis: ['Date'], now: 1_000_000_000 })
+  const mPorSeg = 25 / 3.6
+  const velocidades = []
+  for (let i = 0; i < 8; i++) {
+    const lat = 8.3 + (mPorSeg * i * 4) / 111_195
+    assert.equal((await enviar({ id_bus: 1, lat, lng: -73.6 })).status, 200)
+    velocidades.push(emitidos[emitidos.length - 1].datos.velocidad_kmh)
+    mock.timers.tick(4000)
+  }
+  assert.equal(velocidades[0], null)  // una sola posición
+  assert.equal(velocidades[4], null)  // 16 s: aún menos de 20 s entre la primera y la última
+  const ultima = velocidades[velocidades.length - 1]
+  assert.ok(Math.abs(ultima - 25) < 0.6, `esperaba ~25 km/h, dio ${ultima}`)
 })

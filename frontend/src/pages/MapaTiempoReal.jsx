@@ -15,11 +15,10 @@ import { FRESCO_MAX_S, etiquetaBus } from '../utils/estadoBus'
 import socket, { unirseRuta } from '../services/socket'
 import { useAlReanudar, useEnLinea } from '../hooks/useCicloVida'
 import api from '../services/api'
-import { distanciaKm } from '../utils/calcularETA'
+import { distanciaKm, minutosHasta, tieneVelocidadReciente } from '../utils/calcularETA'
 import './MapaTiempoReal.css'
 
 const UMBRAL_SIN_SENAL_MS = 60000
-const VELOCIDAD_KMH = 25         // ETA por distancia en línea recta (se dice en pantalla)
 const MAX_ETIQUETAS_BUS = 3      // con más buses solo se rotula el seleccionado
 
 // Un trazo verde por ruta; con varias se distinguen por el estilo de la línea, no por una paleta de colores
@@ -50,13 +49,15 @@ const paradaActiva = p => p.activa !== false && p.activa !== 0
 function masCercano(punto, buses, idRuta) {
   let mejor = null
   let dm = Infinity
+  let min = Infinity
   for (const b of buses) {
     if (!tieneCoordenadas(b) || b.estado === 'fuera_de_servicio') continue
     if (idRuta != null && b.id_ruta !== idRuta) continue // el ETA de una parada solo lo dan los buses de su ruta
     const d = distanciaKm(num(b.lat), num(b.lng), num(punto.lat), num(punto.lng))
-    if (d < dm) { dm = d; mejor = b }
+    const m = minutosHasta(d, b) // con la velocidad reciente de ese bus: llega antes el de menor tiempo, no solo el más cercano
+    if (m < min || (m === min && d < dm)) { dm = d; min = m; mejor = b }
   }
-  return mejor ? { bus: mejor, km: dm, min: Math.round((dm / VELOCIDAD_KMH) * 60) } : null
+  return mejor ? { bus: mejor, km: dm, min } : null
 }
 
 // Mueve el mapa para que lo seleccionado quede a la vista por encima de la hoja (se mide su altura real)
@@ -179,7 +180,7 @@ export default function MapaTiempoReal() {
     if (!socket.connected) socket.connect()
     rutas.filter(esActiva).forEach(r => unirseRuta(Number(r.id_ruta)))
 
-    socket.on('bus:location', ({ id_bus, lat, lng }) => {
+    socket.on('bus:location', ({ id_bus, lat, lng, velocidad_kmh }) => {
       ultimaUbicacion.current[id_bus] = Date.now()
       const latNum = num(lat)
       const lngNum = num(lng)
@@ -187,8 +188,8 @@ export default function MapaTiempoReal() {
         refrescarBusesActivos().catch(() => {}) // bus nuevo: se re-sincroniza desde el backend
         return
       }
-      setBuses(prev => prev.map(b => (b.id_bus === id_bus ? { ...b, estado: b.estado === 'sin_senal' ? 'en_recorrido' : b.estado, lat: latNum, lng: lngNum } : b)))
-      setBusSeleccionado(prev => (prev?.id_bus === id_bus ? { ...prev, lat: latNum, lng: lngNum, estado: prev.estado === 'sin_senal' ? 'en_recorrido' : prev.estado } : prev))
+      setBuses(prev => prev.map(b => (b.id_bus === id_bus ? { ...b, estado: b.estado === 'sin_senal' ? 'en_recorrido' : b.estado, lat: latNum, lng: lngNum, velocidad_kmh: velocidad_kmh ?? b.velocidad_kmh } : b)))
+      setBusSeleccionado(prev => (prev?.id_bus === id_bus ? { ...prev, lat: latNum, lng: lngNum, velocidad_kmh: velocidad_kmh ?? prev.velocidad_kmh, estado: prev.estado === 'sin_senal' ? 'en_recorrido' : prev.estado } : prev))
     })
 
     socket.on('bus:estado', ({ id_bus, estado }) => {
@@ -347,6 +348,7 @@ export default function MapaTiempoReal() {
       frescura: e && !viejo ? Math.max(0.06, 1 - edad / FRESCO_MAX_S) : 1,
       lineas: e ? [[e.bus.nombre_ruta, e.bus.nombre].filter(Boolean).join(' · '), `a ${e.km.toLocaleString('es-CO', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} km`] : [],
       etiqueta: e ? etiquetaBus(e.bus, edad) : null,
+      conVelocidad: e ? tieneVelocidadReciente(e.bus) : false,
       mensajeVacio: 'Ningún bus transmite en esta ruta ahora. Revisa los horarios.',
     }
   } else if (busSeleccionado) {
@@ -358,11 +360,12 @@ export default function MapaTiempoReal() {
       icono: faBus,
       titulo: `${b.nombre}${b.placa ? ' · ' + b.placa : ''}`,
       destino: proxima ? `Próxima parada: ${proxima.p.nombre}` : null,
-      minutos: proxima && !fuera ? Math.round((proxima.d / VELOCIDAD_KMH) * 60) : null,
+      minutos: proxima && !fuera ? minutosHasta(proxima.d, b) : null,
       fase: fuera || !proxima ? 'sin-buses' : !enLinea ? 'sin-red' : viejo ? 'viejo' : 'vivo',
       frescura: !viejo && !fuera ? Math.max(0.06, 1 - edad / FRESCO_MAX_S) : 1,
       lineas: [b.nombre_ruta, b.nombre_conductor && `Conductor: ${b.nombre_conductor}`].filter(Boolean),
       etiqueta: etiquetaBus(b, edad),
+      conVelocidad: tieneVelocidadReciente(b),
       mensajeVacio: fuera ? 'Este bus está fuera de servicio.' : 'No se conoce la próxima parada de este bus.',
     }
   }
