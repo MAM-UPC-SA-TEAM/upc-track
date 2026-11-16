@@ -13,12 +13,12 @@ import '../components/mapa/Mapa.css'
 import '../components/listas/Listas.css'
 import './Perfil.css'
 
-// Mensaje de resultado: lo bueno se anuncia con role=status; el error, con role=alert. Ninguno va en rojo.
+// Mensaje de resultado: lo bueno se anuncia con role=status (en tinta); el error, con role=alert (en rojo).
 function Resultado({ msg }) {
   if (!msg) return null
   const ok = msg.tipo === 'ok'
   return (
-    <p className="acceso-aviso" role={ok ? 'status' : 'alert'}>
+    <p className={`acceso-aviso ${ok ? 'acceso-aviso--ok' : ''}`} role={ok ? 'status' : 'alert'}>
       <FontAwesomeIcon icon={ok ? faCircleCheck : faTriangleExclamation} /> <span>{msg.texto}</span>
     </p>
   )

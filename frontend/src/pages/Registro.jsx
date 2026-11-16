@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faUserPlus, faRightToBracket, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons'
@@ -32,6 +32,10 @@ export default function Registro() {
   const [verPassword, setVerPassword] = useState(false)
   const [errores, setErrores]     = useState({})
   const [errorGlobal, setErrorGlobal] = useState('')
+  const avisoRef = useRef(null)
+
+  // Un error del servidor se anuncia y recibe el foco, como los de campo
+  useEffect(() => { if (errorGlobal) avisoRef.current?.focus() }, [errorGlobal])
   const [enviando, setEnviando]   = useState(false)
   const [exito, setExito]         = useState(false)
 
@@ -101,7 +105,7 @@ export default function Registro() {
     <AccesoLayout titulo="Crear cuenta" subtitulo="Regístrate como estudiante de la UPC.">
       <form onSubmit={handleSubmit} className="acceso-form" noValidate>
         {errorGlobal && (
-          <p className="acceso-aviso" role="alert">
+          <p className="acceso-aviso" role="alert" tabIndex={-1} ref={avisoRef}>
             <FontAwesomeIcon icon={faTriangleExclamation} /> <span>{errorGlobal}</span>
           </p>
         )}

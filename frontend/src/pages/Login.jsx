@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faRightToBracket, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons'
@@ -16,6 +16,10 @@ export default function Login() {
   const [cargando, setCargando] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
+  const avisoRef = useRef(null)
+
+  // Un error del servidor (credenciales) se anuncia y recibe el foco, como los de campo
+  useEffect(() => { if (error) avisoRef.current?.focus() }, [error])
 
   async function handleLogin(e) {
     e.preventDefault()
@@ -50,7 +54,7 @@ export default function Login() {
     <AccesoLayout titulo="Iniciar sesión">
       <form onSubmit={handleLogin} className="acceso-form" noValidate>
         {error && (
-          <p className="acceso-aviso" role="alert">
+          <p className="acceso-aviso" role="alert" tabIndex={-1} ref={avisoRef}>
             <FontAwesomeIcon icon={faTriangleExclamation} /> <span>{error}</span>
           </p>
         )}
