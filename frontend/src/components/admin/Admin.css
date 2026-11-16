@@ -88,10 +88,24 @@
 }
 .dialogo--ancho { width: min(920px, calc(100vw - 32px)); }
 .dialogo::backdrop { background: rgba(20, 38, 26, 0.6); }
+/* Entrada y salida del modal: opacidad + escala suave desde el centro (un modal no nace de un botón); el fondo solo
+   se desvanece. La salida es más corta que la entrada. */
+.dialogo[open] { animation: dialogo-entra var(--d-ui) var(--ease-out); }
+.dialogo[open]::backdrop { animation: dialogo-fondo-entra var(--d-ui) var(--ease-out); }
+.dialogo[data-saliendo] { animation: dialogo-sale var(--d-salida) var(--ease-out) forwards; pointer-events: none; }
+.dialogo[data-saliendo]::backdrop { animation: dialogo-fondo-sale var(--d-salida) var(--ease-out) forwards; }
+@keyframes dialogo-entra { from { opacity: 0; transform: scale(0.96); } }
+@keyframes dialogo-sale { to { opacity: 0; transform: scale(0.98); } }
+@keyframes dialogo-fondo-entra { from { opacity: 0; } }
+@keyframes dialogo-fondo-sale { to { opacity: 0; } }
 .dialogo-hoja { display: flex; flex-direction: column; max-height: calc(100dvh - 32px); }
 .dialogo-cabecera { display: flex; align-items: center; justify-content: space-between; gap: var(--e3); padding: var(--e2) var(--e2) var(--e2) var(--e4); border-bottom: var(--grosor) solid var(--trazo); }
 .dialogo-titulo { font-size: var(--t-lg); font-weight: 700; }
 .dialogo-cerrar { flex-shrink: 0; width: var(--toque); height: var(--toque); display: grid; place-items: center; font-size: 1.125rem; }
+.dialogo-descartar { animation: dialogo-aviso var(--d-toque) var(--ease-out); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--e3); padding: var(--e3) var(--e4); background: var(--papel-hundido); border-bottom: var(--grosor) solid var(--trazo); font-weight: 700; }
+.dialogo-descartar p { margin: 0; }
+@keyframes dialogo-aviso { from { opacity: 0; transform: translateY(-4px); } }
+.dialogo-descartar-acciones { display: flex; flex-wrap: wrap; gap: var(--e2); }
 .dialogo-form { display: flex; flex-direction: column; min-height: 0; flex: 1; }
 .dialogo-cuerpo { display: flex; flex-direction: column; gap: var(--e4); padding: var(--e4); overflow-y: auto; min-height: 0; }
 .dialogo-pie { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: var(--e2); padding: var(--e3) var(--e4); border-top: 1px solid var(--borde); }

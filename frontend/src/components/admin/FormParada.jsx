@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFloppyDisk, faTriangleExclamation, faMagnifyingGlass, faLocationCrosshairs } from '@fortawesome/free-solid-svg-icons'
 import Campo from '../acceso/Campo'
 import './Admin.css'
+import { getCurrentPosition } from '../../services/geolocation'
 
 const CENTRO_DEFECTO = [8.3086, -73.6194] // Aguachica, Cesar
 // Parada elegida: el punto amarillo del sistema (el mismo del Mapa)
@@ -62,14 +63,14 @@ export default function FormParada({ modo, inicial, onGuardar, onCerrar }) {
     setErrores(p => ({ ...p, lat: '', lng: '' }))
   }
 
-  function usarMiUbicacion() {
-    if (!navigator.geolocation) { setMensajeMapa({ tipo: 'error', texto: 'Tu navegador no ofrece ubicación.' }); return }
+  async function usarMiUbicacion() {
     setMensajeMapa(null)
-    navigator.geolocation.getCurrentPosition(
-      pos => elegirPunto(pos.coords.latitude, pos.coords.longitude),
-      () => setMensajeMapa({ tipo: 'error', texto: 'No se pudo obtener tu ubicación. Revisa los permisos del navegador.' }),
-      { enableHighAccuracy: true, timeout: 10000 }
-    )
+    try {
+      const { lat, lng } = await getCurrentPosition()
+      elegirPunto(lat, lng)
+    } catch (err) {
+      setMensajeMapa({ tipo: 'error', texto: err.mensaje || 'No se pudo obtener tu ubicación.' })
+    }
   }
 
   async function buscarDireccion() {

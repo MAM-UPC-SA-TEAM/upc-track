@@ -5,13 +5,14 @@ import Layout from '../components/shared/Layout'
 import EstadoLista from '../components/listas/EstadoLista'
 import api from '../services/api'
 import socket from '../services/socket'
-import { distanciaKm, formatearETA } from '../utils/calcularETA'
+import { useAlReanudar } from '../hooks/useCicloVida'
+import { distanciaKm, formatearETA, minutosHasta, tieneVelocidadReciente } from '../utils/calcularETA'
+import { NOTA_ETA, NOTA_ETA_VELOCIDAD } from '../utils/textosETA'
 import { busViejo, etiquetaBus } from '../utils/estadoBus'
 import '../components/mapa/Mapa.css'
 import '../components/listas/Listas.css'
 import './Buses.css'
 
-const VELOCIDAD_KMH = 25 // ETA por distancia en línea recta (se dice en pantalla)
 const ahoraMs = () => Date.now() // se llama desde manejadores, nunca al renderizar
 
 // Tiempo estimado a la parada activa más cercana de la ruta del bus (línea recta), o null
@@ -24,7 +25,7 @@ function etaParadaCercana(bus, paradas) {
     const d = distanciaKm(Number(bus.lat), Number(bus.lng), Number(p.lat), Number(p.lng))
     if (d < menor) menor = d
   }
-  return Number.isFinite(menor) ? Math.round((menor / VELOCIDAD_KMH) * 60) : null
+  return Number.isFinite(menor) ? minutosHasta(menor, bus) : null
 }
 
 export default function Buses() {
@@ -75,6 +76,9 @@ export default function Buses() {
       socket.off('bus:location', alLlegarPosicion)
     }
   }, [cargar])
+
+  // Al volver de segundo plano se recarga la lista (los eventos perdidos no se reenvían)
+  useAlReanudar(cargar)
 
   // Reloj de 1 s para la antigüedad del dato (solo mientras hay buses)
   const hayBuses = buses.length > 0
@@ -128,7 +132,7 @@ export default function Buses() {
               </ul>
             </section>
 
-            <p className="lista-nota">Tiempo estimado por distancia en línea recta.</p>
+            <p className="lista-nota">{buses.some(tieneVelocidadReciente) ? NOTA_ETA_VELOCIDAD : NOTA_ETA}</p>
           </>
         )}
       </div>

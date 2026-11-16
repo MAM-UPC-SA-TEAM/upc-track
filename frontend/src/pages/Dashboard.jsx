@@ -1,22 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import Layout from '../components/shared/Layout'
 import TalonETA from '../components/inicio/TalonETA'
 import AvisoConductor from '../components/inicio/AvisoConductor'
 import api from '../services/api'
 import socket from '../services/socket'
+import { alCambiarRed } from '../services/red'
+import { useAlReanudar, useEnLinea } from '../hooks/useCicloVida'
 import { calcularETA } from '../utils/calcularETA'
+import { actualizarAnclas } from '../utils/estadoBus'
 import './Dashboard.css'
-import { MapContainer, Polyline, Marker, CircleMarker, Tooltip } from 'react-leaflet'
-import L from 'leaflet'
 
 const FRESCO_MAX_S = 30        // meta del charter: posición visible actualizada en ≤ 30 s
 const FALLOS_PARA_ANULAR = 2   // un sondeo fallido no anula el dato: dos seguidos sí
 const AVISO_VIGENCIA_MIN = 90  // un aviso del conductor deja de mostrarse tras 90 min
 const CLAVE_PARADA = 'upctrack.miParada'
-
-const iconoBus = L.divIcon({ className: '', html: '<span class="mk mk-bus"></span>', iconSize: [28, 28], iconAnchor: [14, 14] })
-const iconoParada = L.divIcon({ className: '', html: '<span class="mk mk-parada"></span>', iconSize: [22, 22], iconAnchor: [11, 11] })
 
 const num = v => Number.parseFloat(v)
 
@@ -28,8 +26,8 @@ export default function Dashboard() {
   const [cargando, setCargando]         = useState(true)
   const [tardando, setTardando]         = useState(false)
   const [fallos, setFallos]             = useState(0)
-  const [enLinea, setEnLinea]           = useState(() => navigator.onLine)
-  const [recibidoEn, setRecibidoEn]     = useState(() => Date.now())
+  const enLinea                        = useEnLinea()
+  const [anclas, setAnclas]             = useState({}) // id_bus → cuándo se registró su última posición
   const [ahora, setAhora]               = useState(() => Date.now())
   const [aviso, setAviso]               = useState(null)
   const [miParadaId, setMiParadaId]     = useState(() => {
@@ -53,7 +51,7 @@ export default function Dashboard() {
       const rutaEnOp = rutasActivas.find(r => enRuta.some(b => b.id_ruta === r.id_ruta)) || rutasActivas[0] || null
 
       setBusesActivos(enRuta)
-      setRecibidoEn(Date.now())
+      setAnclas(prev => actualizarAnclas(prev, enRuta))
       setFallos(0)
 
       if (rutaEnOp?.id_ruta) {
@@ -90,13 +88,9 @@ export default function Dashboard() {
     return () => { clearInterval(poll); clearInterval(reloj); clearTimeout(espera) }
   }, [])
 
-  useEffect(() => {
-    const subir = () => { setEnLinea(true); cargarEstado() }
-    const bajar = () => setEnLinea(false)
-    window.addEventListener('online', subir)
-    window.addEventListener('offline', bajar)
-    return () => { window.removeEventListener('online', subir); window.removeEventListener('offline', bajar) }
-  }, [])
+  // Al volver la red o la app desde segundo plano, el dato se trae de nuevo sin esperar al sondeo
+  useEffect(() => alCambiarRed(conectado => { if (conectado) cargarEstado() }), [])
+  useAlReanudar(() => { cargarEstado(); cargarAviso() })
 
   useEffect(() => {
     function refrescar(delay = 300) {
@@ -129,10 +123,13 @@ export default function Dashboard() {
     return c.etaMinutos == null ? null : c
   }, [parada, busesActivos])
 
-  // Frescura: edad medida por el servidor al recibirla + lo que ha pasado desde entonces en este teléfono
+  // Frescura: desde la última posición NUEVA del bus (ancla), no desde la última consulta
+  const ancla = calculo?.busCercano ? anclas[calculo.busCercano.id_bus] : undefined
   const edad = calculo?.busCercano
-    ? (Number(calculo.busCercano.edad_segundos) || 0) + Math.max(0, (ahora - recibidoEn) / 1000)
+    ? (ancla !== undefined ? Math.max(0, (ahora - ancla) / 1000) : Number(calculo.busCercano.edad_segundos) || 0)
     : null
+  // La franja se «imprime» de nuevo solo cuando llega una posición nueva
+  const datoDesde = ancla ?? 0
 
   // Un dato solo se anula cuando de verdad envejeció o cuando fallaron dos sondeos seguidos;
   // un tropiezo de red de unos segundos no debe hacer parpadear el talón.
@@ -145,18 +142,7 @@ export default function Dashboard() {
 
   const avisoVigente = aviso && (ahora - new Date(aviso.fecha_hora).getTime()) / 60000 < AVISO_VIGENCIA_MIN ? aviso : null
 
-  // Mapa esquemático: la ruta, las paradas y el bus sobre papel; sin teselas de calles
-  const puntosRuta = paradas.map(p => [num(p.lat), num(p.lng)])
   const busCerca = calculo?.busCercano
-  const hayMapa = puntosRuta.length > 0
-  const hayBus = Boolean(busCerca)
-  const encuadre = useMemo(() => {
-    const pts = [...puntosRuta]
-    if (busCerca) pts.push([busCerca.lat, busCerca.lng])
-    return pts.length > 1 ? L.latLngBounds(pts) : null
-    // se reencuadra al cambiar el conjunto de paradas o al aparecer el primer bus, no en cada posición nueva
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paradas.length, hayBus])
 
   function elegirParada(id) {
     setMiParadaId(id)
@@ -176,49 +162,14 @@ export default function Dashboard() {
           distanciaKm={calculo?.distanciaKmVal ?? null}
           edad={edad}
           frescoMax={FRESCO_MAX_S}
-          recibidoEn={recibidoEn}
+          datoDesde={datoDesde}
           tardando={tardando}
-          onMapa={() => navigate('/mapa')}
+          onMapa={() => navigate(busCerca ? `/mapa?bus=${busCerca.id_bus}` : '/mapa')}
           onRutas={() => navigate('/rutas')}
           onReintentar={cargarEstado}
         />
 
         <AvisoConductor aviso={avisoVigente} />
-
-        {hayMapa && (
-          <Link to="/mapa" className="inicio-mapa" aria-label="Abrir el mapa en tiempo real">
-            <MapContainer
-              key={`${paradas.length}-${hayBus}`}
-              {...(encuadre
-                ? { bounds: encuadre, boundsOptions: { padding: [40, 40] } }
-                : { center: [num(paradas[0].lat), num(paradas[0].lng)], zoom: 15 })}
-              style={{ width: '100%', height: '100%' }}
-              zoomControl={false} dragging={false} scrollWheelZoom={false} doubleClickZoom={false}
-              touchZoom={false} keyboard={false} attributionControl={false}
-            >
-              {puntosRuta.length > 1 && <Polyline positions={puntosRuta} className="ruta-verde" color="#1e6b2e" weight={5} />}
-              {paradas.filter(p => p.id_parada !== parada?.id_parada).map(p => (
-                <CircleMarker key={p.id_parada} center={[num(p.lat), num(p.lng)]} radius={5}
-                  pathOptions={{ color: '#14261a', weight: 2, fillColor: '#fbfaf4', fillOpacity: 1 }} />
-              ))}
-              {parada && (
-                <Marker position={[num(parada.lat), num(parada.lng)]} icon={iconoParada}>
-                  <Tooltip permanent direction="bottom" offset={[0, 10]} className="etiqueta-mapa">Tu parada</Tooltip>
-                </Marker>
-              )}
-              {busCerca && (
-                <Marker position={[busCerca.lat, busCerca.lng]} icon={iconoBus}>
-                  <Tooltip permanent direction="top" offset={[0, -12]} className="etiqueta-mapa">{busCerca.nombre}</Tooltip>
-                </Marker>
-              )}
-            </MapContainer>
-          </Link>
-        )}
-
-        <nav className="inicio-enlaces" aria-label="Más">
-          <Link to="/rutas">Ver rutas</Link>
-          <Link to="/buses">Ver buses</Link>
-        </nav>
       </div>
     </Layout>
   )

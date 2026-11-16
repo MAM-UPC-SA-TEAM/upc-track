@@ -1,0 +1,66 @@
+/* Esqueletos de carga (U34). Tokens de color: --linea-suave sobre papel, correcto en claro y oscuro. */
+
+/* Aparecen a los 150 ms: una carga rápida nunca los muestra (sin parpadeo). Ocupan su sitio desde el primer instante. */
+.esq, .esq-filas, .esq-mapa-chips, .esq-mapa-hoja, .esq-hoja-cabo, .esq-hoja-cuerpo {
+  opacity: 0;
+  animation: esq-aparece 1ms linear 150ms forwards;
+}
+@keyframes esq-aparece { to { opacity: 1; } }
+
+/* Los contenedores ya traen el retraso: sus barras no lo repiten */
+.esq-filas .esq, .esq-mapa-chips .esq, .esq-mapa-hoja .esq, .esq-hoja-cabo .esq, .esq-hoja-cuerpo .esq { opacity: 1; animation-delay: 0s; }
+
+/* Barra con un brillo suave que la recorre, un solo movimiento lento */
+.esq {
+  display: block;
+  height: 14px;
+  background-color: var(--linea-suave);
+  background-image: linear-gradient(100deg, transparent 30%, color-mix(in srgb, var(--superficie) 55%, transparent) 50%, transparent 70%);
+  background-size: 250% 100%;
+  background-repeat: no-repeat;
+  background-position: 120% 0;
+  animation: esq-aparece 1ms linear 150ms forwards, esq-brillo 1.8s ease-in-out 150ms infinite;
+}
+.esq-filas .esq, .esq-mapa-chips .esq, .esq-mapa-hoja .esq, .esq-hoja-cabo .esq, .esq-hoja-cuerpo .esq {
+  animation: esq-brillo 1.8s ease-in-out infinite;
+}
+@keyframes esq-brillo { to { background-position: -20% 0; } }
+
+/* Movimiento reducido: forma fija, sin brillo (la regla global ya acorta las animaciones; aquí además se quita el degradado) */
+@media (prefers-reduced-motion: reduce) {
+  .esq { background-image: none; }
+}
+
+/* Talón de ETA: mismo alto que .talon-eta, así la cifra llega sin saltos */
+.esq-cifra { align-self: center; width: min(46%, 9rem); height: 4.25rem; }
+.esq-cifra--hoja { width: 5.5rem; height: 3rem; margin-top: var(--e2); }
+
+/* Filas de lista */
+.esq-filas { display: flex; flex-direction: column; }
+.esq-fila { display: flex; flex-direction: column; gap: var(--e2); padding: var(--e3) var(--e4); }
+.esq-fila + .esq-fila { border-top: 1px solid var(--borde); }
+.esq-fila-cab { display: flex; align-items: center; justify-content: space-between; gap: var(--e3); }
+.esq-fila-titulo { width: 45%; height: 20px; }
+.esq-fila-etiqueta { width: 22%; height: 20px; }
+.esq-fila-sub { width: 70%; }
+
+/* Hoja de datos (Perfil, Configuración) */
+.esq-pagina { min-height: 50vh; }
+.esq-hoja-cabo { display: flex; flex-direction: column; gap: var(--e2); }
+.esq-hoja-nombre { width: 60%; height: 26px; }
+.esq-hoja-rol { width: 28%; height: 20px; }
+.esq-hoja-cuerpo { display: flex; flex-direction: column; gap: var(--e4); padding: var(--e4); }
+.esq-hoja-renglon { display: flex; flex-direction: column; gap: var(--e1); }
+.esq-hoja-clave { width: 30%; height: 12px; }
+.esq-hoja-valor { width: 65%; height: 18px; }
+
+/* Mapa: papel con el esqueleto de la barra de chips y de la hoja inferior */
+.esq-mapa { position: relative; flex: 1; display: flex; flex-direction: column; background: var(--papel-hundido); }
+.esq-mapa-chips { display: flex; gap: var(--e2); padding: var(--e3) var(--e4); background: var(--papel); border-bottom: var(--grosor) solid var(--trazo); }
+.esq-chip { width: 96px; height: var(--toque); }
+.esq-chip--corto { width: 64px; }
+.esq-mapa-hoja { position: absolute; left: 0; right: 0; bottom: 0; margin: 0; }
+.esq-mapa-aviso { position: absolute; left: var(--e4); right: var(--e4); top: 50%; text-align: center; font-weight: 600; }
+@media (min-width: 900px) {
+  .esq-mapa-hoja { left: var(--e4); right: auto; bottom: var(--e4); width: min(440px, calc(100% - var(--e5) * 2)); }
+}

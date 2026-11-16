@@ -11,13 +11,20 @@ Aplicacion web para monitoreo de buses en tiempo real con:
 
 Indice principal: docs/00_indice_entrega.md
 
-## Arquitectura para sustentacion (sin tarjeta)
+## Arquitectura de despliegue (nube gratuita)
 
-- Frontend: Vercel (publico y estable)
-- Backend: local en tu PC + tunel ngrok (publico durante la demo)
-- Base de datos: PostgreSQL (el contenedor de `docker-compose.yml` en local, Neon en la nube)
+| Capa | Servicio | URL |
+|---|---|---|
+| Frontend (SPA/PWA) | Cloudflare (Workers, assets estaticos) | https://upc-track.manuel0726tocora.workers.dev |
+| Backend (API + Socket.IO) | Render, Web Service plan free | https://upc-track.onrender.com |
+| Base de datos | Neon (PostgreSQL, plan free) | Cadena `DATABASE_URL` solo en variables de Render |
 
-Esta arquitectura es suficiente para presentar y que tus companeras accedan por URL publica el dia de la sustentacion.
+Limitaciones del plan gratuito que conviene conocer:
+
+- **Render suspende el servicio tras 15 min sin trafico entrante** y tarda ~1 min en despertar (se midieron ~20 s). Los mensajes WebSocket entrantes cuentan como actividad. Mitigacion: issue D06 (estado «servidor despertando»).
+- **Render free tiene sistema de archivos efimero** y puede reiniciarse en cualquier momento: el backend no guarda estado en disco y el socket debe reconectar solo.
+- **Neon suspende el computo tras 5 min sin conexiones** y despierta en pocos segundos; la primera consulta tras la suspension es mas lenta.
+- Render free ofrece 750 h/mes por workspace: no crear otro servicio free en el mismo workspace.
 
 ## Arranque local
 
@@ -49,7 +56,7 @@ Usuarios demo (clave `Admin123*`): `admin`, `conductor`, `estudiante`.
 
 Ejemplo de `CLIENT_URL`:
 
-`http://localhost:5173,https://monitoreo-buses.vercel.app`
+`https://upc-track.manuel0726tocora.workers.dev`
 
 ### Frontend (`frontend/.env.example`)
 
@@ -57,51 +64,82 @@ Ejemplo de `CLIENT_URL`:
 
 Ejemplo:
 
-`VITE_API_URL=https://tu-subdominio.ngrok-free.app`
+`VITE_API_URL=https://upc-track.onrender.com`
 
-## Deploy del frontend en Vercel
+## Despliegue
 
-1. Importar el repositorio en Vercel.
-2. Configurar Root Directory: `frontend`.
-3. Build command: `npm run build`.
-4. Output directory: `dist`.
-5. Crear variable de entorno en Vercel:
-   - `VITE_API_URL` (dejarla temporalmente con un placeholder)
-6. Deploy inicial.
+### Backend en Render (Web Service)
 
-El archivo `frontend/vercel.json` ya incluye rewrite de SPA para rutas de React Router.
+Configurado manualmente como Web Service (no como Blueprint):
 
-## Publicar backend con ngrok (sin tarjeta)
+- Root Directory: `backend`
+- Build command: `npm ci`
+- Start command: `npm start`
+- Health check path: `/api/health`
+- Variables de entorno: `DATABASE_URL` (Neon, con `sslmode=require`), `JWT_SECRET` (valor propio, distinto al de desarrollo), `JWT_EXPIRES_IN`, `CLIENT_URL` (dominio del frontend en Cloudflare).
 
-1. Iniciar backend local en `3000`:
-   - `cd backend`
-   - `npm run dev`
-2. En otra terminal, abrir tunel:
-   - `ngrok http 3000`
-3. Copiar la URL publica HTTPS de ngrok, por ejemplo:
-   - `https://abc123.ngrok-free.app`
-4. Probar salud:
-   - `https://abc123.ngrok-free.app/api/health`
-5. En Vercel, actualizar `VITE_API_URL` con esa URL.
-6. Redeploy del frontend.
+Los origenes de la app nativa (`https://localhost`, `capacitor://localhost`) ya estan permitidos en `backend/src/utils/cors.js`; no hace falta ponerlos en `CLIENT_URL`.
+
+### Frontend en Cloudflare
+
+- Root Directory: `frontend`
+- Build command: `npm run build`
+- Output directory: `dist`
+- Variable de build: `VITE_API_URL=https://upc-track.onrender.com` (se incrusta al compilar: si cambia, hay que volver a desplegar).
+- Las rutas de React Router deben caer en `index.html` (fallback de SPA).
+
+### Usuarios en produccion
+
+`seed.prod.sql` no crea usuarios con clave publica. Para crear o restablecer uno:
+
+```bash
+cd backend
+USUARIO_CLAVE='clave-de-12-o-mas-caracteres' npm run db:usuario -- --nombre "Administrador" --usuario admin --correo admin@unicesar.edu.co --tipo admin
+```
 
 ## Checklist de sustentacion
 
-1. Backend responde `200` en `/api/health`.
-2. Frontend carga y permite login con URL publica.
-3. `CLIENT_URL` del backend contiene el dominio de Vercel.
-4. CORS y Socket.IO aceptan origen del frontend.
-5. Flujo conductor -> GPS -> mapa estudiante validado en dominio publico.
+1. `https://upc-track.onrender.com/api/health` responde `200` (la primera vez puede tardar ~1 min por el arranque en frio: abrirlo antes de empezar).
+2. El frontend carga y permite login con los tres roles.
+3. `CLIENT_URL` de Render contiene el dominio de Cloudflare.
+4. CORS y Socket.IO aceptan el origen del frontend.
+5. Flujo conductor -> GPS -> mapa estudiante validado en el dominio publico.
 
-## Redespliegue rapido el dia de la demo
+## App Android (Capacitor)
 
-1. Si cambia la URL de ngrok, actualizar `VITE_API_URL` en Vercel y redeploy.
-2. Antes de cada prueba, validar local:
-   - `npm run dev` (raiz)
-   - `npm run build --prefix frontend`
-3. Tener abierta una terminal fija para backend y otra para ngrok.
-4. No cerrar ngrok durante la sustentacion.
-5. Llevar una URL de respaldo (nuevo tunel ngrok listo para cambiar rapido).
+El frontend se empaqueta como app Android con Capacitor 7 (`frontend/android/`).
+
+Requisitos del entorno:
+
+- Node >= 20
+- JDK 21 exacto (p. ej. Temurin 21: `winget install EclipseAdoptium.Temurin.21.JDK`). El «jbr» de Android Studio reciente es JDK 25 y Gradle 8.11 no lo soporta; Capacitor 7 no compila con JDK 22+. Para compilar por terminal: `JAVA_HOME` = el JDK 21
+- Android Studio Ladybug 2024.2.1 o superior, con Android SDK Platform 35 y un emulador (AVD) o un telefono con depuracion USB
+- Variable `ANDROID_HOME` apuntando al SDK (en Windows: `%LOCALAPPDATA%\Android\Sdk`)
+
+Pasos:
+
+1. `cd frontend && npm ci`
+2. Crear `frontend/.env.native` (no se versiona) con `VITE_API_URL=https://upc-track.onrender.com`
+3. `npm run cap:sync` (compila en modo nativo y copia a `android/`)
+4. `npm run cap:open` (abre Android Studio, en Settings > Build Tools > Gradle poner el JDK 21) y ejecutar en el emulador con el boton Run. Por terminal: `cd android && .\gradlew.bat assembleDebug` y `adb install -r app/build/outputs/apk/debug/app-debug.apk`
+
+`appId`: `co.edu.unicesar.upctrack` · `minSdk` 23 · `targetSdk` 35. El backend ya acepta los origenes `https://localhost` y `capacitor://localhost` (ver `backend/src/utils/cors.js`). Tras cambiar el frontend hay que volver a ejecutar `npm run cap:sync`.
+
+### APK firmado (release)
+
+La keystore del equipo **no está en el repositorio** (`*.jks`, `*.keystore` y `keystore.properties` están ignorados). Se guarda fuera del repo, con copia de respaldo: si se pierde, ningún APK nuevo podrá instalarse como actualización del anterior.
+
+- **En CI** (`.github/workflows/android.yml`): *Actions > Android APK > Run workflow* deja el APK como artefacto; un tag `vX.Y.Z` además lo adjunta a la Release de GitHub. Usa los secretos `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` y `ANDROID_KEY_PASSWORD`. `versionCode` es el número de corrida y `versionName` el tag sin la «v».
+- **En local**: crear `frontend/android/keystore.properties` (o exportar las variables `UPCTRACK_KEYSTORE_FILE`, `UPCTRACK_KEYSTORE_PASSWORD`, `UPCTRACK_KEY_ALIAS`, `UPCTRACK_KEY_PASSWORD`):
+
+  ```properties
+  storeFile=C:/ruta/fuera/del/repo/upctrack-release.jks
+  storePassword=...
+  keyAlias=upctrack
+  keyPassword=...
+  ```
+
+  y ejecutar `npm run cap:sync && cd android && .\gradlew.bat assembleRelease`. El APK queda en `app/build/outputs/apk/release/app-release.apk`. Sin keystore, Gradle genera `app-release-unsigned.apk`, que Android no instala.
 
 ## Desarrollo local
 
@@ -124,6 +162,6 @@ El archivo `frontend/vercel.json` ya incluye rewrite de SPA para rutas de React 
 
 ## Evidencia para Issue #25
 
-- Configuracion de frontend cloud (SPA): `frontend/vercel.json`
+- Configuracion de frontend cloud (SPA): ver seccion «Despliegue»
 - Variables de entorno documentadas: `backend/.env.example`, `frontend/.env.example`
 - Instrucciones de deploy y redespliegue para sustentacion: este README

@@ -5,6 +5,7 @@ import Layout from '../components/shared/Layout'
 import EstadoLista from '../components/listas/EstadoLista'
 import api from '../services/api'
 import socket from '../services/socket'
+import { useAlReanudar } from '../hooks/useCicloVida'
 import { textoHace } from '../utils/formato'
 import '../components/mapa/Mapa.css'
 import '../components/listas/Listas.css'
@@ -58,6 +59,9 @@ export default function Notificaciones() {
     socket.on('notificacion:nueva', alLlegar)
     return () => socket.off('notificacion:nueva', alLlegar)
   }, [cargar])
+
+  // Al volver de segundo plano se recarga la lista (los eventos perdidos no se reenvían)
+  useAlReanudar(cargar)
 
   // «Hace N min» se refresca cada 30 s
   useEffect(() => {

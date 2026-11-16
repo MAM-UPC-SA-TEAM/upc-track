@@ -2,6 +2,7 @@
 import { Usuario } from '../models/Usuario.js'
 import bcrypt from 'bcryptjs'
 import { pool, esDuplicado } from '../config/database.js'
+import { generarToken } from '../utils/jwt.js'
 
 // GET /api/usuarios
 export async function listarUsuarios(_req, res) {
@@ -82,10 +83,16 @@ export async function editarUsuario(req, res) {
 
 const REGEX_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-// PATCH /api/usuarios/perfil  — el propio usuario edita sus datos
+// 3 a 20 caracteres: letras, números, punto, guion y guion bajo (las mismas reglas que el registro)
+const REGEX_NOMBRE_USUARIO = /^[a-zA-Z0-9._-]{3,20}$/
+
+// PATCH /api/usuarios/perfil  — el propio usuario edita sus datos (nombre, correo y, opcionalmente, su nombre de usuario).
+// Devuelve un token nuevo: el JWT lleva nombre y nombre_usuario, y la sesión abierta no debe quedarse con los viejos.
 export async function editarPerfil(req, res) {
   const id = req.usuario.id_usuario
   const { nombre, correo } = req.body
+  const cambiaUsuario = req.body.nombre_usuario !== undefined
+  const nombre_usuario = cambiaUsuario ? String(req.body.nombre_usuario).trim().toLowerCase() : undefined
 
   if (!nombre?.trim()) {
     return res.status(400).json({ error: 'El nombre es obligatorio' })
@@ -93,19 +100,39 @@ export async function editarPerfil(req, res) {
   if (correo && !REGEX_CORREO.test(correo)) {
     return res.status(400).json({ error: 'El correo no tiene un formato válido' })
   }
+  if (cambiaUsuario && !REGEX_NOMBRE_USUARIO.test(nombre_usuario)) {
+    return res.status(400).json({ error: 'El nombre de usuario debe tener de 3 a 20 caracteres: letras, números, punto, guion o guion bajo' })
+  }
 
   try {
-    await pool.query(
-      `UPDATE usuario SET nombre=$1, correo=$2 WHERE id_usuario=$3`,
-      [nombre.trim(), correo, id]
-    )
+    if (cambiaUsuario) {
+      await pool.query(
+        `UPDATE usuario SET nombre=$1, correo=COALESCE($2, correo), nombre_usuario=$3 WHERE id_usuario=$4`,
+        [nombre.trim(), correo, nombre_usuario, id]
+      )
+    } else {
+      await pool.query(
+        `UPDATE usuario SET nombre=$1, correo=COALESCE($2, correo) WHERE id_usuario=$3`,
+        [nombre.trim(), correo, id]
+      )
+    }
     const { rows: [usuario] } = await pool.query(
       `SELECT id_usuario, nombre, nombre_usuario, correo, tipo_usuario FROM usuario WHERE id_usuario=$1`,
       [id]
     )
-    return res.status(200).json({ ok: true, usuario })
+    const token = generarToken({
+      id_usuario:     usuario.id_usuario,
+      nombre:         usuario.nombre,
+      nombre_usuario: usuario.nombre_usuario,
+      correo:         usuario.correo,
+      tipo_usuario:   usuario.tipo_usuario,
+    })
+    return res.status(200).json({ ok: true, usuario, token })
   } catch (error) {
     if (esDuplicado(error)) {
+      if (error.constraint?.includes('nombre_usuario')) {
+        return res.status(409).json({ error: 'Ese nombre de usuario ya está en uso' })
+      }
       return res.status(400).json({ error: 'Ese correo ya está en uso' })
     }
     console.error('Error editando perfil:', error)

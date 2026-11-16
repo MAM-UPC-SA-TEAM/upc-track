@@ -7,17 +7,20 @@ import L from 'leaflet'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMagnifyingGlass, faLocationDot, faBus, faRotate } from '@fortawesome/free-solid-svg-icons'
 import Layout from '../components/shared/Layout'
+import { iconoBus, iconoBusViejo } from '../utils/marcadores'
+import MarcadorSuave from '../components/mapa/MarcadorSuave'
 import ChipsRutas from '../components/mapa/ChipsRutas'
 import HojaBuses from '../components/mapa/HojaBuses'
 import TalonMapa from '../components/mapa/TalonMapa'
 import { FRESCO_MAX_S, etiquetaBus } from '../utils/estadoBus'
-import socket from '../services/socket'
+import socket, { unirseRuta } from '../services/socket'
+import { useAlReanudar, useEnLinea } from '../hooks/useCicloVida'
 import api from '../services/api'
-import { distanciaKm } from '../utils/calcularETA'
+import { distanciaKm, minutosHasta, tieneVelocidadReciente } from '../utils/calcularETA'
+import { EsqueletoMapa } from '../components/shared/Esqueleto'
 import './MapaTiempoReal.css'
 
 const UMBRAL_SIN_SENAL_MS = 60000
-const VELOCIDAD_KMH = 25         // ETA por distancia en línea recta (se dice en pantalla)
 const MAX_ETIQUETAS_BUS = 3      // con más buses solo se rotula el seleccionado
 
 // Un trazo verde por ruta; con varias se distinguen por el estilo de la línea, no por una paleta de colores
@@ -36,8 +39,6 @@ const icono = (clase, tam = 44) => L.divIcon({
   iconSize: [tam, tam],
   iconAnchor: [tam / 2, tam / 2],
 })
-const iconoBus = icono('mk-bus')
-const iconoBusViejo = icono('mk-bus mk-bus--viejo')
 const iconoParadaSel = icono('mk-parada')
 
 const num = v => Number(v)
@@ -50,13 +51,15 @@ const paradaActiva = p => p.activa !== false && p.activa !== 0
 function masCercano(punto, buses, idRuta) {
   let mejor = null
   let dm = Infinity
+  let min = Infinity
   for (const b of buses) {
     if (!tieneCoordenadas(b) || b.estado === 'fuera_de_servicio') continue
     if (idRuta != null && b.id_ruta !== idRuta) continue // el ETA de una parada solo lo dan los buses de su ruta
     const d = distanciaKm(num(b.lat), num(b.lng), num(punto.lat), num(punto.lng))
-    if (d < dm) { dm = d; mejor = b }
+    const m = minutosHasta(d, b) // con la velocidad reciente de ese bus: llega antes el de menor tiempo, no solo el más cercano
+    if (m < min || (m === min && d < dm)) { dm = d; min = m; mejor = b }
   }
-  return mejor ? { bus: mejor, km: dm, min: Math.round((dm / VELOCIDAD_KMH) * 60) } : null
+  return mejor ? { bus: mejor, km: dm, min } : null
 }
 
 // Mueve el mapa para que lo seleccionado quede a la vista por encima de la hoja (se mide su altura real)
@@ -103,7 +106,7 @@ export default function MapaTiempoReal() {
   const [geometriaRuta, setGeometriaRuta] = useState([])
   const [geometriasRutas, setGeometriasRutas] = useState([])
   const [cargandoRuta, setCargandoRuta] = useState(false)
-  const [enLinea, setEnLinea] = useState(() => navigator.onLine)
+  const enLinea = useEnLinea()
   const [ahora, setAhora] = useState(() => Date.now())
 
   const ultimaUbicacion = useRef({})
@@ -143,17 +146,19 @@ export default function MapaTiempoReal() {
       // Preselección por URL (?ruta=X ?bus=X); si no, la primera ruta activa con bus
       const rutaParam = searchParams.get('ruta')
       const busParam = searchParams.get('bus')
+      // Con ?bus=X sin ?ruta, la ruta es la de ese bus (si no, el filtro por ruta lo ocultaría)
+      const busPedido = busParam ? listaBuses.find(b => b.id_bus === Number(busParam)) : null
+      const rutaDelBus = busPedido ? listaRutas.find(r => r.id_ruta === busPedido.id_ruta) : null
       if (rutaParam) {
         const ruta = listaRutas.find(r => r.id_ruta === Number(rutaParam))
         if (ruta) await cargarParadas(ruta)
+      } else if (rutaDelBus) {
+        await cargarParadas(rutaDelBus)
       } else {
         const rutaActiva = listaRutas.find(r => esActiva(r) && listaBuses.some(b => b.id_ruta === r.id_ruta)) || listaRutas.find(esActiva)
         if (rutaActiva) await cargarParadas(rutaActiva)
       }
-      if (busParam) {
-        const bus = listaBuses.find(b => b.id_bus === Number(busParam))
-        if (bus) setBusSeleccionado(bus)
-      }
+      if (busPedido) setBusSeleccionado(busPedido)
     } catch (err) {
       console.error('Error cargando mapa:', err)
       setErrorCarga(true)
@@ -165,20 +170,19 @@ export default function MapaTiempoReal() {
 
   // ── Conexión y reloj (la frescura se mide con el tiempo, no solo con eventos) ──
   useEffect(() => {
-    const subir = () => setEnLinea(true)
-    const bajar = () => setEnLinea(false)
-    window.addEventListener('online', subir)
-    window.addEventListener('offline', bajar)
     const reloj = setInterval(() => setAhora(Date.now()), 1000)
-    return () => { window.removeEventListener('online', subir); window.removeEventListener('offline', bajar); clearInterval(reloj) }
+    return () => clearInterval(reloj)
   }, [])
+
+  // Al volver de segundo plano las posiciones guardadas ya son viejas: se piden de nuevo
+  useAlReanudar(() => { refrescarBusesActivos().catch(() => {}) })
 
   // ── Socket.io ──────────────────────────────────────────────
   useEffect(() => {
     if (!socket.connected) socket.connect()
-    rutas.filter(esActiva).forEach(r => socket.emit('join:ruta', { id_ruta: r.id_ruta }))
+    rutas.filter(esActiva).forEach(r => unirseRuta(Number(r.id_ruta)))
 
-    socket.on('bus:location', ({ id_bus, lat, lng }) => {
+    socket.on('bus:location', ({ id_bus, lat, lng, velocidad_kmh }) => {
       ultimaUbicacion.current[id_bus] = Date.now()
       const latNum = num(lat)
       const lngNum = num(lng)
@@ -186,8 +190,8 @@ export default function MapaTiempoReal() {
         refrescarBusesActivos().catch(() => {}) // bus nuevo: se re-sincroniza desde el backend
         return
       }
-      setBuses(prev => prev.map(b => (b.id_bus === id_bus ? { ...b, estado: b.estado === 'sin_senal' ? 'en_recorrido' : b.estado, lat: latNum, lng: lngNum } : b)))
-      setBusSeleccionado(prev => (prev?.id_bus === id_bus ? { ...prev, lat: latNum, lng: lngNum, estado: prev.estado === 'sin_senal' ? 'en_recorrido' : prev.estado } : prev))
+      setBuses(prev => prev.map(b => (b.id_bus === id_bus ? { ...b, estado: b.estado === 'sin_senal' ? 'en_recorrido' : b.estado, lat: latNum, lng: lngNum, velocidad_kmh: velocidad_kmh ?? b.velocidad_kmh } : b)))
+      setBusSeleccionado(prev => (prev?.id_bus === id_bus ? { ...prev, lat: latNum, lng: lngNum, velocidad_kmh: velocidad_kmh ?? prev.velocidad_kmh, estado: prev.estado === 'sin_senal' ? 'en_recorrido' : prev.estado } : prev))
     })
 
     socket.on('bus:estado', ({ id_bus, estado }) => {
@@ -346,6 +350,7 @@ export default function MapaTiempoReal() {
       frescura: e && !viejo ? Math.max(0.06, 1 - edad / FRESCO_MAX_S) : 1,
       lineas: e ? [[e.bus.nombre_ruta, e.bus.nombre].filter(Boolean).join(' · '), `a ${e.km.toLocaleString('es-CO', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} km`] : [],
       etiqueta: e ? etiquetaBus(e.bus, edad) : null,
+      conVelocidad: e ? tieneVelocidadReciente(e.bus) : false,
       mensajeVacio: 'Ningún bus transmite en esta ruta ahora. Revisa los horarios.',
     }
   } else if (busSeleccionado) {
@@ -357,11 +362,12 @@ export default function MapaTiempoReal() {
       icono: faBus,
       titulo: `${b.nombre}${b.placa ? ' · ' + b.placa : ''}`,
       destino: proxima ? `Próxima parada: ${proxima.p.nombre}` : null,
-      minutos: proxima && !fuera ? Math.round((proxima.d / VELOCIDAD_KMH) * 60) : null,
+      minutos: proxima && !fuera ? minutosHasta(proxima.d, b) : null,
       fase: fuera || !proxima ? 'sin-buses' : !enLinea ? 'sin-red' : viejo ? 'viejo' : 'vivo',
       frescura: !viejo && !fuera ? Math.max(0.06, 1 - edad / FRESCO_MAX_S) : 1,
       lineas: [b.nombre_ruta, b.nombre_conductor && `Conductor: ${b.nombre_conductor}`].filter(Boolean),
       etiqueta: etiquetaBus(b, edad),
+      conVelocidad: tieneVelocidadReciente(b),
       mensajeVacio: fuera ? 'Este bus está fuera de servicio.' : 'No se conoce la próxima parada de este bus.',
     }
   }
@@ -377,7 +383,7 @@ export default function MapaTiempoReal() {
   if (cargando) {
     return (
       <Layout titulo="Mapa" sinPadding>
-        <div className="mapa-aviso" role="status"><span className="talon-esqueleto" /><p>Cargando el mapa…</p></div>
+        <EsqueletoMapa />
       </Layout>
     )
   }
@@ -466,14 +472,14 @@ export default function MapaTiempoReal() {
                 const viejo = b.estado === 'sin_senal' || edadBus(b) > FRESCO_MAX_S
                 const rotular = rotularTodos || busSeleccionado?.id_bus === b.id_bus
                 return (
-                  <Marker key={b.id_bus} position={[b.lat, b.lng]} icon={viejo ? iconoBusViejo : iconoBus}
+                  <MarcadorSuave key={b.id_bus} position={[b.lat, b.lng]} icon={viejo ? iconoBusViejo : iconoBus}
                     eventHandlers={{ click: () => { setBusSeleccionado(b); setParadaSeleccionada(null) } }}>
                     {rotular && (
-                      <Tooltip permanent direction="top" offset={[0, -16]} className="etiqueta-mapa">
+                      <Tooltip permanent direction="top" offset={[0, -22]} className="etiqueta-mapa">
                         {viejo ? `${b.nombre} · sin señal` : b.nombre}
                       </Tooltip>
                     )}
-                  </Marker>
+                  </MarcadorSuave>
                 )
               })}
             </MapContainer>

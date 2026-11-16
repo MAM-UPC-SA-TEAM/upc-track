@@ -11,13 +11,18 @@ function haceTexto(fecha) {
   return `hace ${Math.floor(min / 60)} h`
 }
 
-// Aviso del conductor a su ruta: un talón amarillo (relleno, no borde de color).
+const ROTULOS = { retraso: 'Retraso', cambio_ruta: 'Cambio de ruta' }
+
+// Aviso del conductor a su ruta: verde suave si informa; con franja amarilla y rótulo si es retraso o cambio de ruta.
 export default function AvisoConductor({ aviso }) {
   if (!aviso) return null
   return (
-    <aside className="aviso" aria-label="Aviso del conductor">
+    <aside className={`aviso aviso--${aviso.tipo}`} aria-label="Aviso del conductor">
       <FontAwesomeIcon icon={ICONOS[aviso.tipo] || faCircleInfo} className="aviso-icono" />
-      <p className="aviso-texto">{aviso.mensaje}</p>
+      <div className="aviso-cuerpo">
+        <span className="aviso-rotulo">{ROTULOS[aviso.tipo] || 'Información'}</span>
+        <p className="aviso-texto">{aviso.mensaje}</p>
+      </div>
       <time className="aviso-hace dato" dateTime={aviso.fecha_hora}>{haceTexto(aviso.fecha_hora)}</time>
     </aside>
   )

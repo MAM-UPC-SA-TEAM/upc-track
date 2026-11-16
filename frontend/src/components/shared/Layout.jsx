@@ -64,49 +64,43 @@ function reproducirSonidoNotif() {
   }
 }
 
-async function solicitarPermisoNotificacion() {
-  if (!('Notification' in window)) return
-  if (Notification.permission === 'default') {
-    await Notification.requestPermission()
-  }
-}
-
-function mostrarNotificacionSistema(titulo, mensaje) {
-  if (Notification.permission !== 'granted') return
-  new Notification(titulo, {
-    body:    mensaje,
-    icon:    '/favicon.ico',
-    silent:  true, // el sonido lo maneja nuestra función
-    tag:     'bus-notif', // reemplaza la anterior en vez de apilar
-  })
-}
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faHouse, faLocationDot, faRoute, faBus,
   faBell, faUser, faUsers, faRightFromBracket,
-  faMoon, faSun, faMap, faGear,
+  faMoon, faSun, faMap, faGear, faBullhorn,
   faTriangleExclamation, faRotate, faCircleCheck,
   faDownload, faWifi, faArrowsRotate, faXmark
 } from '@fortawesome/free-solid-svg-icons'
-import logoUpc from '../../assets/logo-upc.png'
+import LogoTema from './LogoTema'
+import PanelDesplegable from './PanelDesplegable'
+import logoUpc from '../../assets/logo-upc-aguachica.png'
+import logoUpcOscuro from '../../assets/logo-upc-aguachica-oscuro.png'
 import api from '../../services/api'
-import socket from '../../services/socket'
+import socket, { unirseRuta, salirRuta } from '../../services/socket'
+import { useCerrarConAtras } from '../../hooks/useCicloVida'
+import { useCerrarRecorrido } from '../../context/RecorridoContext'
+import { enPrimerPlano } from '../../services/cicloVida'
+import { notificador } from '../../services/notificaciones'
 import { usePWA } from '../../hooks/usePWA'
+import { aplicarTema } from '../../utils/tema'
+import { useTema } from '../../hooks/useTema'
 import './Layout.css'
 
 const navEstudiante = [
   { path: '/inicio',         icono: faHouse,       label: 'Inicio' },
   { path: '/mapa',           icono: faLocationDot, label: 'Mapa en tiempo real', corto: 'Mapa' },
   { path: '/rutas',          icono: faRoute,       label: 'Rutas' },
-  { path: '/buses',          icono: faBus,         label: 'Buses', soloEscritorio: true },
-  { path: '/notificaciones', icono: faBell,        label: 'Alertas' },
-  { path: '/perfil',         icono: faUser,        label: 'Perfil' },
+  { path: '/buses',          icono: faBus,         label: 'Buses' },
+  // En el móvil las alertas viven en la campana de la barra superior (con su contador); aquí solo en escritorio
+  { path: '/notificaciones', icono: faBell,        label: 'Alertas', soloEscritorio: true },
+  { path: '/perfil',         icono: faUser,        label: 'Perfil', tambien: '/configuracion' },
 ]
 
 const navConductor = [
   { path: '/conductor',      icono: faMap,    label: 'Mi recorrido' },
-  { path: '/notificaciones', icono: faBell,   label: 'Alertas' },
-  { path: '/perfil',         icono: faUser,   label: 'Perfil' },
+  { path: '/avisar',         icono: faBullhorn, label: 'Avisar' },
+  { path: '/perfil',         icono: faUser,   label: 'Perfil', tambien: '/configuracion' },
 ]
 
 const navAdmin = [
@@ -137,16 +131,18 @@ function formatearHace(fechaHora) {
 
 export default function Layout({ children, titulo, sinPadding = false }) {
   const { usuario, logout } = useAuth()
+  const cerrarRecorrido = useCerrarRecorrido()
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const rutaActualRef = useRef(pathname)
   useEffect(() => { rutaActualRef.current = pathname }, [pathname])
-  const [oscuro, setOscuro] = useState(() => localStorage.getItem('tema') === 'oscuro')
+  const { oscuro, alternar: alternarTema } = useTema()
   const [perfilMenu, setPerfilMenu] = useState(false)
   const [notifPanel, setNotifPanel] = useState(false)
   const [notifs, setNotifs] = useState([])
   const [toasts, setToasts] = useState([])
   const [bannerInstalacion, setBannerInstalacion] = useState(false)
+  const [bannerAvisos, setBannerAvisos] = useState(false)
   const perfilRef = useRef(null)
   const notifRef = useRef(null)
 
@@ -159,10 +155,8 @@ export default function Layout({ children, titulo, sinPadding = false }) {
     return () => clearTimeout(t)
   }, [puedeInstalar])
 
-  useEffect(() => {
-    document.body.dataset.tema = oscuro ? 'oscuro' : 'claro'
-    localStorage.setItem('tema', oscuro ? 'oscuro' : 'claro')
-  }, [oscuro])
+  // La preferencia solo se guarda cuando el usuario la cambia (useTema); aquí únicamente se aplica
+  useEffect(() => { aplicarTema(oscuro) }, [oscuro])
 
   // Cargar notificaciones al abrir panel
   useEffect(() => {
@@ -178,25 +172,53 @@ export default function Layout({ children, titulo, sinPadding = false }) {
       .catch(() => setNotifs([]))
   }, [notifPanel])
 
-  // Pedir permiso de notificaciones del sistema al montar
+  // El permiso de notificaciones no se pide al montar: el estudiante lo concede desde
+  // un aviso propio, cuando ya está usando la app (y puede descartarlo).
+  const esEstudiante = usuario?.tipo_usuario === 'estudiante'
   useEffect(() => {
-    solicitarPermisoNotificacion()
-  }, [])
+    if (!esEstudiante) return undefined
+    try { if (localStorage.getItem('avisos-descartado')) return undefined } catch { /* sin almacenamiento */ }
+    let vigente = true
+    const t = setTimeout(() => {
+      notificador.estado().then(e => { if (vigente && e === 'pendiente') setBannerAvisos(true) })
+    }, 4000)
+    return () => { vigente = false; clearTimeout(t) }
+  }, [esEstudiante])
 
-  // Nuevas notificaciones en tiempo real
+  async function activarAvisos() {
+    setBannerAvisos(false)
+    await notificador.pedirPermiso()
+    try { localStorage.setItem('avisos-descartado', '1') } catch { /* sin almacenamiento */ }
+  }
+
+  function descartarAvisos() {
+    setBannerAvisos(false)
+    try { localStorage.setItem('avisos-descartado', '1') } catch { /* sin almacenamiento */ }
+  }
+
+  // Tocar la notificación del sistema lleva a la lista de avisos
+  useEffect(() => notificador.alTocar(() => navigate('/notificaciones')), [navigate])
+
+  // Nuevas notificaciones en tiempo real. Con la app a la vista: toast y sonido;
+  // en segundo plano: notificación del sistema (nativa en el APK).
   useEffect(() => {
-    socket.on('notificacion:nueva', (n) => {
+    const alLlegar = (n) => {
       setNotifs(prev => [{ ...n, hace: 'Ahora' }, ...prev].slice(0, 6))
-      reproducirSonidoNotif()
       const titulo = n.nombre_ruta ? `${tituloNotif(n.tipo)} — ${n.nombre_ruta}` : tituloNotif(n.tipo)
-      mostrarNotificacionSistema(titulo, n.mensaje)
 
+      if (!enPrimerPlano()) {
+        notificador.mostrar({ titulo, cuerpo: n.mensaje }).catch(() => {})
+        return
+      }
+      reproducirSonidoNotif()
       if (rutaActualRef.current === '/inicio') return // el aviso ya se ve en la propia pantalla de inicio
       const id = Date.now()
       setToasts(prev => [...prev, { ...n, id, titulo }])
       setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 5000)
-    })
-    return () => socket.off('notificacion:nueva')
+    }
+    // Manejador propio: off(evento) sin función quitaría también los de otras pantallas
+    socket.on('notificacion:nueva', alLlegar)
+    return () => socket.off('notificacion:nueva', alLlegar)
   }, [])
 
   // Suscribirse a rooms de rutas activas para recibir notificaciones en tiempo real
@@ -220,9 +242,7 @@ export default function Layout({ children, titulo, sinPadding = false }) {
           .map(r => Number(r.id_ruta))
           .filter(id => Number.isFinite(id))
 
-        rutasSuscritas.forEach((id_ruta) => {
-          socket.emit('join:ruta', { id_ruta })
-        })
+        rutasSuscritas.forEach(unirseRuta)
       } catch (error) {
         console.error('No se pudieron suscribir rutas para notificaciones:', error)
       }
@@ -232,11 +252,12 @@ export default function Layout({ children, titulo, sinPadding = false }) {
 
     return () => {
       cancelado = true
-      rutasSuscritas.forEach((id_ruta) => {
-        socket.emit('leave:ruta', { id_ruta })
-      })
+      rutasSuscritas.forEach(salirRuta)
     }
   }, [usuario])
+
+  // El botón atrás de Android cierra el panel abierto antes de navegar
+  useCerrarConAtras(perfilMenu || notifPanel, () => { setPerfilMenu(false); setNotifPanel(false) })
 
   // Escape cierra los paneles abiertos
   useEffect(() => {
@@ -257,7 +278,8 @@ export default function Layout({ children, titulo, sinPadding = false }) {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  function handleLogout() {
+  async function handleLogout() {
+    await cerrarRecorrido() // si el conductor sigue en recorrido, el bus queda inactivo antes de perder el token
     logout()
     navigate('/login')
   }
@@ -278,7 +300,7 @@ export default function Layout({ children, titulo, sinPadding = false }) {
       {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <img src={logoUpc} alt="Universidad Popular del Cesar" />
+          <LogoTema claro={logoUpc} oscuro={logoUpcOscuro} alt="Universidad Popular del Cesar, Seccional Aguachica" />
         </div>
 
         <nav className="sidebar-nav" aria-label="Principal">
@@ -287,7 +309,7 @@ export default function Layout({ children, titulo, sinPadding = false }) {
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `sidebar-link ${isActive ? 'sidebar-link--activo' : ''}`
+                `sidebar-link ${isActive || item.tambien === pathname ? 'sidebar-link--activo' : ''}`
               }
             >
               <FontAwesomeIcon icon={item.icono} className="sidebar-link-icono" />
@@ -305,65 +327,65 @@ export default function Layout({ children, titulo, sinPadding = false }) {
       {/* Main */}
       <div className="layout-main">
         <header className="topbar">
-          <img className="topbar-marca" src="/brand/upc-track-mark.png" alt="" width="36" height="36" />
+          <LogoTema className="topbar-marca" claro="/brand/upc-track-mark.png" oscuro="/brand/upc-track-mark-oscuro.png" alt="" width="36" height="36" />
           <h1 className="topbar-titulo">{titulo || 'UpcTrack'}</h1>
 
           <div className="topbar-acciones">
             <button
               className="topbar-btn"
-              onClick={() => setOscuro(!oscuro)}
+              onClick={alternarTema}
               aria-label={oscuro ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}
             >
               <FontAwesomeIcon icon={oscuro ? faSun : faMoon} />
             </button>
 
-            {/* Botón notificaciones */}
-            <div className="topbar-dropdown-wrap" ref={notifRef}>
-              <button
-                className="topbar-btn topbar-btn--notif"
-                onClick={() => { setNotifPanel(v => !v); setPerfilMenu(false) }}
-                aria-label={sinLeer > 0 ? `Notificaciones, ${sinLeer} recientes` : 'Notificaciones'}
-                aria-expanded={notifPanel}
-              >
-                <FontAwesomeIcon icon={faBell} />
-                {sinLeer > 0 && <span className="topbar-badge" aria-hidden="true">{sinLeer}</span>}
-              </button>
+            {/* Botón notificaciones: el conductor no recibe avisos (los emite desde «Avisar») */}
+            {rol !== 'conductor' && (
+              <div className="topbar-dropdown-wrap" ref={notifRef}>
+                <button
+                  className="topbar-btn topbar-btn--notif"
+                  onClick={() => { setNotifPanel(v => !v); setPerfilMenu(false) }}
+                  aria-label={sinLeer > 0 ? `Notificaciones, ${sinLeer} recientes` : 'Notificaciones'}
+                  aria-expanded={notifPanel}
+                >
+                  <FontAwesomeIcon icon={faBell} />
+                  {sinLeer > 0 && <span className="topbar-badge" aria-hidden="true">{sinLeer}</span>}
+                </button>
 
-              {notifPanel && (
-                <div className="topbar-panel topbar-panel--notif">
-                  <div className="topbar-panel-header">
-                    <span>Notificaciones</span>
-                    <button
-                      className="topbar-panel-link"
-                      onClick={() => { setNotifPanel(false); navigate('/notificaciones') }}
-                    >
-                      Ver todas
-                    </button>
-                  </div>
-                  {notifs.length === 0 ? (
-                    <p className="topbar-panel-vacio">Sin notificaciones recientes</p>
-                  ) : (
-                    <div className="topbar-notif-lista">
-                      {notifs.map((n, i) => {
-                        const { icono } = iconoNotif(n.tipo)
-                        return (
-                          <div key={n.id_notificacion || i} className="topbar-notif-item">
-                            <FontAwesomeIcon icon={icono} className="topbar-notif-icono" />
-                            <div className="topbar-notif-info">
-                              <span className="topbar-notif-titulo">
-                                {tituloNotif(n.tipo)}{n.nombre_ruta ? ` — ${n.nombre_ruta}` : ''}
-                              </span>
-                              <span className="topbar-notif-msg">{n.mensaje}</span>
-                            </div>
-                            <span className="topbar-notif-hace">{n.hace}</span>
-                          </div>
-                        )
-                      })}
+                <PanelDesplegable abierto={notifPanel} anclaRef={notifRef} className="topbar-panel--notif">
+                    <div className="topbar-panel-header">
+                      <span>Notificaciones</span>
+                      <button
+                        className="topbar-panel-link"
+                        onClick={() => { setNotifPanel(false); navigate('/notificaciones') }}
+                      >
+                        Ver todas
+                      </button>
                     </div>
-                  )}
-                </div>
-              )}
-            </div>
+                    {notifs.length === 0 ? (
+                      <p className="topbar-panel-vacio">Sin notificaciones recientes</p>
+                    ) : (
+                      <div className="topbar-notif-lista">
+                        {notifs.map((n, i) => {
+                          const { icono } = iconoNotif(n.tipo)
+                          return (
+                            <div key={n.id_notificacion || i} className="topbar-notif-item">
+                              <FontAwesomeIcon icon={icono} className="topbar-notif-icono" />
+                              <div className="topbar-notif-info">
+                                <span className="topbar-notif-titulo">
+                                  {tituloNotif(n.tipo)}{n.nombre_ruta ? ` — ${n.nombre_ruta}` : ''}
+                                </span>
+                                <span className="topbar-notif-msg">{n.mensaje}</span>
+                              </div>
+                              <span className="topbar-notif-hace">{n.hace}</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                </PanelDesplegable>
+              </div>
+            )}
 
             {/* Avatar con dropdown de perfil */}
             <div className="topbar-dropdown-wrap" ref={perfilRef}>
@@ -376,8 +398,7 @@ export default function Layout({ children, titulo, sinPadding = false }) {
                 <span aria-hidden="true">{iniciales}</span>
               </button>
 
-              {perfilMenu && (
-                <div className="topbar-panel topbar-panel--perfil">
+              <PanelDesplegable abierto={perfilMenu} anclaRef={perfilRef} className="topbar-panel--perfil">
                   <div className="topbar-perfil-cabeza">
                     <div className="topbar-perfil-avatar">{iniciales}</div>
                     <div>
@@ -390,7 +411,7 @@ export default function Layout({ children, titulo, sinPadding = false }) {
                     <FontAwesomeIcon icon={faUser} />
                     Ver perfil
                   </button>
-                  <button className="topbar-panel-item" onClick={() => { setPerfilMenu(false); navigate('/perfil') }}>
+                  <button className="topbar-panel-item" onClick={() => { setPerfilMenu(false); navigate('/configuracion') }}>
                     <FontAwesomeIcon icon={faGear} />
                     Configuración
                   </button>
@@ -399,8 +420,7 @@ export default function Layout({ children, titulo, sinPadding = false }) {
                     <FontAwesomeIcon icon={faRightFromBracket} />
                     Cerrar sesión
                   </button>
-                </div>
-              )}
+              </PanelDesplegable>
             </div>
           </div>
         </header>
@@ -424,8 +444,26 @@ export default function Layout({ children, titulo, sinPadding = false }) {
           </div>
         )}
 
+        {/* ── Banner para activar los avisos (permiso de notificaciones) ── */}
+        {bannerAvisos && !estaOffline && (
+          <div className="pwa-banner pwa-banner--install">
+            <FontAwesomeIcon icon={faBell} />
+            <span>Activa los avisos para saber cuándo cambia tu bus</span>
+            <button className="pwa-banner-btn" onClick={activarAvisos}>
+              Activar
+            </button>
+            <button
+              className="pwa-banner-btn pwa-banner-btn--cerrar"
+              onClick={descartarAvisos}
+              aria-label="Cerrar aviso de notificaciones"
+            >
+              <FontAwesomeIcon icon={faXmark} />
+            </button>
+          </div>
+        )}
+
         {/* ── Banner instalación ── */}
-        {bannerInstalacion && !estaOffline && (
+        {bannerInstalacion && !bannerAvisos && !estaOffline && (
           <div className="pwa-banner pwa-banner--install">
             <FontAwesomeIcon icon={faDownload} />
             <span>Instala la app para acceso rápido</span>
@@ -455,8 +493,7 @@ export default function Layout({ children, titulo, sinPadding = false }) {
         {/* El logo de la universidad también se ve en móvil y tablet, donde el panel lateral no existe */}
         {!sinPadding && (
           <footer className="layout-pie">
-            <img src={logoUpc} alt="Universidad Popular del Cesar" />
-            <span>Seccional Aguachica</span>
+            <LogoTema claro={logoUpc} oscuro={logoUpcOscuro} alt="Universidad Popular del Cesar, Seccional Aguachica" />
           </footer>
         )}
       </div>
@@ -468,7 +505,7 @@ export default function Layout({ children, titulo, sinPadding = false }) {
             key={item.path}
             to={item.path}
             end={item.path === '/admin'}
-            className={({ isActive }) => `botnav-item ${isActive ? 'botnav-item--activo' : ''}`}
+            className={({ isActive }) => `botnav-item ${isActive || item.tambien === pathname ? 'botnav-item--activo' : ''}`}
           >
             <FontAwesomeIcon icon={item.icono} />
             <span>{item.corto || item.label}</span>

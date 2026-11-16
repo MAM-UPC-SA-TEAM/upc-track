@@ -57,20 +57,16 @@
 .cond-boton--confirma { background: var(--tinta); color: var(--papel); }
 .talon-accion:disabled { background: var(--linea-suave); color: var(--texto-suave); opacity: 1; }
 
-/* Aviso a la ruta: se despliega en línea dentro del talón */
-.cond-aviso { border-top: 1px solid var(--borde); }
-.cond-aviso-boton {
-  width: 100%;
-  min-height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 var(--e4);
-  font-weight: 700;
-  text-align: left;
-}
-.cond-aviso-boton span { display: inline-flex; align-items: center; gap: var(--e3); }
+/* Pantalla «Avisar»: formulario y lista de lo enviado */
 .cond-aviso-form { display: flex; flex-direction: column; gap: var(--e2); padding: 0 var(--e4) var(--e4); }
+.avisar-titulo { padding: var(--e4) var(--e4) var(--e3); font-size: var(--t-lg); font-weight: 700; }
+.avisar-vacio { padding: 0 var(--e4) var(--e4); color: var(--texto-suave); font-weight: 600; }
+.avisar-fila { display: flex; align-items: flex-start; gap: var(--e3); padding: var(--e3) var(--e4); }
+.avisar-fila-icono { margin-top: 4px; flex-shrink: 0; }
+.avisar-fila-cuerpo { flex: 1; min-width: 0; }
+.avisar-fila-rotulo { display: block; font: 800 var(--t-xs) / 1.3 var(--f-ui); letter-spacing: 0.04em; text-transform: uppercase; color: var(--texto-suave); }
+.avisar-fila-cuerpo p { font-weight: 600; overflow-wrap: anywhere; }
+.avisar-fila-hace { white-space: nowrap; font-size: var(--t-sm); color: var(--texto-suave); }
 .cond-tipos { display: flex; gap: var(--e2); flex-wrap: wrap; }
 .cond-tipo {
   display: inline-flex;
@@ -114,7 +110,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 800;
+  z-index: var(--z-hoja);
   max-height: 78%;
   overflow-y: auto;
   overflow-x: hidden; /* las muescas de la perforación y el sello rotado sobresalen del borde */

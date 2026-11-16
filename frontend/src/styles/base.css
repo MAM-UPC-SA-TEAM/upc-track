@@ -29,6 +29,10 @@ p { text-wrap: pretty; }
 .dato, [data-dato] { font-family: var(--f-dato); font-variant-numeric: tabular-nums; letter-spacing: 0; }
 .cifra { font-variant-numeric: tabular-nums; }
 
+/* Logos con variante para fondo oscuro (LogoTema): se ve solo la del tema activo; la visible conserva su propio display */
+body:not([data-tema='oscuro']) .logo-oscuro { display: none !important; }
+body[data-tema='oscuro'] .logo-claro { display: none !important; }
+
 ::selection { background: var(--amarillo); color: #14261a; }
 ::placeholder { color: var(--texto-suave); opacity: 1; }
 input, select, textarea { caret-color: var(--verde); accent-color: var(--verde); }
@@ -41,6 +45,8 @@ input, select, textarea { caret-color: var(--verde); accent-color: var(--verde);
 }
 
 button, a, [role='button'], select, summary { touch-action: manipulation; }
+/* El destello gris del WebView al tocar choca con los estados de presión propios (más abajo) */
+html { -webkit-tap-highlight-color: transparent; }
 button { font: inherit; color: inherit; cursor: pointer; background: none; border: 0; }
 a { color: inherit; }
 
@@ -51,14 +57,55 @@ a { color: inherit; }
 }
 
 /* Respuesta al toque: el botón confirma que el dedo se registró */
-button:not(:disabled):active, a.boton:active, [role='button']:active {
+button:not(:disabled):active, a.boton:active, a.boton-contorno:active, a.talon-accion:active, [role='button']:active {
   transform: scale(0.97);
 }
-button, a.boton, [role='button'] {
+button, a.boton, a.boton-contorno, a.talon-accion, [role='button'] {
   transition: transform var(--d-toque) var(--ease-out), background-color var(--d-ui) var(--ease-out),
     color var(--d-ui) var(--ease-out), opacity var(--d-ui) var(--ease-out);
 }
 button:disabled { cursor: not-allowed; opacity: 0.55; }
+
+/* ── Filas y destinos de navegación (U28) ───────────────────────────────────────────────────────────────────
+   Una fila o una pestaña no se «encoge» al tocarla (se vería rara a todo el ancho): se tiñe, al instante al
+   presionar y con suavidad al soltar. El botón sí confirma con scale(0.97) (regla de arriba). Los enlaces
+   (<a>) no tenían ningún estado de presión: ahora lo tienen. */
+.bus-fila, .hoja-fila, .hoja-cabecera, .panel-acceso, .topbar-panel-item,
+.botnav-item, .sidebar-link, .sidebar-logout {
+  transition: background-color var(--d-ui) var(--ease-out);
+}
+body .bus-fila:not(:disabled):active, body .hoja-fila:not(:disabled):active, body .hoja-cabecera:not(:disabled):active,
+body .panel-acceso:active, body .topbar-panel-item:active, body .botnav-item:not(.botnav-item--activo):active {
+  background-color: var(--linea-suave);
+  transform: none;
+  transition-duration: 0ms;
+}
+/* (El prefijo «body» hace que la presión gane al hover del ratón sin depender del orden en que se cargan los CSS.)
+   La pestaña activa es una losa verde: al tocarla se oscurece */
+body .botnav-item--activo:active, body .sidebar-link--activo:active { background-color: var(--verde-profundo); transition-duration: 0ms; }
+/* El panel lateral es siempre oscuro: la presión aclara */
+body .sidebar-link:not(.sidebar-link--activo):active, body .sidebar-logout:active {
+  background-color: rgba(241, 238, 223, 0.18);
+  transition-duration: 0ms;
+}
+/* El icono de la pestaña cede un poco bajo el dedo */
+.botnav-item svg { transition: transform var(--d-toque) var(--ease-out); }
+.botnav-item:active svg { transform: scale(0.88); }
+/* Zoom del mapa y enlaces de texto */
+.leaflet-bar a:active { background-color: var(--papel-hundido); }
+.acceso-enlace { transition: opacity var(--d-toque) var(--ease-out); }
+.acceso-enlace:active { opacity: 0.6; }
+
+/* ── Foco de teclado en lo que ocupa todo el ancho (U28) ────────────────────────────────────────────────────
+   El anillo va hacia ADENTRO (un anillo exterior lo recortan los bordes de la barra y de la hoja) y con un color
+   que se ve sobre el relleno: en la losa verde, el del texto; en el panel lateral (siempre oscuro), papel. */
+.bus-fila:focus-visible, .hoja-fila:focus-visible, .hoja-cabecera:focus-visible, .panel-acceso:focus-visible,
+.topbar-panel-item:focus-visible, .botnav-item:focus-visible, .sidebar-link:focus-visible, .sidebar-logout:focus-visible {
+  outline-offset: -3px;
+  border-radius: 0;
+}
+.botnav-item--activo:focus-visible { outline-color: var(--sobre-verde); }
+.sidebar-link:focus-visible, .sidebar-logout:focus-visible { outline-color: #f1eedf; }
 
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: var(--papel-hundido); }
@@ -71,7 +118,9 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
   }
-  button:not(:disabled):active, a.boton:active, [role='button']:active { transform: none; }
+  button:not(:disabled):active, a.boton:active, a.boton-contorno:active, a.talon-accion:active, [role='button']:active { transform: none; }
+  /* Sin movimiento: se conserva el cambio de color al presionar, se quita el desplazamiento del icono */
+  .botnav-item:active svg { transform: none; }
 }
 
 /* Solo para lectores de pantalla */

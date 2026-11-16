@@ -21,7 +21,7 @@
 .topbar {
   position: sticky;
   top: 0;
-  z-index: 900;
+  z-index: var(--z-barra);
   display: flex;
   align-items: center;
   gap: var(--e3);
@@ -32,8 +32,7 @@
 }
 
 .topbar-marca { flex-shrink: 0; width: 36px; height: 36px; object-fit: contain; }
-/* En oscuro el logo (verde sobre transparente) pierde contraste: va sobre una pieza de papel */
-body[data-tema='oscuro'] .topbar-marca { padding: 2px; background: #fbfaf4; }
+/* En oscuro la marca y los logos usan su variante para fondo oscuro (LogoTema): sin recuadro de papel */
 
 .topbar-titulo {
   flex: 1;
@@ -96,7 +95,7 @@ body[data-tema='oscuro'] .topbar-marca { padding: 2px; background: #fbfaf4; }
   position: absolute;
   top: calc(100% + 6px);
   right: var(--e2);
-  z-index: 950;
+  z-index: var(--z-panel);
   width: min(360px, calc(100vw - 16px));
   background: var(--superficie);
   border: var(--grosor) solid var(--trazo);
@@ -108,6 +107,11 @@ body[data-tema='oscuro'] .topbar-marca { padding: 2px; background: #fbfaf4; }
 @keyframes panel-entra {
   from { opacity: 0; transform: scale(0.97); }
   to   { opacity: 1; transform: scale(1); }
+}
+/* Salida: más corta que la entrada, desde el mismo origen (el botón que lo abrió; se fija en PanelDesplegable) */
+.topbar-panel--sale { animation: panel-sale var(--d-salida) var(--ease-out) forwards; pointer-events: none; }
+@keyframes panel-sale {
+  to { opacity: 0; transform: scale(0.97); }
 }
 
 .topbar-panel-header {
@@ -174,7 +178,7 @@ body[data-tema='oscuro'] .topbar-marca { padding: 2px; background: #fbfaf4; }
 }
 .pwa-banner span { flex: 1; }
 .pwa-banner--offline { background: var(--sello); color: #fff; }
-.pwa-banner--update  { background: var(--amarillo); color: #14261a; }
+.pwa-banner--update  { background: var(--aviso-fondo); color: var(--texto); }
 .pwa-banner--install { background: var(--tinta); color: var(--papel); }
 .pwa-banner-btn {
   min-height: 36px;
@@ -185,10 +189,10 @@ body[data-tema='oscuro'] .topbar-marca { padding: 2px; background: #fbfaf4; }
 }
 .pwa-banner-btn--cerrar { border: 0; padding: 0 var(--e2); }
 
-/* ── Avisos del conductor: un talón amarillo, no un bloque con borde de color ── */
+/* ── Avisos del conductor: verde suave si informan; con franja amarilla si son retraso o cambio de ruta ── */
 .notif-toast-wrap {
   position: fixed;
-  z-index: 1200;
+  z-index: var(--z-toast);
   left: var(--e3);
   right: var(--e3);
   bottom: calc(var(--nav-alto) + env(safe-area-inset-bottom) + var(--e3));
@@ -205,14 +209,15 @@ body[data-tema='oscuro'] .topbar-marca { padding: 2px; background: #fbfaf4; }
   align-items: flex-start;
   gap: var(--e3);
   padding: var(--e3) var(--e4);
-  background: var(--amarillo);
-  color: #14261a;
-  border: var(--grosor) solid #14261a;
+  background: var(--aviso-fondo);
+  color: var(--texto);
+  border: var(--grosor) solid var(--trazo);
   transition: opacity var(--d-ui) var(--ease-out), transform var(--d-ui) var(--ease-out);
 }
 @starting-style {
   .notif-toast { opacity: 0; transform: translateY(16px); }
 }
+.notif-toast--retraso, .notif-toast--cambio_ruta { background: var(--superficie); border-top: 8px solid var(--amarillo); }
 .notif-toast-icono { flex-shrink: 0; margin-top: 3px; }
 .notif-toast-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .notif-toast-titulo { font-weight: 800; font-size: var(--t-sm); }
@@ -228,7 +233,7 @@ body[data-tema='oscuro'] .topbar-marca { padding: 2px; background: #fbfaf4; }
   font-size: var(--t-sm);
   font-weight: 600;
 }
-.layout-pie img { height: 44px; width: auto; padding: 4px 8px; background: #fbfaf4; }
+.layout-pie img { height: 52px; width: auto; }
 
 /* ── Navegación inferior (móvil y tablet) ── */
 .botnav {
@@ -236,7 +241,7 @@ body[data-tema='oscuro'] .topbar-marca { padding: 2px; background: #fbfaf4; }
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 900;
+  z-index: var(--z-barra);
   display: flex;
   background: var(--bg);
   border-top: var(--grosor) solid var(--trazo);
@@ -274,14 +279,18 @@ body[data-tema='oscuro'] .topbar-marca { padding: 2px; background: #fbfaf4; }
     top: 0;
     left: 0;
     bottom: 0;
-    z-index: 1000;
+    z-index: var(--z-lateral);
     width: 240px;
     display: flex;
     flex-direction: column;
     background: #14261a;
     color: #f1eedf;
   }
+  /* En oscuro el panel lateral sigue la base neutra del tema (el verde de marca queda en el activo y en el logo) */
+  body[data-tema='oscuro'] .sidebar { background: var(--papel-hundido); color: var(--tinta); }
+  body[data-tema='oscuro'] .sidebar-link, body[data-tema='oscuro'] .sidebar-logout { color: var(--tinta); }
   .sidebar-logo { padding: var(--e4) var(--e5); background: #fbfaf4; }
+  body[data-tema='oscuro'] .sidebar-logo { background: transparent; }
   .sidebar-logo img { display: block; max-width: 170px; height: auto; }
   .sidebar-nav { flex: 1; display: flex; flex-direction: column; padding: var(--e3) 0; overflow-y: auto; }
   .sidebar-link {

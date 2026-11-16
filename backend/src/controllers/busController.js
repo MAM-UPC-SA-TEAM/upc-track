@@ -3,6 +3,7 @@
 
 import { Bus } from '../models/Bus.js'
 import { Notificacion } from '../models/Notificacion.js'
+import { velocidadActual } from '../services/ubicacionService.js'
 import { pool, esDuplicado } from '../config/database.js'
 
 // GET /api/buses — lista completa
@@ -20,7 +21,8 @@ export async function listarBuses(req, res) {
 // Usado por el mapa para mostrar marcadores y lista lateral
 export async function busesActivos(req, res) {
   try {
-    const buses = await Bus.activos()
+    // velocidad_kmh: la reciente de cada bus (null sin datos suficientes); el cliente la usa para el ETA
+    const buses = (await Bus.activos()).map((b) => ({ ...b, velocidad_kmh: velocidadActual(b.id_bus) }))
     return res.status(200).json({ buses })
   } catch (error) {
     console.error('Error obteniendo buses activos:', error)

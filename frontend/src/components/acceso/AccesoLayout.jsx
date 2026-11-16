@@ -1,4 +1,6 @@
-import logoUpc from '../../assets/logo-upc.png'
+import LogoTema from '../shared/LogoTema'
+import logoUpc from '../../assets/logo-upc-aguachica.png'
+import logoUpcOscuro from '../../assets/logo-upc-aguachica-oscuro.png'
 import '../inicio/Talon.css'
 import './Acceso.css'
 
@@ -9,7 +11,7 @@ export default function AccesoLayout({ titulo, subtitulo, children }) {
     <main className="acceso">
       <section className="talon acceso-talon" aria-labelledby="acceso-titulo">
         <div className="talon-cuerpo acceso-marca">
-          <img className="acceso-mark" src="/brand/upc-track-mark.png" alt="" width="72" height="72" />
+          <LogoTema className="acceso-mark" claro="/brand/upc-track-mark.png" oscuro="/brand/upc-track-mark-oscuro.png" alt="" width="72" height="72" />
           <div>
             <p className="acceso-nombre">UpcTrack</p>
             <p className="acceso-lema">Tu ruta en tiempo real</p>
@@ -28,8 +30,7 @@ export default function AccesoLayout({ titulo, subtitulo, children }) {
       </section>
 
       <footer className="acceso-pie">
-        <img src={logoUpc} alt="Universidad Popular del Cesar" height="40" />
-        <p>Seccional Aguachica · 2026</p>
+        <LogoTema claro={logoUpc} oscuro={logoUpcOscuro} alt="Universidad Popular del Cesar, Seccional Aguachica" height="52" />
       </footer>
     </main>
   )

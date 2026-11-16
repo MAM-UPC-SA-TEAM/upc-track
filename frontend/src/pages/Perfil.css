@@ -46,3 +46,18 @@
   font-weight: 700;
 }
 .perfil-boton-tinta:disabled { background: var(--linea-suave); color: var(--texto-suave); opacity: 1; }
+
+/* Apariencia: tres opciones de 44 px, la activa en tinta (como los chips de tipo de aviso) */
+.tema-opciones { display: flex; flex-wrap: wrap; gap: var(--e2); }
+.tema-opcion {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--toque);
+  padding: 0 var(--e4);
+  background: var(--superficie);
+  color: var(--texto);
+  border: var(--grosor) solid var(--trazo);
+  font-weight: 700;
+}
+.tema-opcion--activa { background: var(--tinta); color: var(--papel); }
+.perfil-ayuda { color: var(--texto-suave); font-size: var(--t-sm); }

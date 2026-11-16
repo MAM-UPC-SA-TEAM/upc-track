@@ -5,6 +5,14 @@
  * las pantallas antiguas adopten el sistema sin reescribirse de golpe.
  */
 :root {
+  /* Capas, de abajo arriba. Leaflet usa 400–1000 DENTRO de su contenedor, que está aislado (mapa.css): sus controles
+     nunca compiten con estas capas. Los paneles desplegables viven dentro de la barra superior. */
+  --z-hoja: 800;      /* hojas del Mapa y de Mi recorrido */
+  --z-barra: 900;     /* barra superior y navegación inferior */
+  --z-panel: 950;     /* paneles desplegables (campana y cuenta), dentro de la barra */
+  --z-lateral: 1000;  /* panel lateral de escritorio y aviso «servidor despertando» */
+  --z-toast: 1200;    /* avisos emergentes */
+
   /* Papel y tinta */
   --papel: #fbfaf4;
   --papel-hundido: #f1eee1;
@@ -12,11 +20,13 @@
   --tinta-suave: #4a5b4f;
   --linea-suave: #d8d3c0;
 
-  /* Marca y estados (el rojo solo existe para el sello de dato vencido) */
+  /* Marca y estados (el rojo significa «algo falló»: dato vencido y errores de formulario) */
   --verde: #1e6b2e;
+  --aviso-fondo: #dcebd6; /* verde suave de los avisos informativos; el texto va en tinta */
   --verde-profundo: #145220;
   --amarillo: #f5c400;
   --sello: #c62828;
+  --error: var(--sello); /* texto y bordes de error sobre papel: 5,4:1 */
   --blanco: #ffffff;
 
   /* Semánticos: cambian con el tema */
@@ -57,21 +67,30 @@
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --d-toque: 140ms;
   --d-ui: 200ms;
+  --d-salida: 140ms; /* las salidas son más rápidas que las entradas; igual a DURACION_SALIDA_MS (utils/movimiento.js) */
 }
 
-/* Modo oscuro (preferencia del usuario o del sistema): mismos nombres, otros valores */
+/* Modo oscuro (preferencia del usuario o del sistema): mismos nombres, otros valores.
+   Base neutra azul-grisácea (la de las apps de mensajería: no se lee verdosa ni cansa) y el verde de la marca
+   aclarado solo lo necesario. Contrastes medidos (WCAG): texto 14,8:1 sobre el papel y 12,1:1 sobre la superficie;
+   tinta suave 5,7:1 y 4,7:1; verde de acento (texto) 7,6:1; verde de relleno 3,4:1 contra el papel y 5,2:1 con
+   texto blanco; bordes 3,8:1; error 7,7:1. En claro, el texto da 15,2:1: el oscuro no es más duro que el claro. */
 body[data-tema='oscuro'] {
-  --papel: #101a13;
-  --papel-hundido: #0b130e;
-  --tinta: #f1eedf;
-  --tinta-suave: #b5bdb0;
-  --linea-suave: #2c3b31;
+  --papel: #111b21;
+  --papel-hundido: #0b141a;
+  --tinta: #e9edef;
+  --tinta-suave: #8696a0;
+  --linea-suave: #2a3942;
 
   --bg: var(--papel);
-  --superficie: #17231b;
+  --superficie: #202c33;
   --texto: var(--tinta);
   --texto-suave: var(--tinta-suave);
   --borde: var(--linea-suave);
-  --trazo: #a9b8a8;
-  --acento-texto: #7fd38b; /* el verde de marca no pasa contraste sobre fondo oscuro */
+  --trazo: #667781;      /* bordes de 2px y foco: 3,8:1 contra el papel; más suave que la tinta */
+  --verde: #1e7d3f;      /* relleno de la marca: lleva texto blanco (5,2:1) y se separa del papel (3,4:1) */
+  --verde-profundo: #17632f;
+  --acento-texto: #4cc16e; /* verde como texto o enlace sobre el papel oscuro */
+  --aviso-fondo: #1d3a2c;
+  --error: #ff8a80;      /* sobre el papel oscuro: 7,7:1 */
 }
