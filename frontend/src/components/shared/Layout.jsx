@@ -89,13 +89,13 @@ const navEstudiante = [
   { path: '/rutas',          icono: faRoute,       label: 'Rutas' },
   { path: '/buses',          icono: faBus,         label: 'Buses', soloEscritorio: true },
   { path: '/notificaciones', icono: faBell,        label: 'Alertas' },
-  { path: '/perfil',         icono: faUser,        label: 'Perfil' },
+  { path: '/perfil',         icono: faUser,        label: 'Perfil', tambien: '/configuracion' },
 ]
 
 const navConductor = [
   { path: '/conductor',      icono: faMap,    label: 'Mi recorrido' },
   { path: '/notificaciones', icono: faBell,   label: 'Alertas' },
-  { path: '/perfil',         icono: faUser,   label: 'Perfil' },
+  { path: '/perfil',         icono: faUser,   label: 'Perfil', tambien: '/configuracion' },
 ]
 
 const navAdmin = [
@@ -306,7 +306,7 @@ export default function Layout({ children, titulo, sinPadding = false }) {
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `sidebar-link ${isActive ? 'sidebar-link--activo' : ''}`
+                `sidebar-link ${isActive || item.tambien === pathname ? 'sidebar-link--activo' : ''}`
               }
             >
               <FontAwesomeIcon icon={item.icono} className="sidebar-link-icono" />
@@ -409,7 +409,7 @@ export default function Layout({ children, titulo, sinPadding = false }) {
                     <FontAwesomeIcon icon={faUser} />
                     Ver perfil
                   </button>
-                  <button className="topbar-panel-item" onClick={() => { setPerfilMenu(false); navigate('/perfil') }}>
+                  <button className="topbar-panel-item" onClick={() => { setPerfilMenu(false); navigate('/configuracion') }}>
                     <FontAwesomeIcon icon={faGear} />
                     Configuración
                   </button>
@@ -505,7 +505,7 @@ export default function Layout({ children, titulo, sinPadding = false }) {
             key={item.path}
             to={item.path}
             end={item.path === '/admin'}
-            className={({ isActive }) => `botnav-item ${isActive ? 'botnav-item--activo' : ''}`}
+            className={({ isActive }) => `botnav-item ${isActive || item.tambien === pathname ? 'botnav-item--activo' : ''}`}
           >
             <FontAwesomeIcon icon={item.icono} />
             <span>{item.corto || item.label}</span>
