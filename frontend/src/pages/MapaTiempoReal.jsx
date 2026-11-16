@@ -17,6 +17,7 @@ import socket, { unirseRuta } from '../services/socket'
 import { useAlReanudar, useEnLinea } from '../hooks/useCicloVida'
 import api from '../services/api'
 import { distanciaKm, minutosHasta, tieneVelocidadReciente } from '../utils/calcularETA'
+import { EsqueletoMapa } from '../components/shared/Esqueleto'
 import './MapaTiempoReal.css'
 
 const UMBRAL_SIN_SENAL_MS = 60000
@@ -382,7 +383,7 @@ export default function MapaTiempoReal() {
   if (cargando) {
     return (
       <Layout titulo="Mapa" sinPadding>
-        <div className="mapa-aviso" role="status"><span className="talon-esqueleto" /><p>Cargando el mapa…</p></div>
+        <EsqueletoMapa />
       </Layout>
     )
   }
