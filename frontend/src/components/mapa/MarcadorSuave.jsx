@@ -13,7 +13,7 @@ export default function MarcadorSuave({ position, ...resto }) {
   const map = useMap()
   const ref = useRef(null)
   const [posicionInicial] = useState(position) // el Marker se crea una vez; el movimiento lo lleva este componente
-  const estado = useRef({ raf: 0, ultimaLlegada: null, destino: position }) // null: aún no llegó ninguna posición
+  const estado = useRef({ raf: 0, ultimaLlegada: null, destino: position, enZoom: false }) // ultimaLlegada null: aún no llegó ninguna posición
   const [lat, lng] = position
 
   useEffect(() => {
@@ -27,6 +27,9 @@ export default function MarcadorSuave({ position, ...resto }) {
     const llegada = performance.now()
     const intervalo = e.ultimaLlegada === null ? 0 : llegada - e.ultimaLlegada
     e.ultimaLlegada = llegada
+
+    // Con el mapa haciendo zoom no se toca el marcador (Leaflet lo reposiciona solo); al terminar se coloca en destino
+    if (e.enZoom) return undefined
 
     const actual = marcador.getLatLng() // donde se VE ahora (puede ir a mitad de un movimiento anterior)
     const desde = [actual.lat, actual.lng]
@@ -49,8 +52,8 @@ export default function MarcadorSuave({ position, ...resto }) {
   // Durante el zoom no se mueve el marcador; al terminar se coloca en su destino
   useEffect(() => {
     const e = estado.current
-    const alEmpezarZoom = () => cancelAnimationFrame(e.raf)
-    const alTerminarZoom = () => ref.current?.setLatLng(e.destino)
+    const alEmpezarZoom = () => { e.enZoom = true; cancelAnimationFrame(e.raf) }
+    const alTerminarZoom = () => { e.enZoom = false; ref.current?.setLatLng(e.destino) }
     map.on('zoomstart', alEmpezarZoom)
     map.on('zoomend', alTerminarZoom)
     return () => { map.off('zoomstart', alEmpezarZoom); map.off('zoomend', alTerminarZoom) }

@@ -121,6 +121,18 @@ describe('MarcadorSuave', () => {
     expect(lat()).toBeCloseTo(norte(LAT0, 28), 8)
   })
 
+  it('una posición que llega durante el zoom no mueve el marcador hasta que el zoom termina', () => {
+    const { rerender } = render(<MarcadorSuave position={[LAT0, LNG]} />)
+    avanzar(4000)
+    act(() => mundo.mapa.oyentes.zoomstart())
+    mundo.marcador.colocaciones.length = 0
+    rerender(<MarcadorSuave position={[norte(LAT0, 28), LNG]} />)
+    avanzar(3000)
+    expect(mundo.marcador.colocaciones).toHaveLength(0) // ni un setLatLng con el zoom en curso
+    act(() => mundo.mapa.oyentes.zoomend())
+    expect(lat()).toBeCloseTo(norte(LAT0, 28), 8)
+  })
+
   it('al desmontarse cancela la animación y suelta los oyentes del mapa', () => {
     const { rerender, unmount } = render(<MarcadorSuave position={[LAT0, LNG]} />)
     avanzar(4000)
