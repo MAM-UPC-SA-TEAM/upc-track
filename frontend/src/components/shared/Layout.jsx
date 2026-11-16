@@ -72,7 +72,9 @@ import {
   faTriangleExclamation, faRotate, faCircleCheck,
   faDownload, faWifi, faArrowsRotate, faXmark
 } from '@fortawesome/free-solid-svg-icons'
+import LogoTema from './LogoTema'
 import logoUpc from '../../assets/logo-upc-aguachica.png'
+import logoUpcOscuro from '../../assets/logo-upc-aguachica-oscuro.png'
 import api from '../../services/api'
 import socket, { unirseRuta, salirRuta } from '../../services/socket'
 import { useCerrarConAtras } from '../../hooks/useCicloVida'
@@ -80,7 +82,8 @@ import { useCerrarRecorrido } from '../../context/RecorridoContext'
 import { enPrimerPlano } from '../../services/cicloVida'
 import { notificador } from '../../services/notificaciones'
 import { usePWA } from '../../hooks/usePWA'
-import { aplicarTema, temaInicialOscuro } from '../../utils/tema'
+import { aplicarTema } from '../../utils/tema'
+import { useTema } from '../../hooks/useTema'
 import './Layout.css'
 
 const navEstudiante = [
@@ -132,7 +135,7 @@ export default function Layout({ children, titulo, sinPadding = false }) {
   const { pathname } = useLocation()
   const rutaActualRef = useRef(pathname)
   useEffect(() => { rutaActualRef.current = pathname }, [pathname])
-  const [oscuro, setOscuro] = useState(temaInicialOscuro)
+  const { oscuro, alternar: alternarTema } = useTema()
   const [perfilMenu, setPerfilMenu] = useState(false)
   const [notifPanel, setNotifPanel] = useState(false)
   const [notifs, setNotifs] = useState([])
@@ -151,10 +154,8 @@ export default function Layout({ children, titulo, sinPadding = false }) {
     return () => clearTimeout(t)
   }, [puedeInstalar])
 
-  useEffect(() => {
-    aplicarTema(oscuro)
-    try { localStorage.setItem('tema', oscuro ? 'oscuro' : 'claro') } catch { /* sin almacenamiento */ }
-  }, [oscuro])
+  // La preferencia solo se guarda cuando el usuario la cambia (useTema); aquí únicamente se aplica
+  useEffect(() => { aplicarTema(oscuro) }, [oscuro])
 
   // Cargar notificaciones al abrir panel
   useEffect(() => {
@@ -298,7 +299,7 @@ export default function Layout({ children, titulo, sinPadding = false }) {
       {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <img src={logoUpc} alt="Universidad Popular del Cesar, Seccional Aguachica" />
+          <LogoTema claro={logoUpc} oscuro={logoUpcOscuro} alt="Universidad Popular del Cesar, Seccional Aguachica" />
         </div>
 
         <nav className="sidebar-nav" aria-label="Principal">
@@ -325,13 +326,13 @@ export default function Layout({ children, titulo, sinPadding = false }) {
       {/* Main */}
       <div className="layout-main">
         <header className="topbar">
-          <img className="topbar-marca" src="/brand/upc-track-mark.png" alt="" width="36" height="36" />
+          <LogoTema className="topbar-marca" claro="/brand/upc-track-mark.png" oscuro="/brand/upc-track-mark-oscuro.png" alt="" width="36" height="36" />
           <h1 className="topbar-titulo">{titulo || 'UpcTrack'}</h1>
 
           <div className="topbar-acciones">
             <button
               className="topbar-btn"
-              onClick={() => setOscuro(!oscuro)}
+              onClick={alternarTema}
               aria-label={oscuro ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}
             >
               <FontAwesomeIcon icon={oscuro ? faSun : faMoon} />
@@ -495,7 +496,7 @@ export default function Layout({ children, titulo, sinPadding = false }) {
         {/* El logo de la universidad también se ve en móvil y tablet, donde el panel lateral no existe */}
         {!sinPadding && (
           <footer className="layout-pie">
-            <img src={logoUpc} alt="Universidad Popular del Cesar, Seccional Aguachica" />
+            <LogoTema claro={logoUpc} oscuro={logoUpcOscuro} alt="Universidad Popular del Cesar, Seccional Aguachica" />
           </footer>
         )}
       </div>

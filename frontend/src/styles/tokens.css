@@ -69,21 +69,27 @@
   --d-ui: 200ms;
 }
 
-/* Modo oscuro (preferencia del usuario o del sistema): mismos nombres, otros valores */
+/* Modo oscuro (preferencia del usuario o del sistema): mismos nombres, otros valores.
+   Base neutra azul-grisácea (la de las apps de mensajería: no se lee verdosa ni cansa) y el verde de la marca
+   aclarado solo lo necesario. Contrastes medidos (WCAG): texto 14,8:1 sobre el papel y 12,1:1 sobre la superficie;
+   tinta suave 5,7:1 y 4,7:1; verde de acento (texto) 7,6:1; verde de relleno 3,4:1 contra el papel y 5,2:1 con
+   texto blanco; bordes 3,8:1; error 7,7:1. En claro, el texto da 15,2:1: el oscuro no es más duro que el claro. */
 body[data-tema='oscuro'] {
-  --papel: #101a13;
-  --papel-hundido: #0b130e;
-  --tinta: #f1eedf;
-  --tinta-suave: #b5bdb0;
-  --linea-suave: #2c3b31;
+  --papel: #111b21;
+  --papel-hundido: #0b141a;
+  --tinta: #e9edef;
+  --tinta-suave: #8696a0;
+  --linea-suave: #2a3942;
 
   --bg: var(--papel);
-  --superficie: #17231b;
+  --superficie: #202c33;
   --texto: var(--tinta);
   --texto-suave: var(--tinta-suave);
   --borde: var(--linea-suave);
-  --trazo: #a9b8a8;
-  --acento-texto: #7fd38b; /* el verde de marca no pasa contraste sobre fondo oscuro */
-  --aviso-fondo: #1f3a26;
-  --error: #ff8a80; /* sobre el fondo oscuro: 9:1 */
+  --trazo: #667781;      /* bordes de 2px y foco: 3,8:1 contra el papel; más suave que la tinta */
+  --verde: #1e7d3f;      /* relleno de la marca: lleva texto blanco (5,2:1) y se separa del papel (3,4:1) */
+  --verde-profundo: #17632f;
+  --acento-texto: #4cc16e; /* verde como texto o enlace sobre el papel oscuro */
+  --aviso-fondo: #1d3a2c;
+  --error: #ff8a80;      /* sobre el papel oscuro: 7,7:1 */
 }

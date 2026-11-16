@@ -11,14 +11,15 @@ colors:
   verde-upc: "#1e6b2e"
   amarillo-franja: "#f5c400"
   sello: "#c62828"
-  papel-noche: "#101a13"
-  papel-hundido-noche: "#0b130e"
-  superficie-noche: "#17231b"
-  tinta-noche: "#f1eedf"
-  tinta-suave-noche: "#b5bdb0"
-  linea-suave-noche: "#2c3b31"
-  trazo-noche: "#a9b8a8"
-  verde-texto-noche: "#7fd38b"
+  papel-noche: "#111b21"
+  papel-hundido-noche: "#0b141a"
+  superficie-noche: "#202c33"
+  tinta-noche: "#e9edef"
+  tinta-suave-noche: "#8696a0"
+  linea-suave-noche: "#2a3942"
+  trazo-noche: "#667781"
+  verde-noche: "#1e7d3f"
+  verde-texto-noche: "#4cc16e"
   sello-noche: "#ff8a80"
 typography:
   eta:
@@ -193,7 +194,7 @@ Paleta de papel y tinta con dos colores de marca de trabajo fijo y un rojo de us
 - **Verde UPC** (`verde-upc`, #1e6b2e): el unico relleno de accion y de estado valido: boton primario "Ver en el mapa", pestana activa de la navegacion, avatar, sello "Validado", trazo de la ruta en los mapas, enlaces de texto (en claro). Blanco (#ffffff) sobre el es el texto estandar.
 
 ### Secondary
-- **Aviso fondo** (`aviso-fondo`, #dcebd6 claro / #1f3a26 oscuro): verde suave de los avisos informativos del conductor (inicio de recorrido), del aviso de actualizacion y de los toasts informativos; texto en tinta. Un retraso o un cambio de ruta NO va en verde (se leeria como buena noticia): va en superficie con borde de tinta, franja amarilla y rotulo ("Retraso", "Cambio de ruta").
+- **Aviso fondo** (`aviso-fondo`, #dcebd6 claro / #1d3a2c oscuro): verde suave de los avisos informativos del conductor (inicio de recorrido), del aviso de actualizacion y de los toasts informativos; texto en tinta. Un retraso o un cambio de ruta NO va en verde (se leeria como buena noticia): va en superficie con borde de tinta, franja amarilla y rotulo ("Retraso", "Cambio de ruta").
 - **Amarillo franja** (`amarillo-franja`, #f5c400): la franja de validez bajo la cifra (se vacia de 0 a 30 s), la franja superior (8px) de los avisos de retraso y cambio de ruta y el marcador de la parada elegida o propia (en reposo las paradas del Mapa son anillos de papel, no amarillas). Texto sobre el siempre en tinta (#14261a). Tambien es el color de seleccion de texto.
 
 ### Tertiary
@@ -208,7 +209,11 @@ Paleta de papel y tinta con dos colores de marca de trabajo fijo y un rojo de us
 - **Linea suave** (`linea-suave`, #d8d3c0): divisores finos de 1px y esqueletos de carga.
 
 ### Modo oscuro (`body[data-tema='oscuro']`)
-Mismos nombres semanticos, otros valores: papel `papel-noche` (#101a13), hundido (#0b130e), superficie (#17231b), tinta (#f1eedf), tinta suave (#b5bdb0), linea (#2c3b31), trazo (#a9b8a8) para bordes y foco. El verde de marca no pasa contraste como texto sobre oscuro, asi que el acento de texto pasa a `verde-texto-noche` (#7fd38b); los rellenos verdes se mantienen. El sello pasa a `sello-noche` (#ff8a80).
+Mismos nombres semanticos, otros valores. La base es **neutra y azul-grisacea**, no un negro verdoso (el verde de la marca se perdia sobre un fondo tambien verde): papel `papel-noche` (#111b21), hundido (#0b141a), superficie del talon (#202c33), tinta (#e9edef), tinta suave (#8696a0), linea (#2a3942) y trazo (#667781) para bordes de 2px y foco, mas suave que la tinta. El verde de marca se aclara solo lo necesario: **relleno** `verde-noche` (#1e7d3f, mantiene el texto blanco) y **texto o enlace** `verde-texto-noche` (#4cc16e). El amarillo y el sello (#ff8a80) no cambian de funcion. Contrastes WCAG medidos: texto 14,8:1 sobre el papel y 12,1:1 sobre la superficie; tinta suave 5,7:1 y 4,7:1; verde de texto 7,6:1; relleno verde 3,4:1 contra el papel y 5,2:1 con texto blanco; bordes 3,8:1; error 7,7:1. En claro el texto da 15,2:1, asi que el oscuro no es mas duro que el claro. El mapa sigue siendo siempre papel claro (ver Mapas).
+
+**Eleccion del tema.** Sin elegir, la app arranca en **claro** (se usa sobre todo a pleno sol). En Configuracion > Apariencia hay tres opciones, **Claro / Oscuro / Automatico** (sigue al telefono); el boton de luna o sol de la barra superior alterna entre claro y oscuro y comparte la misma preferencia. El cambio se aplica al instante (tambien la barra de estado nativa) y se guarda en el dispositivo.
+
+**Logos en oscuro.** Ningun logo lleva un recuadro de papel detras: cada uno tiene su **variante para fondo oscuro** (`LogoTema` dibuja la clara y la oscura y el CSS deja visible la del tema activo). La variante aclara solo los verdes que no se leen sobre el papel oscuro (luminosidad HSL < 0,38), conservando matiz, transparencia y el orden de los tres verdes del cubo de la UPC; se genera con `scripts/dev/variante-logo-oscuro.py` y no modifica los originales (`logo-upc-aguachica-oscuro.png`, `upc-track-mark-oscuro.png`). El panel lateral de escritorio sigue la base neutra del tema.
 
 ### Named Rules
 **The Rojo Es Fallo Rule.** El rojo existe solo para decir "algo fallo": un dato que ya no vale (sello, estado vencido, sin conexion) o un error que el usuario debe corregir (campo invalido, credenciales incorrectas, el servidor rechazo la accion). Ninguna otra cosa (borrar, cerrar sesion, contadores) lo usa. Un resultado correcto ("Guardado") va en tinta, nunca en rojo.
@@ -312,7 +317,7 @@ Estados: **vivo**, **detenido**, **buscando GPS**, **viejo** (sin conexion o mas
 Los errores del propio telefono (GPS bloqueado, no se pudo cambiar el estado) van en una caja de tinta con icono, no en rojo. "Avisar" ya no vive en el talon: es su propia pestana de la navegacion del conductor (`/avisar`), con el tipo en chips de 44px (el activo en tinta), el mensaje, "Enviar aviso" en tinta y la lista de lo ya enviado (tipo, ruta, mensaje y hora). El conductor no recibe avisos de nadie: no tiene campana ni la pestana Alertas. El conductor no recibe toasts de notificacion (no escucha los avisos de la ruta), asi que nada tapa Detener y Finalizar. No hay registro de actividad ni contador de puntos GPS. Trazo recorrido: puntos finos de tinta; sin emoji ni naranja.
 
 ### Acceso (login y registro)
-Un solo marco para las dos pantallas: la hoja del talon centrada (hasta 440px) sobre papel, con el **cabo** arriba (la marca de 72px, que en oscuro lleva una placa de papel, y "UpcTrack" en texto vivo con el lema "Tu ruta en tiempo real"), la perforacion y debajo el formulario. El logo de la universidad va **al pie**, fuera del talon, sobre una placa de papel (el logo ya incluye "Seccional Aguachica": no se repite como texto al lado; el pie movil de la app tampoco); ya no se apilan dos logos antes del formulario. La marca es la de 31 KB (`upc-track-mark.png`), no la de 1,1 MB.
+Un solo marco para las dos pantallas: la hoja del talon centrada (hasta 440px) sobre papel, con el **cabo** arriba (la marca de 72px, con su variante para fondo oscuro, y "UpcTrack" en texto vivo con el lema "Tu ruta en tiempo real"), la perforacion y debajo el formulario. El logo de la universidad va **al pie**, fuera del talon, directo sobre el fondo (con su variante en oscuro; el logo ya incluye "Seccional Aguachica": no se repite como texto al lado; el pie movil de la app tampoco); ya no se apilan dos logos antes del formulario. La marca es la de 31 KB (`upc-track-mark.png`), no la de 1,1 MB.
 
 Cada campo tiene su etiqueta real ligada (`for`/`id`) arriba, en 700; el campo mide 48px, borde de 2px en tinta y fondo papel; la ayuda ("Minimo 8 caracteres.") esta siempre visible y se reemplaza por el error cuando lo hay; el error lleva icono y texto en 700, **no rojo**, y el campo engrosa su borde 1px hacia adentro. El primer campo con error recibe el foco. "Mostrar contrasena" es una casilla en una fila de 44px (sin boton de icono); la casilla se tematiza (borde de 2px, marcada rellena de tinta). Un error general (credenciales, servidor) va en una caja de tinta con icono y `role="alert"`. La accion es el boton verde del talon ("Entrar", "Crear cuenta"); el cambio de pantalla es un enlace de texto verde subrayado de 44px. Exito del registro: el mismo marco con "Cuenta creada" y un boton a "Ir a iniciar sesion".
 
@@ -351,7 +356,7 @@ Iconos de la biblioteca Font Awesome Solid como SVG, siempre acompanados de text
 - **Do** diferenciar varias rutas por estilo de linea (continua, rayas, puntos) y grosor, con los chips como leyenda; el chip activo va en tinta.
 - **Do** anular un bus sin senal con marcador hueco y la palabra "sin senal" en su etiqueta; en reposo la parada es un anillo de papel y solo la elegida es amarilla.
 - **Do** separar en la pantalla del conductor el estado del bus en el servidor de si este telefono transmite, y anular con sello o con etiqueta roja cuando no coinciden.
-- **Do** repetir los mismos nombres semanticos (`--bg`, `--superficie`, `--texto`, `--borde`, `--trazo`, `--acento-texto`) en modo oscuro con otros valores; en oscuro el texto verde pasa a #7fd38b.
+- **Do** repetir los mismos nombres semanticos (`--bg`, `--superficie`, `--texto`, `--borde`, `--trazo`, `--acento-texto`) en modo oscuro con otros valores; en oscuro el texto verde pasa a #4cc16e.
 
 ### Don't:
 - **Don't** usar rojo para nada que no sea "algo fallo" (dato vencido, sin conexion, error de formulario): ni cerrar sesion, ni contadores, ni mensajes de exito.

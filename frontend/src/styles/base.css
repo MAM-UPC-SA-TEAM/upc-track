@@ -29,6 +29,10 @@ p { text-wrap: pretty; }
 .dato, [data-dato] { font-family: var(--f-dato); font-variant-numeric: tabular-nums; letter-spacing: 0; }
 .cifra { font-variant-numeric: tabular-nums; }
 
+/* Logos con variante para fondo oscuro (LogoTema): se ve solo la del tema activo; la visible conserva su propio display */
+body:not([data-tema='oscuro']) .logo-oscuro { display: none !important; }
+body[data-tema='oscuro'] .logo-claro { display: none !important; }
+
 ::selection { background: var(--amarillo); color: #14261a; }
 ::placeholder { color: var(--texto-suave); opacity: 1; }
 input, select, textarea { caret-color: var(--verde); accent-color: var(--verde); }
