@@ -17,13 +17,19 @@ const ana = { ...estudiante, correo: 'ana@unicesar.edu.co' }
 const seccionDatos = () => screen.getByRole('heading', { name: 'Datos personales' }).closest('section')
 
 describe('Mi perfil (solo lectura)', () => {
-  it('muestra los datos de la sesión y marca lo que falta como «Sin registrar»', async () => {
+  it('muestra nombre y correo de la sesión; no hay campo «Documento»', async () => {
     abrirApp('/perfil', ana)
     expect(await screen.findByRole('heading', { name: 'Ana', level: 2 })).toBeInTheDocument()
     const datos = within(seccionDatos())
     expect(datos.getByText('ana@unicesar.edu.co')).toBeInTheDocument()
-    expect(datos.getByText('Sin registrar')).toBeInTheDocument() // documento
+    expect(datos.queryByText('Documento')).toBeNull()
     expect(screen.getAllByText('estudiante').length).toBeGreaterThan(0)
+  })
+
+  it('un dato que falta se marca como «Sin registrar»', async () => {
+    abrirApp('/perfil', estudiante) // sin correo
+    await screen.findByRole('heading', { name: 'Ana', level: 2 })
+    expect(within(seccionDatos()).getByText('Sin registrar')).toBeInTheDocument()
   })
 
   it('no tiene campos ni botones de edición', async () => {
