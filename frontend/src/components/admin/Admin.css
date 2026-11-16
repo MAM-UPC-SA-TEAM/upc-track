@@ -92,6 +92,9 @@
 .dialogo-cabecera { display: flex; align-items: center; justify-content: space-between; gap: var(--e3); padding: var(--e2) var(--e2) var(--e2) var(--e4); border-bottom: var(--grosor) solid var(--trazo); }
 .dialogo-titulo { font-size: var(--t-lg); font-weight: 700; }
 .dialogo-cerrar { flex-shrink: 0; width: var(--toque); height: var(--toque); display: grid; place-items: center; font-size: 1.125rem; }
+.dialogo-descartar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--e3); padding: var(--e3) var(--e4); background: var(--papel-hundido); border-bottom: var(--grosor) solid var(--trazo); font-weight: 700; }
+.dialogo-descartar p { margin: 0; }
+.dialogo-descartar-acciones { display: flex; flex-wrap: wrap; gap: var(--e2); }
 .dialogo-form { display: flex; flex-direction: column; min-height: 0; flex: 1; }
 .dialogo-cuerpo { display: flex; flex-direction: column; gap: var(--e4); padding: var(--e4); overflow-y: auto; min-height: 0; }
 .dialogo-pie { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: var(--e2); padding: var(--e3) var(--e4); border-top: 1px solid var(--borde); }
