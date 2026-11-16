@@ -4,10 +4,11 @@
 /* Marcadores. El contenedor mide 44px (área táctil); el punto visible es más pequeño. */
 .mk-wrap { width: 44px; height: 44px; display: grid; place-items: center; }
 .mk { display: block; border-radius: 50%; border: 3px solid #fbfaf4; }
-.mk-bus { width: 28px; height: 28px; background: #14261a; }
+.mk-bus { width: 36px; height: 36px; background: #14261a; color: #fbfaf4; display: grid; place-items: center; }
+.mk-glifo { width: 18px; height: 18px; }
 .mk-parada { width: 22px; height: 22px; background: var(--amarillo); border-color: #14261a; }
 /* Bus sin señal: marcador hueco con anillo discontinuo; no desaparece, se anula */
-.mk-bus--viejo { background: #fbfaf4; border: 3px dashed #14261a; }
+.mk-bus--viejo { background: #fbfaf4; color: #14261a; border: 3px dashed #14261a; }
 
 /* Etiquetas sobre el mapa: siempre papel con tinta, en cualquier tema */
 .leaflet-tooltip.etiqueta-mapa {

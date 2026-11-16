@@ -4,20 +4,12 @@ import {
 } from 'react-leaflet'
 import L from 'leaflet'
 import Layout from '../../components/shared/Layout'
+import { iconoBus, iconoBusViejo } from '../../utils/marcadores'
 import TalonConductor, { FRESCO_MAX_S } from '../../components/conductor/TalonConductor'
 import api from '../../services/api'
 import { useRecorrido } from '../../context/RecorridoContext'
 
 const CENTRO_DEFECTO = [8.3086, -73.6194]
-
-const icono = clase => L.divIcon({
-  className: '',
-  html: `<div class="mk-wrap"><span class="mk ${clase}"></span></div>`,
-  iconSize: [44, 44],
-  iconAnchor: [22, 22],
-})
-const iconoBus = icono('mk-bus')
-const iconoBusViejo = icono('mk-bus mk-bus--viejo')
 
 const paradaActiva = p => p.activa !== false && p.activa !== 0
 
