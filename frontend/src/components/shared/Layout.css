@@ -21,7 +21,7 @@
 .topbar {
   position: sticky;
   top: 0;
-  z-index: 900;
+  z-index: var(--z-barra);
   display: flex;
   align-items: center;
   gap: var(--e3);
@@ -96,7 +96,7 @@ body[data-tema='oscuro'] .topbar-marca { padding: 2px; background: #fbfaf4; }
   position: absolute;
   top: calc(100% + 6px);
   right: var(--e2);
-  z-index: 950;
+  z-index: var(--z-panel);
   width: min(360px, calc(100vw - 16px));
   background: var(--superficie);
   border: var(--grosor) solid var(--trazo);
@@ -188,7 +188,7 @@ body[data-tema='oscuro'] .topbar-marca { padding: 2px; background: #fbfaf4; }
 /* ── Avisos del conductor: verde suave si informan; con franja amarilla si son retraso o cambio de ruta ── */
 .notif-toast-wrap {
   position: fixed;
-  z-index: 1200;
+  z-index: var(--z-toast);
   left: var(--e3);
   right: var(--e3);
   bottom: calc(var(--nav-alto) + env(safe-area-inset-bottom) + var(--e3));
@@ -237,7 +237,7 @@ body[data-tema='oscuro'] .topbar-marca { padding: 2px; background: #fbfaf4; }
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 900;
+  z-index: var(--z-barra);
   display: flex;
   background: var(--bg);
   border-top: var(--grosor) solid var(--trazo);
@@ -275,7 +275,7 @@ body[data-tema='oscuro'] .topbar-marca { padding: 2px; background: #fbfaf4; }
     top: 0;
     left: 0;
     bottom: 0;
-    z-index: 1000;
+    z-index: var(--z-lateral);
     width: 240px;
     display: flex;
     flex-direction: column;

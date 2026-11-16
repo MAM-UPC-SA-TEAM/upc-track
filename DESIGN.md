@@ -253,6 +253,8 @@ Objetivos tactiles de 44px minimo (48px en el boton del talon y en enlaces del p
 
 Sin sombras. Toda la profundidad es plana: la jerarquia sale de bordes de 2px en tinta, de rellenos planos (papel, superficie blanca, amarillo, verde) y del contraste entre ellos. Los paneles desplegables y los toasts se separan por borde, no por elevacion. El anillo interior del estado vencido es un trazo de 2px (`inset`), no una sombra de profundidad. Los degradados no existen.
 
+**Capas (z-index).** Una escala de tokens en `tokens.css`, de abajo arriba: hoja del Mapa y de Mi recorrido (`--z-hoja` 800), barra superior y navegacion inferior (`--z-barra` 900), paneles desplegables (`--z-panel` 950, viven dentro de la barra), panel lateral y aviso de servidor despertando (`--z-lateral` 1000), toasts (`--z-toast` 1200). No se escriben numeros sueltos. Cada mapa de Leaflet es un contexto aislado (`isolation: isolate`): sus capas internas, que llegan a 1000, no compiten con la interfaz; sin eso los controles de zoom quedaban por encima del menu de la cuenta.
+
 ### Named Rules
 **The Plano Con Borde Rule.** Separar es dibujar un borde de 2px o cambiar de relleno plano; nunca una sombra ni un degradado.
 

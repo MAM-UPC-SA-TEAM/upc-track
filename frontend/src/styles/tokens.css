@@ -5,6 +5,14 @@
  * las pantallas antiguas adopten el sistema sin reescribirse de golpe.
  */
 :root {
+  /* Capas, de abajo arriba. Leaflet usa 400–1000 DENTRO de su contenedor, que está aislado (mapa.css): sus controles
+     nunca compiten con estas capas. Los paneles desplegables viven dentro de la barra superior. */
+  --z-hoja: 800;      /* hojas del Mapa y de Mi recorrido */
+  --z-barra: 900;     /* barra superior y navegación inferior */
+  --z-panel: 950;     /* paneles desplegables (campana y cuenta), dentro de la barra */
+  --z-lateral: 1000;  /* panel lateral de escritorio y aviso «servidor despertando» */
+  --z-toast: 1200;    /* avisos emergentes */
+
   /* Papel y tinta */
   --papel: #fbfaf4;
   --papel-hundido: #f1eee1;
