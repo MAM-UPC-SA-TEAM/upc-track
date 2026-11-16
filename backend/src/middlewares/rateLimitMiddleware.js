@@ -14,3 +14,18 @@ export const loginRateLimit = rateLimit({
   // Solo cuenta como intento fallido si la respuesta es 4xx
   skipSuccessfulRequests: true,
 })
+
+// Registro público: cuenta TODOS los intentos (no solo los fallidos), porque cada alta crea una cuenta
+// y, cuando exista la verificación por correo, cada intento puede enviar un mensaje (vector de abuso).
+export function crearRegistroRateLimit(max = 10) {
+  return rateLimit({
+    windowMs:        60 * 60 * 1000, // ventana de 1 hora
+    max,
+    standardHeaders: true,
+    legacyHeaders:   false,
+    message: { error: 'Demasiados intentos de registro. Intenta de nuevo más tarde.' },
+    skip: () => process.env.NODE_ENV === 'test' && !process.env.PROBAR_RATE_LIMIT,
+  })
+}
+
+export const registroRateLimit = crearRegistroRateLimit()

@@ -24,7 +24,7 @@ test('POST /registro: faltan campos → 400', async () => {
 
 test('POST /registro: contraseña corta → 400', async () => {
   const res = await request(app).post('/api/auth/registro')
-    .send({ nombre: 'Ana', nombre_usuario: 'ana', correo: 'a@u.co', password: '123' })
+    .send({ nombre: 'Ana', nombre_usuario: 'ana', correo: 'a@unicesar.edu.co', password: '123' })
   assert.equal(res.status, 400)
   assert.match(res.body.error, /8 caracteres/)
 })
@@ -32,18 +32,45 @@ test('POST /registro: contraseña corta → 400', async () => {
 test('POST /registro: crea estudiante, normaliza datos y devuelve 201 con token', async () => {
   query.mock.mockImplementation(async () => ({ rows: [{ id_usuario: 10 }] }))
   const res = await request(app).post('/api/auth/registro')
-    .send({ nombre: '  Ana  ', nombre_usuario: ' ANA ', correo: ' ANA@U.CO ', password: 'clave1234' })
+    .send({ nombre: '  Ana  ', nombre_usuario: ' ANA ', correo: ' ANA@UNICESAR.EDU.CO ', password: 'clave1234' })
   assert.equal(res.status, 201)
   assert.ok(res.body.token)
   assert.equal(res.body.usuario.tipo_usuario, 'estudiante')
   const [, params] = query.mock.calls[0].arguments
-  assert.deepEqual([params[0], params[1], params[2]], ['Ana', 'ana', 'ana@u.co'])
+  assert.deepEqual([params[0], params[1], params[2]], ['Ana', 'ana', 'ana@unicesar.edu.co'])
+})
+
+test('POST /registro: correo fuera del dominio institucional → 400 sin tocar la BD', async () => {
+  for (const correo of ['ana@gmail.com', 'ana@unicesar.edu.co.evil.com', 'ana@evilunicesar.edu.co']) {
+    const res = await request(app).post('/api/auth/registro')
+      .send({ nombre: 'Ana', nombre_usuario: 'ana', correo, password: 'clave1234' })
+    assert.equal(res.status, 400, correo)
+    assert.match(res.body.error, /correo institucional @unicesar\.edu\.co/)
+  }
+  assert.equal(query.mock.callCount(), 0)
+})
+
+test('POST /registro: el límite de intentos responde 429', async () => {
+  process.env.PROBAR_RATE_LIMIT = '1'
+  try {
+    const { default: express } = await import('express')
+    const { crearRegistroRateLimit } = await import('../../src/middlewares/rateLimitMiddleware.js')
+    const mini = express()
+    mini.post('/r', crearRegistroRateLimit(2), (_req, res) => res.status(201).json({}))
+    assert.equal((await request(mini).post('/r')).status, 201)
+    assert.equal((await request(mini).post('/r')).status, 201)
+    const res = await request(mini).post('/r')
+    assert.equal(res.status, 429)
+    assert.match(res.body.error, /registro/)
+  } finally {
+    delete process.env.PROBAR_RATE_LIMIT
+  }
 })
 
 test('POST /registro: correo duplicado → 400', async () => {
   query.mock.mockImplementation(async () => { throw falloDup('usuario_correo_key') })
   const res = await request(app).post('/api/auth/registro')
-    .send({ nombre: 'A', nombre_usuario: 'a', correo: 'a@u.co', password: 'clave1234' })
+    .send({ nombre: 'A', nombre_usuario: 'a', correo: 'a@unicesar.edu.co', password: 'clave1234' })
   assert.equal(res.status, 400)
   assert.match(res.body.error, /correo/)
 })
@@ -51,7 +78,7 @@ test('POST /registro: correo duplicado → 400', async () => {
 test('POST /registro: nombre de usuario duplicado → 400', async () => {
   query.mock.mockImplementation(async () => { throw falloDup('usuario_nombre_usuario_key') })
   const res = await request(app).post('/api/auth/registro')
-    .send({ nombre: 'A', nombre_usuario: 'a', correo: 'a@u.co', password: 'clave1234' })
+    .send({ nombre: 'A', nombre_usuario: 'a', correo: 'a@unicesar.edu.co', password: 'clave1234' })
   assert.equal(res.status, 400)
   assert.match(res.body.error, /nombre de usuario/)
 })
@@ -60,7 +87,7 @@ test('POST /registro: error inesperado → 500', async () => {
   mock.method(console, 'error', () => {})
   query.mock.mockImplementation(async () => { throw new Error('BD caída') })
   const res = await request(app).post('/api/auth/registro')
-    .send({ nombre: 'A', nombre_usuario: 'a', correo: 'a@u.co', password: 'clave1234' })
+    .send({ nombre: 'A', nombre_usuario: 'a', correo: 'a@unicesar.edu.co', password: 'clave1234' })
   assert.equal(res.status, 500)
 })
 
@@ -107,7 +134,7 @@ test('POST /logout responde 200 aunque falle la BD', async () => {
 test('POST /login: éxito → 200 con token y sin hash', async () => {
   const password_hash = await bcrypt.hash('clave1234', 4)
   query.mock.mockImplementation(async () => ({ rows: [{
-    id_usuario: 5, nombre: 'Ana', nombre_usuario: 'ana', correo: 'a@u.co', tipo_usuario: 'estudiante', password_hash,
+    id_usuario: 5, nombre: 'Ana', nombre_usuario: 'ana', correo: 'a@unicesar.edu.co', tipo_usuario: 'estudiante', password_hash,
   }] }))
   const res = await request(app).post('/api/auth/login').send({ nombre_usuario: 'ana', password: 'clave1234' })
   assert.equal(res.status, 200)

@@ -16,6 +16,7 @@ const CAMPOS = [
   },
   {
     key: 'correo', label: 'Correo electrónico', type: 'email', autoComplete: 'email', inputMode: 'email',
+    placeholder: 'usuario@unicesar.edu.co', ayuda: 'Usa tu correo institucional @unicesar.edu.co.',
     autoCapitalize: 'none', autoCorrect: 'off', spellCheck: false,
   },
   { key: 'password', label: 'Contraseña', secreto: true, autoComplete: 'new-password', ayuda: 'Mínimo 8 caracteres.' },
@@ -48,6 +49,8 @@ export default function Registro() {
     if (!form.correo.trim())         e.correo         = 'El correo es obligatorio'
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.correo))
                                      e.correo         = 'Correo no válido'
+    else if (!/@unicesar\.edu\.co$/i.test(form.correo.trim()))
+                                     e.correo         = 'Usa tu correo institucional @unicesar.edu.co'
     if (!form.password)              e.password       = 'La contraseña es obligatoria'
     else if (form.password.length < 8)
                                      e.password       = 'Mínimo 8 caracteres'
