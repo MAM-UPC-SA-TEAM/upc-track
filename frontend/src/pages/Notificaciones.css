@@ -1,5 +1,5 @@
-/* Notificaciones: lo nuevo es la losa amarilla del aviso del conductor (relleno, no borde de color);
-   lo leído es la hoja blanca. La diferencia no depende solo del color: lo nuevo lleva la palabra «Nueva». */
+/* Notificaciones: lo nuevo lleva la franja amarilla de marca (8px arriba) y la palabra «Nueva»; lo leído es la hoja
+   sin franja. El amarillo es solo la franja, nunca una losa completa (se leía chillón con varias alertas). */
 
 .notif-lista { list-style: none; display: flex; flex-direction: column; gap: var(--e3); }
 
@@ -20,9 +20,5 @@
 .notif-pie .dato { font-size: var(--t-sm); font-weight: 600; text-transform: uppercase; color: var(--texto-suave); }
 .notif-leer { margin-left: auto; }
 
-/* Nueva: losa amarilla, siempre con tinta (nunca amarillo como texto sobre papel) */
-.notif--nueva { background: var(--amarillo); color: #14261a; border-color: #14261a; }
-.notif--nueva .notif-pie .dato { color: #14261a; }
-.notif--nueva .etiqueta--neutro { color: #14261a; box-shadow: inset 0 0 0 2px #14261a; }
-.notif--nueva .boton-contorno { background: transparent; color: #14261a; border-color: #14261a; }
-@media (hover: hover) and (pointer: fine) { .notif--nueva .boton-contorno:hover { background: rgba(20, 38, 26, 0.12); } }
+/* Nueva: franja amarilla de marca arriba; el resto de la hoja no cambia de color */
+.notif--nueva { border-top: 8px solid var(--amarillo); }
