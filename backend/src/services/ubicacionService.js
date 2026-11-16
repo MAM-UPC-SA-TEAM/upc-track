@@ -4,22 +4,31 @@
 import { Ubicacion } from '../models/Ubicacion.js'
 import { Bus }       from '../models/Bus.js'
 import { Notificacion } from '../models/Notificacion.js'
+import { distanciaMetros, velocidadKmh, VENTANA_MS } from '../utils/velocidad.js'
 
 const DISTANCIA_MINIMA_MOVIMIENTO_M = 25
 const UMBRAL_RETRASO_MS = 3 * 60 * 1000
 const COOLDOWN_NOTIFICACION_MS = 10 * 60 * 1000
 const estadoMovimientoBus = new Map()
 
-function distanciaMetros(lat1, lng1, lat2, lng2) {
-  const R = 6371000
-  const toRad = (v) => (v * Math.PI) / 180
-  const dLat = toRad(lat2 - lat1)
-  const dLng = toRad(lng2 - lng1)
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-  return R * c
+// Últimas posiciones de cada bus (solo el último minuto): de ahí sale la velocidad reciente para el ETA.
+// Vive en memoria: tras reiniciar el servidor tarda ~20 s en tener datos y mientras tanto no hay velocidad (null).
+const posicionesRecientes = new Map()
+
+function registrarPosicion(idBus, lat, lng, t = Date.now()) {
+  const lista = (posicionesRecientes.get(idBus) || []).filter((p) => t - p.t <= VENTANA_MS)
+  lista.push({ lat, lng, t })
+  posicionesRecientes.set(idBus, lista)
+}
+
+/** Velocidad reciente del bus en km/h, o null si aún no hay datos suficientes. */
+export function velocidadActual(idBus, ahora = Date.now()) {
+  return velocidadKmh(posicionesRecientes.get(idBus) || [], ahora)
+}
+
+/** Solo para pruebas. */
+export function olvidarPosiciones() {
+  posicionesRecientes.clear()
 }
 
 async function detectarRetrasoYNotificar(io, bus, lat, lng) {
@@ -93,12 +102,15 @@ export async function procesarUbicacion(io, idBus, lat, lng) {
   // 2. Obtener la ruta del bus para emitir al room correcto
   const ruta = await Bus.obtenerRuta(idBus)
 
+  registrarPosicion(idBus, parseFloat(lat), parseFloat(lng))
+
   // 3. Emitir evento por socket al room de la ruta
   if (io && ruta) {
     io.to(`ruta_${ruta.id_ruta}`).emit('bus:location', {
       id_bus:    idBus,
       lat:       parseFloat(lat),
       lng:       parseFloat(lng),
+      velocidad_kmh: velocidadActual(idBus),
       timestamp: new Date().toISOString(),
     })
   }

@@ -1,6 +1,8 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMap, faRoute, faLocationDot, faRotate } from '@fortawesome/free-solid-svg-icons'
 import { textoEdad } from '../../utils/formato'
+import { tieneVelocidadReciente } from '../../utils/calcularETA'
+import { NOTA_ETA, NOTA_ETA_VELOCIDAD } from '../../utils/textosETA'
 import './Talon.css'
 
 // Fases: vivo (validado) · viejo y sin-red (cifra anulada con sello) · sin-red-vacio (no hay datos y no hay red)
@@ -96,7 +98,7 @@ export default function TalonETA({
           <FontAwesomeIcon icon={faRoute} /> Ver rutas y horarios
         </button>
       )}
-      {hayEta && <p className="talon-nota">Tiempo estimado por distancia en línea recta.</p>}
+      {hayEta && <p className="talon-nota">{tieneVelocidadReciente(bus) ? NOTA_ETA_VELOCIDAD : NOTA_ETA}</p>}
     </section>
   )
 }

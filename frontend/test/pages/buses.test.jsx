@@ -64,6 +64,25 @@ describe('Buses disponibles', () => {
     expect(screen.queryByText(/Parada más cercana/)).toBeNull()
   })
 
+  it('el tiempo a la parada usa la velocidad reciente de cada bus (U24)', async () => {
+    cargar([
+      bus({ velocidad_kmh: 40 }),
+      bus({ id_bus: 2, nombre: 'Bus 2', velocidad_kmh: 10 }),
+      bus({ id_bus: 3, nombre: 'Bus 3' }), // sin velocidad medida: 25 km/h
+    ])
+    await screen.findByText('Bus 1')
+    expect(within(fila('Bus 1')).getByText('Parada más cercana · 2 min')).toBeInTheDocument() // 1,1 km a 40
+    expect(within(fila('Bus 2')).getByText('Parada más cercana · 7 min')).toBeInTheDocument() // a 10
+    expect(within(fila('Bus 3')).getByText('Parada más cercana · 3 min')).toBeInTheDocument() // a 25
+    expect(screen.getByText(/velocidad actual del bus/)).toBeInTheDocument()
+  })
+
+  it('sin velocidades medidas la nota habla solo de la línea recta', async () => {
+    cargar([bus()])
+    await screen.findByText('Bus 1')
+    expect(screen.getByText('Tiempo estimado por distancia en línea recta.')).toBeInTheDocument()
+  })
+
   it('cada fila enlaza al mapa de ese bus', async () => {
     cargar([bus()])
     await screen.findByText('Bus 1')

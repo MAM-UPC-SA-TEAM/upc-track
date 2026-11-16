@@ -1,5 +1,6 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faXmark } from '@fortawesome/free-solid-svg-icons'
+import { NOTA_ETA, NOTA_ETA_VELOCIDAD } from '../../utils/textosETA'
 import '../inicio/Talon.css'
 import './Mapa.css'
 
@@ -8,7 +9,7 @@ import './Mapa.css'
 const SELLOS = { viejo: 'Sin señal', 'sin-red': 'Sin conexión' }
 
 export default function TalonMapa({
-  icono, titulo, destino, minutos, lineas = [], etiqueta, fase, frescura = 1, mensajeVacio, onCerrar,
+  icono, titulo, destino, minutos, lineas = [], etiqueta, fase, frescura = 1, mensajeVacio, conVelocidad = false, onCerrar,
 }) {
   const anulado = fase === 'viejo' || fase === 'sin-red'
   const hayEta = minutos != null && (fase === 'vivo' || anulado)
@@ -50,7 +51,7 @@ export default function TalonMapa({
       ) : (
         <p className="talon-vacio">{mensajeVacio}</p>
       )}
-      {hayEta && <p className="talon-nota">Tiempo estimado por distancia en línea recta.</p>}
+      {hayEta && <p className="talon-nota">{conVelocidad ? NOTA_ETA_VELOCIDAD : NOTA_ETA}</p>}
     </section>
   )
 }

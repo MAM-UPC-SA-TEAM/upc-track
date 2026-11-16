@@ -4,6 +4,7 @@ import { screen, act, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { backend, rechazo, socketFalso } from '../helpers/mundoFalso'
 import { abrirApp, estudiante } from '../helpers/abrirApp'
+import { distanciaKm } from '../../src/utils/calcularETA'
 
 vi.mock('../../src/services/api', async () => (await import('../helpers/mundoFalso.js')).moduloApiFalso)
 vi.mock('../../src/services/socket', async () => (await import('../helpers/mundoFalso.js')).moduloSocketFalso)
@@ -87,6 +88,32 @@ describe('Inicio del estudiante', () => {
     act(() => socketFalso.desdeServidor('bus:estado', { id_bus: 1, estado: 'en_recorrido' }))
     await vi.waitFor(() => expect(backend.llamadasA('GET', '/api/buses/activos').length).toBeGreaterThan(antes))
     await vi.waitFor(() => expect(document.querySelector('.talon-franja')).not.toBe(franja))
+  })
+
+  describe('ETA según la velocidad reciente del bus (U24)', () => {
+    // Un bus a ~5 km de la parada «Parque Principal»
+    const lejos = { lat: 8.31, lng: -73.572 }
+    const km = distanciaKm(lejos.lat, lejos.lng, 8.31, -73.617)
+
+    it('con velocidad reciente estima con ella y lo dice', async () => {
+      montar({ buses: [bus({ ...lejos, velocidad_kmh: 40 })] })
+      const eta = await seccionEta()
+      expect(await eta.findByText(/Tu bus llega a Parque Principal en \d+ minutos/)).toHaveTextContent(`en ${Math.round((km / 40) * 60)} minutos`)
+      expect(eta.getByText(/velocidad actual del bus/)).toBeInTheDocument()
+    })
+
+    it('sin velocidad usa 25 km/h y la nota habla solo de la línea recta', async () => {
+      montar({ buses: [bus({ ...lejos })] })
+      const eta = await seccionEta()
+      expect(await eta.findByText(/Tu bus llega a Parque Principal en \d+ minutos/)).toHaveTextContent(`en ${Math.round((km / 25) * 60)} minutos`)
+      expect(eta.getByText('Tiempo estimado por distancia en línea recta.')).toBeInTheDocument()
+    })
+
+    it('un bus detenido en el semáforo (0 km/h) no dispara la estimación: usa el piso de 10 km/h', async () => {
+      montar({ buses: [bus({ ...lejos, velocidad_kmh: 0 })] })
+      const eta = await seccionEta()
+      expect(await eta.findByText(/Tu bus llega a Parque Principal en \d+ minutos/)).toHaveTextContent(`en ${Math.round((km / 10) * 60)} minutos`)
+    })
   })
 
   it('un bus detenido no cuenta para la llegada', async () => {

@@ -38,7 +38,7 @@ Lo que una app genérica de transporte (Google Maps y similares) no puede copiar
 
 ## Capabilities and Constraints
 
-- Mapa en tiempo real con ruta, paradas y bus; ETA lineal a una parada (distancia / 25 km/h); notificaciones en tiempo real por Socket.IO; modo claro/oscuro; PWA con aviso de conexión.
+- Mapa en tiempo real con ruta, paradas y bus; ETA lineal a una parada (distancia / velocidad reciente del bus, entre 10 y 40 km/h; 25 km/h sin dato); notificaciones en tiempo real por Socket.IO; modo claro/oscuro; PWA con aviso de conexión.
 - Vocabulario del dominio: bus, ruta, parada, recorrido, ETA, conductor, «en recorrido / detenido / fuera de servicio».
 - Sin notificaciones push remotas (solo con la app abierta o reciente); el seguimiento con la pantalla bloqueada no está garantizado (el conductor debe mantener la app abierta y el teléfono cargando).
 - Presupuesto $0 y herramientas gratuitas; solo OpenStreetMap/Leaflet para mapas.

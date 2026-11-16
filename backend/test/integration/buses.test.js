@@ -10,13 +10,15 @@ const { pool } = await import('../../src/config/database.js')
 const { Bus } = await import('../../src/models/Bus.js')
 const { Notificacion } = await import('../../src/models/Notificacion.js')
 const { generarToken } = await import('../../src/utils/jwt.js')
+const { Ubicacion } = await import('../../src/models/Ubicacion.js')
+const { olvidarPosiciones, procesarUbicacion } = await import('../../src/services/ubicacionService.js')
 
 let query
 beforeEach(() => {
   query = mock.method(pool, 'query', async () => ({ rows: [{ id_bus: 1 }] }))
   mock.method(console, 'error', () => {})
 })
-afterEach(() => { mock.restoreAll(); app.set('io', undefined) })
+afterEach(() => { mock.timers.reset(); mock.restoreAll(); app.set('io', undefined) })
 
 const auth = (tipo, id = 1) => ({ Authorization: `Bearer ${generarToken({ id_usuario: id, tipo_usuario: tipo, nombre: 'U' })}` })
 const admin = () => auth('admin')
@@ -40,7 +42,6 @@ test('GET /buses sin token → 401', async () => {
 // ── Lecturas ────────────────────────────────────────────────
 const lecturas = [
   ['/api/buses', 'todos'],
-  ['/api/buses/activos', 'activos'],
   ['/api/buses/todos-posicion', 'todosConPosicion'],
 ]
 for (const [url, metodo] of lecturas) {
@@ -55,6 +56,37 @@ for (const [url, metodo] of lecturas) {
     assert.equal((await request(app).get(url).set(estudiante())).status, 500)
   })
 }
+
+// /activos añade la velocidad reciente de cada bus (U24)
+test('GET /buses/activos → 200 con la lista y velocidad_kmh null si aún no hay datos', async () => {
+  olvidarPosiciones()
+  mock.method(Bus, 'activos', async () => [{ id_bus: 1 }])
+  const res = await request(app).get('/api/buses/activos').set(estudiante())
+  assert.equal(res.status, 200)
+  assert.deepEqual(res.body, { buses: [{ id_bus: 1, velocidad_kmh: null }] })
+})
+
+test('GET /buses/activos → 500 si falla el modelo', async () => {
+  mock.method(Bus, 'activos', async () => fallo())
+  assert.equal((await request(app).get('/api/buses/activos').set(estudiante())).status, 500)
+})
+
+test('GET /buses/activos incluye la velocidad reciente de cada bus', async () => {
+  olvidarPosiciones()
+  mock.method(Ubicacion, 'registrarUbicacion', async () => 1)
+  mock.method(Bus, 'obtenerRuta', async () => null)
+  mock.method(Bus, 'porId', async () => ({ id_bus: 1, estado: 'detenido' }))
+  mock.timers.enable({ apis: ['Date'], now: 1_000_000_000 })
+  for (let i = 0; i < 8; i++) { // 36 km/h hacia el norte, una posición cada 4 s
+    await procesarUbicacion(null, 1, 8.3 + (10 * i * 4) / 111_195, -73.6)
+    mock.timers.tick(4000)
+  }
+  mock.method(Bus, 'activos', async () => [{ id_bus: 1 }, { id_bus: 2 }])
+  const res = await request(app).get('/api/buses/activos').set(estudiante())
+  const [uno, dos] = res.body.buses
+  assert.ok(Math.abs(uno.velocidad_kmh - 36) < 0.6, `esperaba ~36, dio ${uno.velocidad_kmh}`)
+  assert.equal(dos.velocidad_kmh, null) // otro bus sin posiciones
+})
 
 test('GET /mi-bus: estudiante → 403', async () => {
   assert.equal((await request(app).get('/api/buses/mi-bus').set(estudiante())).status, 403)
