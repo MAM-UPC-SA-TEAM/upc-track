@@ -108,6 +108,11 @@
   from { opacity: 0; transform: scale(0.97); }
   to   { opacity: 1; transform: scale(1); }
 }
+/* Salida: más corta que la entrada, desde el mismo origen (el botón que lo abrió; se fija en PanelDesplegable) */
+.topbar-panel--sale { animation: panel-sale var(--d-salida) var(--ease-out) forwards; pointer-events: none; }
+@keyframes panel-sale {
+  to { opacity: 0; transform: scale(0.97); }
+}
 
 .topbar-panel-header {
   display: flex;
