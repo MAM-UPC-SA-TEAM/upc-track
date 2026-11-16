@@ -15,6 +15,7 @@ export default function Perfil() {
 
   const datos = [
     { clave: 'Nombre completo', valor: usuario?.nombre },
+    { clave: 'Nombre de usuario', valor: usuario?.nombre_usuario },
     { clave: 'Correo electrónico', valor: correoActual },
   ]
 

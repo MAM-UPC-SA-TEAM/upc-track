@@ -22,6 +22,8 @@ describe('Mi perfil (solo lectura)', () => {
     expect(await screen.findByRole('heading', { name: 'Ana', level: 2 })).toBeInTheDocument()
     const datos = within(seccionDatos())
     expect(datos.getByText('ana@unicesar.edu.co')).toBeInTheDocument()
+    expect(datos.getByText('Nombre de usuario')).toBeInTheDocument()
+    expect(datos.getByText('ana')).toBeInTheDocument()
     expect(datos.queryByText('Documento')).toBeNull()
     expect(screen.getAllByText('estudiante').length).toBeGreaterThan(0)
   })
