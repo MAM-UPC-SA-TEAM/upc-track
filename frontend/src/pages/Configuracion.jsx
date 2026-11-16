@@ -59,6 +59,8 @@ export default function Configuracion() {
         correo: formInfo.correo,
       })
       if (actualizarUsuario && data.usuario) actualizarUsuario(data.usuario, data.token) // el servidor reemite el token
+      // El servidor guarda el nombre de usuario en minúsculas: el campo muestra lo guardado, no lo escrito
+      if (data.usuario?.nombre_usuario) setFormInfo(p => ({ ...p, nombre_usuario: data.usuario.nombre_usuario }))
       setMsgInfo({ tipo: 'ok', texto: 'Datos guardados.' })
     } catch (err) {
       if (err.status === 409) { // nombre de usuario ya tomado: se dice en el propio campo

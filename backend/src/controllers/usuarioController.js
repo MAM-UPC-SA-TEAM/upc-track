@@ -107,12 +107,12 @@ export async function editarPerfil(req, res) {
   try {
     if (cambiaUsuario) {
       await pool.query(
-        `UPDATE usuario SET nombre=$1, correo=$2, nombre_usuario=$3 WHERE id_usuario=$4`,
+        `UPDATE usuario SET nombre=$1, correo=COALESCE($2, correo), nombre_usuario=$3 WHERE id_usuario=$4`,
         [nombre.trim(), correo, nombre_usuario, id]
       )
     } else {
       await pool.query(
-        `UPDATE usuario SET nombre=$1, correo=$2 WHERE id_usuario=$3`,
+        `UPDATE usuario SET nombre=$1, correo=COALESCE($2, correo) WHERE id_usuario=$3`,
         [nombre.trim(), correo, id]
       )
     }

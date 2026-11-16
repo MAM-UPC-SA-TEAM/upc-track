@@ -167,6 +167,15 @@ test('PATCH /perfil: correo duplicado → 400', async () => {
   assert.equal(res.status, 400)
 })
 
+test('PATCH /perfil: si no se envía correo se conserva el guardado (no lo borra)', async () => {
+  query.mock.mockImplementation(async (sql) =>
+    sql.startsWith('SELECT') ? { rows: [{ id_usuario: 4, nombre: 'Ana', nombre_usuario: 'ana', correo: 'a@u.co', tipo_usuario: 'estudiante' }] } : { rows: [] })
+  const res = await request(app).patch('/api/usuarios/perfil').set(estudiante(4)).send({ nombre: 'Ana' })
+  assert.equal(res.status, 200)
+  assert.match(query.mock.calls[0].arguments[0], /correo=COALESCE\(\$2, correo\)/)
+  assert.equal(res.body.usuario.correo, 'a@u.co')
+})
+
 // ── Nombre de usuario propio (U23) ──────────────────────────
 test('PATCH /perfil: cambia el nombre de usuario (en minúsculas) y reemite el token con los datos nuevos', async () => {
   query.mock.mockImplementation(async (sql) =>

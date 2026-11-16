@@ -70,6 +70,18 @@ describe('Configuración — datos personales', () => {
     expect(JSON.parse(localStorage.getItem('usuario')).nombre_usuario).toBe('ana.perez')
   })
 
+  it('tras guardar, el campo muestra el nombre de usuario como lo guardó el servidor (minúsculas)', async () => {
+    backend.respuestas['PATCH /api/usuarios/perfil'] = { ok: true, usuario: { ...ana, nombre_usuario: 'ana.perez' }, token: 'token.nuevo.firmado' }
+    const user = userEvent.setup()
+    abrir()
+    const campo = await screen.findByLabelText('Nombre de usuario')
+    await user.clear(campo)
+    await user.type(campo, 'Ana.Perez')
+    await user.click(screen.getByRole('button', { name: /guardar cambios/i }))
+    await screen.findByRole('status')
+    expect(screen.getByLabelText('Nombre de usuario')).toHaveValue('ana.perez')
+  })
+
   it('rechaza un nombre de usuario con formato inválido antes de llamar al backend', async () => {
     const user = userEvent.setup()
     abrir()
