@@ -57,7 +57,7 @@ export default function TalonETA({
         <TituloParada fase={fase} parada={parada} paradas={paradas} onParada={onParada} />
 
         <div className="talon-eta">
-          {hayEta && <span className="talon-cifra" aria-hidden="true">{cifra}</span>}
+          {hayEta && <span key={cifra} className="talon-cifra" aria-hidden="true">{cifra}</span>}
           {hayEta && <span className="talon-unidad" aria-hidden="true">min</span>}
           {!hayEta && fase === 'sin-buses' && <span className="talon-sin" aria-hidden="true">Sin bus ahora</span>}
           {!hayEta && fase !== 'sin-buses' && <span className="talon-esqueleto" aria-hidden="true" />}

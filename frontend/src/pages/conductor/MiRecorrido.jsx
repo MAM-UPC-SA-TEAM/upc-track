@@ -1,10 +1,11 @@
 import { Fragment, useEffect, useState } from 'react'
 import {
-  MapContainer, Marker, Polyline, CircleMarker, Tooltip, TileLayer, ZoomControl, AttributionControl, useMap,
+  MapContainer, Polyline, CircleMarker, Tooltip, TileLayer, ZoomControl, AttributionControl, useMap,
 } from 'react-leaflet'
 import L from 'leaflet'
 import Layout from '../../components/shared/Layout'
 import { iconoBus, iconoBusViejo } from '../../utils/marcadores'
+import MarcadorSuave from '../../components/mapa/MarcadorSuave'
 import TalonConductor, { FRESCO_MAX_S } from '../../components/conductor/TalonConductor'
 import api from '../../services/api'
 import { useRecorrido } from '../../context/RecorridoContext'
@@ -150,7 +151,7 @@ export default function MiRecorrido() {
             )}
 
             {/* El bus; si el dato está anulado, marcador hueco como lo ven los estudiantes */}
-            {gps && <Marker position={[gps.lat, gps.lng]} icon={vista === 'viejo' ? iconoBusViejo : iconoBus} interactive={false} />}
+            {gps && <MarcadorSuave position={[gps.lat, gps.lng]} icon={vista === 'viejo' ? iconoBusViejo : iconoBus} interactive={false} />}
           </MapContainer>
         </div>
 

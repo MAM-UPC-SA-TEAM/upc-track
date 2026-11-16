@@ -45,3 +45,14 @@ describe('paneles de la barra', () => {
     expect(layout).toMatch(/\.topbar-panel--sale\s*\{[^}]*animation:\s*panel-sale var\(--d-salida\) var\(--ease-out\)[^}]*pointer-events:\s*none/)
   })
 })
+
+describe('cifra del ETA (U30)', () => {
+  const talon = leer('components/inicio/Talon.css')
+  it('al cambiar el número entra con un fundido breve, solo con opacidad y transform', () => {
+    expect(talon).toMatch(/\.talon-cifra\s*\{[^}]*animation:\s*cifra-cambia var\(--d-toque\) var\(--ease-out\)/)
+    const keyframes = talon.match(/@keyframes cifra-cambia\s*\{([^]*?)\}\s*\}/)?.[1] ?? ''
+    expect(keyframes).toMatch(/opacity/)
+    expect(keyframes).toMatch(/transform/)
+    expect(keyframes).not.toMatch(/(width|height|margin|padding|top|left)\s*:/)
+  })
+})

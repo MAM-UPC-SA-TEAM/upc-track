@@ -116,6 +116,44 @@ describe('Inicio del estudiante', () => {
     })
   })
 
+  describe('talón estable ante consultas y posiciones nuevas (U30)', () => {
+    const lejos = (lng, extra = {}) => bus({ lat: 8.31, lng, ...extra })
+    const cifraNodo = () => document.querySelector('.talon-cifra')
+    const refrescar = async (buses) => {
+      const antes = backend.llamadasA('GET', '/api/buses/activos').length
+      backend.respuestas['GET /api/buses/activos'] = { buses }
+      act(() => socketFalso.desdeServidor('bus:estado', { id_bus: 1, estado: 'en_recorrido' }))
+      await vi.waitFor(() => expect(backend.llamadasA('GET', '/api/buses/activos').length).toBeGreaterThan(antes))
+      await act(async () => {})
+    }
+
+    it('una consulta con el mismo ETA no rehace la cifra, la franja ni el estado', async () => {
+      montar({ buses: [lejos(-73.572, { edad_segundos: 3 })] })
+      await (await seccionEta()).findByText(/Validado/)
+      const cifra = cifraNodo()
+      const franja = document.querySelector('.talon-franja')
+      const estado = document.querySelector('.talon-estado')
+      const textoCifra = cifra.textContent
+
+      await refrescar([lejos(-73.572, { edad_segundos: 4 })]) // mismo lugar, un segundo más viejo
+      expect(cifraNodo()).toBe(cifra)
+      expect(cifraNodo().textContent).toBe(textoCifra)
+      expect(document.querySelector('.talon-franja')).toBe(franja)
+      expect(document.querySelector('.talon-estado')).toBe(estado)
+    })
+
+    it('un ETA distinto sí cambia la cifra (nodo nuevo: es lo que dispara el fundido)', async () => {
+      montar({ buses: [lejos(-73.572, { edad_segundos: 3 })] })
+      await (await seccionEta()).findByText(/Validado/)
+      const cifra = cifraNodo()
+      const antes = cifra.textContent
+
+      await refrescar([lejos(-73.592, { edad_segundos: 0 })]) // el bus se acercó ~2 km
+      await vi.waitFor(() => expect(cifraNodo().textContent).not.toBe(antes))
+      expect(cifraNodo()).not.toBe(cifra)
+    })
+  })
+
   it('un bus detenido no cuenta para la llegada', async () => {
     montar({ buses: [bus({ estado: 'detenido' })] })
     expect((await screen.findAllByText(/Ningún bus está transmitiendo ahora/)).length).toBeGreaterThan(0)

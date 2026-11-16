@@ -14,7 +14,7 @@ vi.mock('react-leaflet', () => {
     MapContainer: ({ children }) => <div data-testid="mapa">{children}</div>,
     TileLayer: Nada, Marker: Nada, Polyline: Nada, CircleMarker: Nada, Tooltip: Nada,
     ZoomControl: Nada, AttributionControl: Nada,
-    useMap: () => ({ fitBounds: vi.fn(), panInside: vi.fn(), setView: vi.fn(), flyTo: vi.fn(), getZoom: () => 15, invalidateSize: vi.fn() }),
+    useMap: () => ({ on: vi.fn(), off: vi.fn(), fitBounds: vi.fn(), panInside: vi.fn(), setView: vi.fn(), flyTo: vi.fn(), getZoom: () => 15, invalidateSize: vi.fn() }),
     useMapEvents: () => null,
   }
 })
