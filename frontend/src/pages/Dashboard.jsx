@@ -11,13 +11,13 @@ import { calcularETA } from '../utils/calcularETA'
 import './Dashboard.css'
 import { MapContainer, Polyline, Marker, CircleMarker, Tooltip } from 'react-leaflet'
 import L from 'leaflet'
+import { iconoBus } from '../utils/marcadores'
 
 const FRESCO_MAX_S = 30        // meta del charter: posición visible actualizada en ≤ 30 s
 const FALLOS_PARA_ANULAR = 2   // un sondeo fallido no anula el dato: dos seguidos sí
 const AVISO_VIGENCIA_MIN = 90  // un aviso del conductor deja de mostrarse tras 90 min
 const CLAVE_PARADA = 'upctrack.miParada'
 
-const iconoBus = L.divIcon({ className: '', html: '<span class="mk mk-bus"></span>', iconSize: [28, 28], iconAnchor: [14, 14] })
 const iconoParada = L.divIcon({ className: '', html: '<span class="mk mk-parada"></span>', iconSize: [22, 22], iconAnchor: [11, 11] })
 
 const num = v => Number.parseFloat(v)
@@ -206,7 +206,7 @@ export default function Dashboard() {
               )}
               {busCerca && (
                 <Marker position={[busCerca.lat, busCerca.lng]} icon={iconoBus}>
-                  <Tooltip permanent direction="top" offset={[0, -12]} className="etiqueta-mapa">{busCerca.nombre}</Tooltip>
+                  <Tooltip permanent direction="top" offset={[0, -20]} className="etiqueta-mapa">{busCerca.nombre}</Tooltip>
                 </Marker>
               )}
             </MapContainer>

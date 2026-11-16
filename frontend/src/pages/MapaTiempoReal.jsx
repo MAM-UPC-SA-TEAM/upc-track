@@ -7,6 +7,7 @@ import L from 'leaflet'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMagnifyingGlass, faLocationDot, faBus, faRotate } from '@fortawesome/free-solid-svg-icons'
 import Layout from '../components/shared/Layout'
+import { iconoBus, iconoBusViejo } from '../utils/marcadores'
 import ChipsRutas from '../components/mapa/ChipsRutas'
 import HojaBuses from '../components/mapa/HojaBuses'
 import TalonMapa from '../components/mapa/TalonMapa'
@@ -37,8 +38,6 @@ const icono = (clase, tam = 44) => L.divIcon({
   iconSize: [tam, tam],
   iconAnchor: [tam / 2, tam / 2],
 })
-const iconoBus = icono('mk-bus')
-const iconoBusViejo = icono('mk-bus mk-bus--viejo')
 const iconoParadaSel = icono('mk-parada')
 
 const num = v => Number(v)
@@ -471,7 +470,7 @@ export default function MapaTiempoReal() {
                   <Marker key={b.id_bus} position={[b.lat, b.lng]} icon={viejo ? iconoBusViejo : iconoBus}
                     eventHandlers={{ click: () => { setBusSeleccionado(b); setParadaSeleccionada(null) } }}>
                     {rotular && (
-                      <Tooltip permanent direction="top" offset={[0, -16]} className="etiqueta-mapa">
+                      <Tooltip permanent direction="top" offset={[0, -22]} className="etiqueta-mapa">
                         {viejo ? `${b.nombre} · sin señal` : b.nombre}
                       </Tooltip>
                     )}
