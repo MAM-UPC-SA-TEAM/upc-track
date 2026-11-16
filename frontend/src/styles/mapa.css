@@ -30,6 +30,14 @@
 .leaflet-overlay-pane path.parada-punto--inactiva { stroke-dasharray: 3 3; fill-opacity: 0.4; }
 
 .leaflet-container { font-family: var(--f-ui); background: var(--papel-hundido); }
+/* El mapa es siempre papel claro, también con el tema oscuro: las calles calmadas no se invierten y la ruta, las
+   paradas y los controles conservan el contraste para el que se diseñaron. Dentro del mapa los tokens vuelven a sus valores claros. */
+body[data-tema='oscuro'] .leaflet-container {
+  --papel: #fbfaf4; --papel-hundido: #f1eee1; --superficie: #ffffff;
+  --tinta: #14261a; --tinta-suave: #4a5b4f; --linea-suave: #d8d3c0;
+  --texto: #14261a; --texto-suave: #4a5b4f; --borde: #d8d3c0; --trazo: #14261a; --acento-texto: #1e6b2e;
+  color-scheme: light;
+}
 
 /* Controles de Leaflet con el lenguaje del sistema: planos, 2px, objetivo de 44px */
 .leaflet-bar, .leaflet-touch .leaflet-bar { border: 0; border-radius: 0; box-shadow: none; }
@@ -55,5 +63,3 @@
 
 /* Calles reales, calmadas: sin color saturado, con el tono del papel; así la ruta y el bus son lo que se lee */
 .tiles-calmos { filter: grayscale(0.85) sepia(0.2) saturate(0.7) contrast(0.78) brightness(1.08); opacity: 0.72; /* se funde con el papel: las calles quedan de fondo y la ruta manda */ }
-/* En oscuro el fondo se inclina hacia el verde-negro del papel, no hacia un gris neutro */
-body[data-tema='oscuro'] .tiles-calmos { filter: invert(0.9) hue-rotate(180deg) grayscale(0.5) sepia(0.35) hue-rotate(60deg) brightness(0.8) contrast(0.78); }
