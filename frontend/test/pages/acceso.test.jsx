@@ -133,6 +133,15 @@ describe('Registro', () => {
     expect(backend.llamadas).toHaveLength(0)
   })
 
+  it('un correo que no es @unicesar.edu.co se rechaza antes de llamar al servidor', async () => {
+    const user = userEvent.setup()
+    abrirApp('/registro')
+    await llenar(user, { correo: 'ana@gmail.com' })
+    await user.click(screen.getByRole('button', { name: /crear cuenta/i }))
+    expect(screen.getByText('Usa tu correo institucional @unicesar.edu.co', { selector: '.campo-error span' })).toBeInTheDocument()
+    expect(backend.llamadas).toHaveLength(0)
+  })
+
   it('registro correcto envía el usuario en minúsculas e inicia sesión directo', async () => {
     backend.respuestas['POST /api/auth/registro'] = { token: `h.${btoa(JSON.stringify({ ...estudiante, exp: 9999999999 }))}.s`, usuario: estudiante }
     const user = userEvent.setup()

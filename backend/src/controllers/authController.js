@@ -4,6 +4,7 @@
 
 import { login, registrarEstudiante } from '../services/authService.js'
 import { pool } from '../config/database.js'
+import { esCorreoPermitido, mensajeCorreoNoPermitido, normalizarCorreo } from '../utils/correo.js'
 
 // POST /api/auth/login
 export async function loginController(req, res) {
@@ -53,11 +54,16 @@ export async function registroController(req, res) {
     })
   }
 
+  // El dominio se valida aquí, en el servidor: saltarse el formulario no sirve
+  if (!esCorreoPermitido(correo)) {
+    return res.status(400).json({ error: mensajeCorreoNoPermitido() })
+  }
+
   try {
     const resultado = await registrarEstudiante({
       nombre:         String(nombre).trim(),
       nombre_usuario: String(nombre_usuario).trim().toLowerCase(),
-      correo:         String(correo).trim().toLowerCase(),
+      correo:         normalizarCorreo(correo),
       password,
     })
     return res.status(201).json(resultado)
