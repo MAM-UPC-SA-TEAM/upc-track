@@ -44,7 +44,11 @@ body[data-tema='oscuro'] .talon-parada select {
   font-family: var(--f-ui);
   font-variant-numeric: tabular-nums;
   color: var(--texto);
+  /* Cuando cambia el número (llegó una posición nueva) entra con un fundido breve en vez de saltar. La clave del
+     nodo en React es la propia cifra: solo se rehace si cambia el valor, no en cada sondeo que devuelve el mismo. */
+  animation: cifra-cambia var(--d-toque) var(--ease-out);
 }
+@keyframes cifra-cambia { from { opacity: 0.45; transform: translateY(5px); } }
 .talon-unidad { font-size: 1.75rem; font-weight: 700; }
 .talon-sin { padding: var(--e3) 0 var(--e1); font-size: 2.25rem; line-height: 1; font-weight: 800; font-stretch: 76%; letter-spacing: -0.02em; }
 .talon--viejo .talon-unidad, .talon--sin-red .talon-unidad { opacity: 0.28; }

@@ -8,6 +8,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMagnifyingGlass, faLocationDot, faBus, faRotate } from '@fortawesome/free-solid-svg-icons'
 import Layout from '../components/shared/Layout'
 import { iconoBus, iconoBusViejo } from '../utils/marcadores'
+import MarcadorSuave from '../components/mapa/MarcadorSuave'
 import ChipsRutas from '../components/mapa/ChipsRutas'
 import HojaBuses from '../components/mapa/HojaBuses'
 import TalonMapa from '../components/mapa/TalonMapa'
@@ -470,14 +471,14 @@ export default function MapaTiempoReal() {
                 const viejo = b.estado === 'sin_senal' || edadBus(b) > FRESCO_MAX_S
                 const rotular = rotularTodos || busSeleccionado?.id_bus === b.id_bus
                 return (
-                  <Marker key={b.id_bus} position={[b.lat, b.lng]} icon={viejo ? iconoBusViejo : iconoBus}
+                  <MarcadorSuave key={b.id_bus} position={[b.lat, b.lng]} icon={viejo ? iconoBusViejo : iconoBus}
                     eventHandlers={{ click: () => { setBusSeleccionado(b); setParadaSeleccionada(null) } }}>
                     {rotular && (
                       <Tooltip permanent direction="top" offset={[0, -22]} className="etiqueta-mapa">
                         {viejo ? `${b.nombre} · sin señal` : b.nombre}
                       </Tooltip>
                     )}
-                  </Marker>
+                  </MarcadorSuave>
                 )
               })}
             </MapContainer>

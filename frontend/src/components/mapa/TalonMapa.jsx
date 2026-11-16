@@ -33,7 +33,7 @@ export default function TalonMapa({
 
         <div className="talon-eta">
           {hayEta
-            ? (<><span className="talon-cifra" aria-hidden="true">{cifra}</span><span className="talon-unidad" aria-hidden="true">min</span></>)
+            ? (<><span key={cifra} className="talon-cifra" aria-hidden="true">{cifra}</span><span className="talon-unidad" aria-hidden="true">min</span></>)
             : <span className="talon-sin" aria-hidden="true">Sin bus ahora</span>}
           {anulado && <span className="sello" aria-hidden="true">{SELLOS[fase]}</span>}
         </div>
