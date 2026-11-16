@@ -276,21 +276,20 @@ Rotulo rectangular con borde de 3px y texto en mayusculas condensadas, rojo, gir
 - **Secundario:** boton con borde de 2px en el color actual (banners); enlaces de texto en verde, 700, subrayados con separacion de 4px.
 
 ### Aviso del conductor
-Losa amarilla completa con borde de 2px en tinta, icono, mensaje en 700 y hora relativa en mono. El mismo vestido se usa en el toast de notificaciones. No se usa un borde de color sobre fondo claro para avisar.
+Aviso informativo: verde suave (`aviso-fondo`) con borde de 2px, icono, rotulo, mensaje en 700 y hora relativa en mono. Retraso y cambio de ruta: superficie con borde de 2px, franja amarilla superior de 8px y rotulo. El mismo vestido se usa en el toast de notificaciones. No se usa un borde de color sobre fondo claro para avisar.
 
 ### Navigation
 - **Barra superior:** papel, borde inferior de 2px, logo de marca (36px), titulo, y a la derecha tema, campana con cuenta (cuadro de tinta con numero de papel en mono, no rojo) y avatar verde con iniciales.
-- **Navegacion inferior (<1024px):** cinco destinos estandar con icono y texto; el activo es una losa verde completa con texto blanco; inactivos en tinta suave. Borde superior de 2px.
+- **Navegacion inferior (<1024px):** hasta cinco destinos con icono y texto; el activo es una losa verde completa con texto blanco; inactivos en tinta suave. Borde superior de 2px. Estudiante: Inicio, Mapa, Rutas, Buses y Perfil ("Perfil" tambien queda marcado en Configuracion). Las alertas no tienen pestana en movil: viven en la campana de la barra superior (con su cuenta y "Ver todas"); el panel lateral de escritorio si las lista. El Inicio no repite enlaces a Rutas ni a Buses.
 - **Panel lateral (>=1024px):** fondo tinta, enlaces en papel calido de 48px de alto, activo en verde lleno.
 - **Paneles desplegables:** superficie con borde de 2px, anclados a la barra (nunca se salen de pantalla), ancho hasta 360px; entran con escala 0.97 a 1 en 200ms.
 
 ### Banners de la app
-Franja a todo el ancho: conexion perdida en rojo sello con texto blanco, actualizacion en amarillo con tinta, instalacion en tinta con papel.
+Franja a todo el ancho: conexion perdida en rojo sello con texto blanco, actualizacion en verde suave con tinta, instalacion en tinta con papel.
 
-### Mapas (Inicio y Mapa)
-Dos bases, un mismo lenguaje compartido (marcadores, etiquetas, trazos y controles viven en un solo archivo y los usan ambas pantallas).
+### Mapas (Mapa y Mi recorrido)
+El Inicio ya no lleva mapa miniatura (U32): un mapa esquematico no daba una vista en tiempo real y repetia lo que dice el talon. El Inicio termina en el boton "Ver en el mapa" del talon, que abre el Mapa con el bus esperado ya seleccionado. El Mapa y Mi recorrido comparten un mismo lenguaje (marcadores, etiquetas, trazos y controles viven en un solo archivo).
 
-- **Base de Inicio:** esquematica, sin teselas ni calles, sobre papel hundido; marco de 2px en tinta; solo ruta (verde, 5px), parada y bus; sin interaccion de arrastre ni zoom; todo el mapa es un enlace al Mapa.
 - **Base del Mapa:** calles reales de OpenStreetMap calmadas con CSS: gris (grayscale .85), sepia .2, saturacion .7, contraste .78, brillo 1.08 y opacidad .72 para que las calles se fundan con el papel y la ruta mande. El mapa es siempre papel claro, tambien con el tema oscuro: no se invierte, y dentro de `.leaflet-container` los tokens vuelven a sus valores claros (ruta, paradas y controles conservan su contraste). La hoja y el resto de la pantalla si siguen el tema. Las etiquetas de calles de OSM se calman, no se quitan.
 - **Marcadores:** bus = disco de tinta de 36px con borde de papel de 3px y un glifo de bus de papel (18px) dentro de un area tactil de 44px; el marcador vive en `utils/marcadores.js`, compartido por Inicio, Mapa y Mi recorrido. Bus sin senal (mas de 30 s o estado "sin senal") = disco hueco de papel con anillo discontinuo de tinta y el glifo en tinta, con la etiqueta "Nombre · sin senal"; se anula, no desaparece. Parada en reposo = anillo de papel de 16px con trazo de tinta de 2px (guion cuando esta inactiva), con un circulo invisible de 22px de radio que da 44px de toque. Parada elegida, o la proxima parada del bus elegido = punto amarillo de 22px con borde de tinta y su nombre en una etiqueta plana.
 - **Etiquetas:** siempre papel con tinta y borde de 2px, 700, esquinas rectas, sin flecha, en cualquier tema. Con mas de 3 buses solo se rotula el elegido.
