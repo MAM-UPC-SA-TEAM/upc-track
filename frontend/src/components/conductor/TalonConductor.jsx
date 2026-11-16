@@ -1,8 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
-  faBus, faPlay, faPause, faStop, faPaperPlane, faBullhorn, faChevronDown, faChevronUp,
-  faTriangleExclamation, faCircleCheck,
+  faBus, faPlay, faPause, faStop, faTriangleExclamation,
 } from '@fortawesome/free-solid-svg-icons'
 import { textoEdad } from '../../utils/formato'
 import '../inicio/Talon.css'
@@ -23,99 +22,14 @@ const PALABRAS = {
   colgado: 'Sin transmitir',
 }
 
-const TIPOS_AVISO = [
-  { valor: 'info', texto: 'Info' },
-  { valor: 'retraso', texto: 'Retraso' },
-  { valor: 'cambio_ruta', texto: 'Cambio de ruta' },
-]
-
 // Clase de estado heredada del talón del estudiante (color de la franja y de la etiqueta)
 const CLASE_FASE = {
   'sin-bus': 'sin-buses', libre: 'sin-buses', buscando: 'cargando', vivo: 'vivo', detenido: 'vivo', colgado: 'viejo',
 }
 
-function Aviso({ onEnviar }) {
-  const [abierto, setAbierto] = useState(false)
-  const [tipo, setTipo] = useState('info')
-  const [mensaje, setMensaje] = useState('')
-  const [enviando, setEnviando] = useState(false)
-  const [resultado, setResultado] = useState(null) // 'ok' | 'error'
-  const formRef = useRef(null)
-
-  // En pantallas bajas el formulario nace cortado por la hoja: se acerca a la vista al abrirlo
-  useEffect(() => {
-    if (abierto) formRef.current?.scrollIntoView({ block: 'nearest' })
-  }, [abierto])
-
-  useEffect(() => {
-    if (resultado !== 'ok') return undefined
-    const t = setTimeout(() => setResultado(null), 4000)
-    return () => clearTimeout(t)
-  }, [resultado])
-
-  async function enviar(e) {
-    e.preventDefault()
-    if (!mensaje.trim() || enviando) return
-    setEnviando(true)
-    const ok = await onEnviar(tipo, mensaje.trim())
-    setEnviando(false)
-    setResultado(ok ? 'ok' : 'error')
-    if (ok) setMensaje('')
-  }
-
-  return (
-    <div className="cond-aviso">
-      <button
-        type="button"
-        className="cond-aviso-boton"
-        aria-expanded={abierto}
-        aria-controls="cond-aviso-form"
-        onClick={() => setAbierto(v => !v)}
-      >
-        <span><FontAwesomeIcon icon={faBullhorn} /> Avisar a mi ruta</span>
-        <FontAwesomeIcon icon={abierto ? faChevronUp : faChevronDown} />
-      </button>
-
-      {abierto && (
-        <form id="cond-aviso-form" ref={formRef} className="cond-aviso-form" onSubmit={enviar}>
-          <div className="cond-tipos" role="radiogroup" aria-label="Tipo de aviso">
-            {TIPOS_AVISO.map(t => (
-              <button
-                key={t.valor}
-                type="button"
-                role="radio"
-                aria-checked={tipo === t.valor}
-                className={`cond-tipo ${tipo === t.valor ? 'cond-tipo--activo' : ''}`}
-                onClick={() => setTipo(t.valor)}
-              >
-                {t.texto}
-              </button>
-            ))}
-          </div>
-          <input
-            type="text"
-            aria-label="Mensaje del aviso"
-            placeholder="Ej: Retraso por tráfico en la Calle 7"
-            value={mensaje}
-            maxLength={200}
-            onChange={e => { setMensaje(e.target.value); if (resultado) setResultado(null) }}
-          />
-          <button type="submit" className="cond-enviar" disabled={!mensaje.trim() || enviando}>
-            <FontAwesomeIcon icon={faPaperPlane} /> {enviando ? 'Enviando…' : 'Enviar aviso'}
-          </button>
-          <p className="cond-aviso-estado" role="status">
-            {resultado === 'ok' && <><FontAwesomeIcon icon={faCircleCheck} /> Aviso enviado a tu ruta.</>}
-            {resultado === 'error' && <><FontAwesomeIcon icon={faTriangleExclamation} /> No se pudo enviar. Intenta de nuevo.</>}
-          </p>
-        </form>
-      )}
-    </div>
-  )
-}
-
 export default function TalonConductor({
   vista, bus, estado, edad, ultimoEnvioMs, sinRed, errores,
-  onIniciar, onDetener, onFinalizar, onAviso,
+  onIniciar, onDetener, onFinalizar,
 }) {
   const [confirmando, setConfirmando] = useState(false)
 
@@ -238,7 +152,6 @@ export default function TalonConductor({
         </div>
       )}
 
-      {bus?.id_bus && <Aviso onEnviar={onAviso} />}
     </section>
   )
 }

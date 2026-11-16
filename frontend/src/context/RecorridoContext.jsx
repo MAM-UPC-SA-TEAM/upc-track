@@ -177,19 +177,10 @@ export function RecorridoProvider({ children }) {
     actualizarEstadoBus(nuevoEstado)
   }
 
-  async function enviarAviso(tipo, mensaje) {
-    try {
-      await api.post('/api/notificaciones', { mensaje, tipo })
-      return true
-    } catch {
-      return false
-    }
-  }
-
   const valor = {
     busInfo, enRecorrido, estado, colgado, gps, historialGps, estadoConexion, ultimoEnvioMs, inicioMs,
     errorCargaBus, errorGps, errorAccion,
-    iniciarRecorrido, finalizarRecorrido, alternarDetenido, enviarAviso,
+    iniciarRecorrido, finalizarRecorrido, alternarDetenido,
   }
 
   return (

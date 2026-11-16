@@ -62,6 +62,17 @@ export async function enviarNotificacion(req, res) {
   }
 }
 
+// GET /api/notificaciones/mias — avisos que envió el conductor autenticado
+export async function listarMisNotificaciones(req, res) {
+  try {
+    const notificaciones = await Notificacion.porConductor(req.usuario.id_usuario)
+    return res.status(200).json({ notificaciones })
+  } catch (error) {
+    console.error('Error listando avisos enviados:', error)
+    return res.status(500).json({ error: 'Error interno del servidor' })
+  }
+}
+
 // GET /api/notificaciones — historial del día
 export async function listarNotificaciones(req, res) {
   const { ruta_id } = req.query

@@ -32,6 +32,20 @@ export class Notificacion {
     return rows
   }
 
+  // Últimos avisos que envió un conductor (más recientes primero)
+  static async porConductor(id_conductor, limite = 30) {
+    const { rows } = await pool.query(
+      `SELECT n.id_notificacion, n.tipo, n.mensaje, n.fecha_hora, n.id_ruta, r.nombre AS nombre_ruta
+       FROM notificacion n
+       JOIN ruta r ON n.id_ruta = r.id_ruta
+       WHERE n.id_conductor = $1
+       ORDER BY n.fecha_hora DESC, n.id_notificacion DESC
+       LIMIT $2`,
+      [id_conductor, limite]
+    )
+    return rows
+  }
+
   // Listar todas las notificaciones del día
   static async hoy() {
     const { rows: rows } = await pool.query(

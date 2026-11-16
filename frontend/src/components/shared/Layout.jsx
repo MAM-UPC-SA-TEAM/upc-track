@@ -68,7 +68,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faHouse, faLocationDot, faRoute, faBus,
   faBell, faUser, faUsers, faRightFromBracket,
-  faMoon, faSun, faMap, faGear,
+  faMoon, faSun, faMap, faGear, faBullhorn,
   faTriangleExclamation, faRotate, faCircleCheck,
   faDownload, faWifi, faArrowsRotate, faXmark
 } from '@fortawesome/free-solid-svg-icons'
@@ -95,7 +95,7 @@ const navEstudiante = [
 
 const navConductor = [
   { path: '/conductor',      icono: faMap,    label: 'Mi recorrido' },
-  { path: '/notificaciones', icono: faBell,   label: 'Alertas' },
+  { path: '/avisar',         icono: faBullhorn, label: 'Avisar' },
   { path: '/perfil',         icono: faUser,   label: 'Perfil', tambien: '/configuracion' },
 ]
 
@@ -337,53 +337,55 @@ export default function Layout({ children, titulo, sinPadding = false }) {
               <FontAwesomeIcon icon={oscuro ? faSun : faMoon} />
             </button>
 
-            {/* Botón notificaciones */}
-            <div className="topbar-dropdown-wrap" ref={notifRef}>
-              <button
-                className="topbar-btn topbar-btn--notif"
-                onClick={() => { setNotifPanel(v => !v); setPerfilMenu(false) }}
-                aria-label={sinLeer > 0 ? `Notificaciones, ${sinLeer} recientes` : 'Notificaciones'}
-                aria-expanded={notifPanel}
-              >
-                <FontAwesomeIcon icon={faBell} />
-                {sinLeer > 0 && <span className="topbar-badge" aria-hidden="true">{sinLeer}</span>}
-              </button>
+            {/* Botón notificaciones: el conductor no recibe avisos (los emite desde «Avisar») */}
+            {rol !== 'conductor' && (
+              <div className="topbar-dropdown-wrap" ref={notifRef}>
+                <button
+                  className="topbar-btn topbar-btn--notif"
+                  onClick={() => { setNotifPanel(v => !v); setPerfilMenu(false) }}
+                  aria-label={sinLeer > 0 ? `Notificaciones, ${sinLeer} recientes` : 'Notificaciones'}
+                  aria-expanded={notifPanel}
+                >
+                  <FontAwesomeIcon icon={faBell} />
+                  {sinLeer > 0 && <span className="topbar-badge" aria-hidden="true">{sinLeer}</span>}
+                </button>
 
-              {notifPanel && (
-                <div className="topbar-panel topbar-panel--notif">
-                  <div className="topbar-panel-header">
-                    <span>Notificaciones</span>
-                    <button
-                      className="topbar-panel-link"
-                      onClick={() => { setNotifPanel(false); navigate('/notificaciones') }}
-                    >
-                      Ver todas
-                    </button>
-                  </div>
-                  {notifs.length === 0 ? (
-                    <p className="topbar-panel-vacio">Sin notificaciones recientes</p>
-                  ) : (
-                    <div className="topbar-notif-lista">
-                      {notifs.map((n, i) => {
-                        const { icono } = iconoNotif(n.tipo)
-                        return (
-                          <div key={n.id_notificacion || i} className="topbar-notif-item">
-                            <FontAwesomeIcon icon={icono} className="topbar-notif-icono" />
-                            <div className="topbar-notif-info">
-                              <span className="topbar-notif-titulo">
-                                {tituloNotif(n.tipo)}{n.nombre_ruta ? ` — ${n.nombre_ruta}` : ''}
-                              </span>
-                              <span className="topbar-notif-msg">{n.mensaje}</span>
-                            </div>
-                            <span className="topbar-notif-hace">{n.hace}</span>
-                          </div>
-                        )
-                      })}
+                {notifPanel && (
+                  <div className="topbar-panel topbar-panel--notif">
+                    <div className="topbar-panel-header">
+                      <span>Notificaciones</span>
+                      <button
+                        className="topbar-panel-link"
+                        onClick={() => { setNotifPanel(false); navigate('/notificaciones') }}
+                      >
+                        Ver todas
+                      </button>
                     </div>
-                  )}
-                </div>
-              )}
-            </div>
+                    {notifs.length === 0 ? (
+                      <p className="topbar-panel-vacio">Sin notificaciones recientes</p>
+                    ) : (
+                      <div className="topbar-notif-lista">
+                        {notifs.map((n, i) => {
+                          const { icono } = iconoNotif(n.tipo)
+                          return (
+                            <div key={n.id_notificacion || i} className="topbar-notif-item">
+                              <FontAwesomeIcon icon={icono} className="topbar-notif-icono" />
+                              <div className="topbar-notif-info">
+                                <span className="topbar-notif-titulo">
+                                  {tituloNotif(n.tipo)}{n.nombre_ruta ? ` — ${n.nombre_ruta}` : ''}
+                                </span>
+                                <span className="topbar-notif-msg">{n.mensaje}</span>
+                              </div>
+                              <span className="topbar-notif-hace">{n.hace}</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Avatar con dropdown de perfil */}
             <div className="topbar-dropdown-wrap" ref={perfilRef}>
