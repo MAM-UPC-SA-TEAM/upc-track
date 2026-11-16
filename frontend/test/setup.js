@@ -8,7 +8,9 @@ configure({ asyncUtilTimeout: 5000 })
 // jsdom no implementa matchMedia (lo usan el tema y la detección de PWA instalada).
 beforeEach(() => {
   window.matchMedia = vi.fn((query) => ({
-    matches: false,
+    // Las pruebas funcionales corren como un usuario con «reducir movimiento»: lo que se cierra desaparece en el acto
+    // en vez de esperar su animación de salida (esas tienen pruebas propias, que fijan matches: false).
+    matches: query.includes('prefers-reduced-motion'),
     media: query,
     addEventListener: vi.fn(),
     removeEventListener: vi.fn(),

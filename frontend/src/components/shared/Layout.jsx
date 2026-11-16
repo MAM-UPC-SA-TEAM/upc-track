@@ -73,6 +73,7 @@ import {
   faDownload, faWifi, faArrowsRotate, faXmark
 } from '@fortawesome/free-solid-svg-icons'
 import LogoTema from './LogoTema'
+import PanelDesplegable from './PanelDesplegable'
 import logoUpc from '../../assets/logo-upc-aguachica.png'
 import logoUpcOscuro from '../../assets/logo-upc-aguachica-oscuro.png'
 import api from '../../services/api'
@@ -351,8 +352,7 @@ export default function Layout({ children, titulo, sinPadding = false }) {
                   {sinLeer > 0 && <span className="topbar-badge" aria-hidden="true">{sinLeer}</span>}
                 </button>
 
-                {notifPanel && (
-                  <div className="topbar-panel topbar-panel--notif">
+                <PanelDesplegable abierto={notifPanel} anclaRef={notifRef} className="topbar-panel--notif">
                     <div className="topbar-panel-header">
                       <span>Notificaciones</span>
                       <button
@@ -383,8 +383,7 @@ export default function Layout({ children, titulo, sinPadding = false }) {
                         })}
                       </div>
                     )}
-                  </div>
-                )}
+                </PanelDesplegable>
               </div>
             )}
 
@@ -399,8 +398,7 @@ export default function Layout({ children, titulo, sinPadding = false }) {
                 <span aria-hidden="true">{iniciales}</span>
               </button>
 
-              {perfilMenu && (
-                <div className="topbar-panel topbar-panel--perfil">
+              <PanelDesplegable abierto={perfilMenu} anclaRef={perfilRef} className="topbar-panel--perfil">
                   <div className="topbar-perfil-cabeza">
                     <div className="topbar-perfil-avatar">{iniciales}</div>
                     <div>
@@ -422,8 +420,7 @@ export default function Layout({ children, titulo, sinPadding = false }) {
                     <FontAwesomeIcon icon={faRightFromBracket} />
                     Cerrar sesión
                   </button>
-                </div>
-              )}
+              </PanelDesplegable>
             </div>
           </div>
         </header>
