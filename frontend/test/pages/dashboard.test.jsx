@@ -62,6 +62,33 @@ describe('Inicio del estudiante', () => {
     expect(window.location.pathname).toBe('/rutas')
   })
 
+  it('una nueva consulta con la MISMA posición no reinicia la franja de validez (U15)', async () => {
+    montar({ buses: [bus({ edad_segundos: 3 })] })
+    await (await seccionEta()).findByText(/Validado/)
+    const franja = document.querySelector('.talon-franja')
+    const antes = backend.llamadasA('GET', '/api/buses/activos').length
+
+    // El servidor vuelve a responder con el mismo dato, un poco más viejo (redondeo): no es una posición nueva
+    backend.respuestas['GET /api/buses/activos'] = { buses: [bus({ edad_segundos: 4 })] }
+    act(() => socketFalso.desdeServidor('bus:estado', { id_bus: 1, estado: 'en_recorrido' }))
+    await vi.waitFor(() => expect(backend.llamadasA('GET', '/api/buses/activos').length).toBeGreaterThan(antes))
+    await act(async () => {})
+    expect(document.querySelector('.talon-franja')).toBe(franja)
+    expect((await seccionEta()).getByText(/Validado/)).toBeInTheDocument()
+  })
+
+  it('una posición nueva sí vuelve a «imprimir» la franja (U15)', async () => {
+    montar({ buses: [bus({ edad_segundos: 8 })] })
+    await (await seccionEta()).findByText(/Validado/)
+    const franja = document.querySelector('.talon-franja')
+    const antes = backend.llamadasA('GET', '/api/buses/activos').length
+
+    backend.respuestas['GET /api/buses/activos'] = { buses: [bus({ edad_segundos: 0 })] } // llegó una posición ahora
+    act(() => socketFalso.desdeServidor('bus:estado', { id_bus: 1, estado: 'en_recorrido' }))
+    await vi.waitFor(() => expect(backend.llamadasA('GET', '/api/buses/activos').length).toBeGreaterThan(antes))
+    await vi.waitFor(() => expect(document.querySelector('.talon-franja')).not.toBe(franja))
+  })
+
   it('un bus detenido no cuenta para la llegada', async () => {
     montar({ buses: [bus({ estado: 'detenido' })] })
     expect((await screen.findAllByText(/Ningún bus está transmitiendo ahora/)).length).toBeGreaterThan(0)

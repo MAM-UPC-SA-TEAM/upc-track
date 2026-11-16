@@ -25,7 +25,7 @@ function TituloParada({ fase, parada, paradas, onParada }) {
 }
 
 export default function TalonETA({
-  fase, parada, paradas, onParada, minutos, bus, distanciaKm, edad, frescoMax, recibidoEn,
+  fase, parada, paradas, onParada, minutos, bus, distanciaKm, edad, frescoMax, datoDesde,
   tardando, onMapa, onRutas, onReintentar,
 }) {
   const anulado = fase === 'viejo' || fase === 'sin-red'
@@ -61,7 +61,7 @@ export default function TalonETA({
           {!hayEta && fase !== 'sin-buses' && <span className="talon-esqueleto" aria-hidden="true" />}
           {(anulado || sinDatosPorRed) && <span className="sello" aria-hidden="true">{SELLOS[fase]}</span>}
         </div>
-        <div key={recibidoEn} className="talon-franja" style={{ '--frescura': frescura }} aria-hidden="true" />
+        <div key={datoDesde} className="talon-franja" style={{ '--frescura': frescura }} aria-hidden="true" />
         <p className="solo-lectura" role="status">{lectura}</p>
       </div>
 

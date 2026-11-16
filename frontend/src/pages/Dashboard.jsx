@@ -8,6 +8,7 @@ import socket from '../services/socket'
 import { alCambiarRed } from '../services/red'
 import { useAlReanudar, useEnLinea } from '../hooks/useCicloVida'
 import { calcularETA } from '../utils/calcularETA'
+import { actualizarAnclas } from '../utils/estadoBus'
 import './Dashboard.css'
 
 const FRESCO_MAX_S = 30        // meta del charter: posición visible actualizada en ≤ 30 s
@@ -26,7 +27,7 @@ export default function Dashboard() {
   const [tardando, setTardando]         = useState(false)
   const [fallos, setFallos]             = useState(0)
   const enLinea                        = useEnLinea()
-  const [recibidoEn, setRecibidoEn]     = useState(() => Date.now())
+  const [anclas, setAnclas]             = useState({}) // id_bus → cuándo se registró su última posición
   const [ahora, setAhora]               = useState(() => Date.now())
   const [aviso, setAviso]               = useState(null)
   const [miParadaId, setMiParadaId]     = useState(() => {
@@ -50,7 +51,7 @@ export default function Dashboard() {
       const rutaEnOp = rutasActivas.find(r => enRuta.some(b => b.id_ruta === r.id_ruta)) || rutasActivas[0] || null
 
       setBusesActivos(enRuta)
-      setRecibidoEn(Date.now())
+      setAnclas(prev => actualizarAnclas(prev, enRuta))
       setFallos(0)
 
       if (rutaEnOp?.id_ruta) {
@@ -122,10 +123,13 @@ export default function Dashboard() {
     return c.etaMinutos == null ? null : c
   }, [parada, busesActivos])
 
-  // Frescura: edad medida por el servidor al recibirla + lo que ha pasado desde entonces en este teléfono
+  // Frescura: desde la última posición NUEVA del bus (ancla), no desde la última consulta
+  const ancla = calculo?.busCercano ? anclas[calculo.busCercano.id_bus] : undefined
   const edad = calculo?.busCercano
-    ? (Number(calculo.busCercano.edad_segundos) || 0) + Math.max(0, (ahora - recibidoEn) / 1000)
+    ? (ancla !== undefined ? Math.max(0, (ahora - ancla) / 1000) : Number(calculo.busCercano.edad_segundos) || 0)
     : null
+  // La franja se «imprime» de nuevo solo cuando llega una posición nueva
+  const datoDesde = ancla ?? 0
 
   // Un dato solo se anula cuando de verdad envejeció o cuando fallaron dos sondeos seguidos;
   // un tropiezo de red de unos segundos no debe hacer parpadear el talón.
@@ -158,7 +162,7 @@ export default function Dashboard() {
           distanciaKm={calculo?.distanciaKmVal ?? null}
           edad={edad}
           frescoMax={FRESCO_MAX_S}
-          recibidoEn={recibidoEn}
+          datoDesde={datoDesde}
           tardando={tardando}
           onMapa={() => navigate(busCerca ? `/mapa?bus=${busCerca.id_bus}` : '/mapa')}
           onRutas={() => navigate('/rutas')}
