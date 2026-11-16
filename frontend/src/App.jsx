@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
+import { RecorridoProvider } from './context/RecorridoContext'
 import { useAuth } from './context/AuthContext'
 import { esNativa } from './utils/platform'
 import RutaProtegida from './components/shared/RutaProtegida'
@@ -39,6 +40,7 @@ function InicioPorRol() {
 export default function App() {
   return (
     <AuthProvider>
+      <RecorridoProvider>
       <BrowserRouter>
         <ServidorDespertando />
         {esNativa && <CicloVidaNativo />}
@@ -124,6 +126,7 @@ export default function App() {
         </Routes>
         </Suspense>
       </BrowserRouter>
+      </RecorridoProvider>
     </AuthProvider>
   )
 }

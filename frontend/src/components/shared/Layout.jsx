@@ -76,6 +76,7 @@ import logoUpc from '../../assets/logo-upc.png'
 import api from '../../services/api'
 import socket, { unirseRuta, salirRuta } from '../../services/socket'
 import { useCerrarConAtras } from '../../hooks/useCicloVida'
+import { useCerrarRecorrido } from '../../context/RecorridoContext'
 import { enPrimerPlano } from '../../services/cicloVida'
 import { notificador } from '../../services/notificaciones'
 import { usePWA } from '../../hooks/usePWA'
@@ -125,6 +126,7 @@ function formatearHace(fechaHora) {
 
 export default function Layout({ children, titulo, sinPadding = false }) {
   const { usuario, logout } = useAuth()
+  const cerrarRecorrido = useCerrarRecorrido()
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const rutaActualRef = useRef(pathname)
@@ -273,7 +275,8 @@ export default function Layout({ children, titulo, sinPadding = false }) {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  function handleLogout() {
+  async function handleLogout() {
+    await cerrarRecorrido() // si el conductor sigue en recorrido, el bus queda inactivo antes de perder el token
     logout()
     navigate('/login')
   }

@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState, useRef } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import {
   MapContainer, Marker, Polyline, CircleMarker, Tooltip, TileLayer, ZoomControl, AttributionControl, useMap,
 } from 'react-leaflet'
@@ -6,11 +6,9 @@ import L from 'leaflet'
 import Layout from '../../components/shared/Layout'
 import TalonConductor, { FRESCO_MAX_S } from '../../components/conductor/TalonConductor'
 import api from '../../services/api'
-import { watchPosition, disponible } from '../../services/geolocation'
-import { alCambiarRed, hayRed } from '../../services/red'
+import { useRecorrido } from '../../context/RecorridoContext'
 
 const CENTRO_DEFECTO = [8.3086, -73.6194]
-const INTERVALO_ENVIO_MS = 4000
 
 const icono = clase => L.divIcon({
   className: '',
@@ -21,7 +19,6 @@ const icono = clase => L.divIcon({
 const iconoBus = icono('mk-bus')
 const iconoBusViejo = icono('mk-bus mk-bus--viejo')
 
-const ahoraMs = () => Date.now() // helper de módulo: se llama desde manejadores, nunca al renderizar
 const paradaActiva = p => p.activa !== false && p.activa !== 0
 
 // El talón tapa parte del mapa: lo que se mira debe quedar en la zona libre (abajo en móvil, a la derecha en escritorio)
@@ -59,44 +56,15 @@ function Camara({ gps, ruta }) {
 }
 
 export default function MiRecorrido() {
-  const [busInfo, setBusInfo] = useState(null)
-  const [enRecorrido, setEnRecorrido] = useState(false) // este teléfono está transmitiendo
-  const [estado, setEstado] = useState('fuera_de_servicio') // estado del bus en el servidor
-  const [gps, setGps] = useState(null)
-  const [historialGps, setHistorialGps] = useState([])
-  const [estadoConexion, setEstadoConexion] = useState(() => (hayRed() ? 'online' : 'offline'))
-  const [ultimoEnvioMs, setUltimoEnvioMs] = useState(null)
-  const [inicioMs, setInicioMs] = useState(null)
+  // El recorrido (GPS, estado del bus, envío de posición) vive en RecorridoContext: sobrevive a ir a Alertas o Perfil
+  const {
+    busInfo, enRecorrido, estado, colgado, gps, historialGps, estadoConexion, ultimoEnvioMs, inicioMs,
+    errorCargaBus, errorGps, errorAccion,
+    iniciarRecorrido, finalizarRecorrido, alternarDetenido, enviarAviso,
+  } = useRecorrido()
   const [ahora, setAhora] = useState(() => Date.now())
-  const [errorCargaBus, setErrorCargaBus] = useState('')
-  const [errorGps, setErrorGps] = useState('')
-  const [errorAccion, setErrorAccion] = useState('')
   const [paradasRuta, setParadasRuta] = useState([])
   const [geometriaRuta, setGeometriaRuta] = useState([])
-  const watchRef = useRef(null)
-  const ultimoEnvioRef = useRef(0)
-
-  useEffect(() => {
-    async function cargar() {
-      try {
-        const data = await api.get('/api/buses/mi-bus')
-        if (data.bus) {
-          setBusInfo(data.bus)
-          setEstado(data.bus.estado || 'fuera_de_servicio')
-          // Antigüedad de la última posición que el servidor tiene de este bus (si la recargamos a mitad de ruta)
-          if (data.bus.edad_segundos != null) setUltimoEnvioMs(Date.now() - data.bus.edad_segundos * 1000)
-          setErrorCargaBus('')
-        }
-      } catch (err) {
-        setBusInfo(null)
-        setEstado('fuera_de_servicio')
-        setErrorCargaBus(err?.status === 404
-          ? 'No tienes un bus o ruta asignada actualmente.'
-          : 'No se pudo cargar la información del bus.')
-      }
-    }
-    cargar()
-  }, [])
 
   // Cargar paradas + geometría OSRM cuando cambia la ruta asignada
   useEffect(() => {
@@ -130,135 +98,12 @@ export default function MiRecorrido() {
     cargarRuta()
   }, [busInfo?.id_ruta])
 
-  useEffect(() => {
-    return () => {
-      watchRef.current?.detener()
-    }
-  }, [])
-
-  // El servidor dice «en recorrido» o «detenido» pero este teléfono no transmite (recarga, caída, reinicio)
-  const servidorActivo = estado === 'en_recorrido' || estado === 'detenido'
-  const colgado = !enRecorrido && servidorActivo
-
-  // Si el conductor navega fuera de esta vista sin finalizar, resetear el bus
-  const debeCerrarRef = useRef(false)
-  const busInfoRef = useRef(null)
-  useEffect(() => { debeCerrarRef.current = enRecorrido || colgado }, [enRecorrido, colgado])
-  useEffect(() => { busInfoRef.current = busInfo }, [busInfo])
-
-  useEffect(() => {
-    return () => {
-      if (debeCerrarRef.current && busInfoRef.current?.id_bus) {
-        api.patch(`/api/buses/${busInfoRef.current.id_bus}/estado`, { estado: 'inactivo' }).catch(() => {})
-      }
-    }
-  }, [])
-
-  useEffect(() => alCambiarRed((conectado) => {
-    setEstadoConexion(prev => (conectado ? (prev === 'offline' ? 'retrying' : prev) : 'offline'))
-  }), [])
-
   // Reloj de 1 s para la antigüedad del último envío (solo mientras importa)
   useEffect(() => {
     if (!enRecorrido && !colgado) return undefined
     const t = setInterval(() => setAhora(Date.now()), 1000)
     return () => clearInterval(t)
   }, [enRecorrido, colgado])
-
-  function iniciarRecorrido() {
-    if (!disponible()) {
-      setErrorGps('GPS no disponible en este dispositivo.')
-      return
-    }
-
-    setErrorGps('')
-    setErrorAccion('')
-    setEnRecorrido(true)
-    setEstado('en_recorrido')
-    setInicioMs(ahoraMs())
-    setAhora(ahoraMs())
-    ultimoEnvioRef.current = 0
-    actualizarEstadoBus('en_recorrido')
-
-    watchRef.current?.detener()
-    watchRef.current = watchPosition(
-      ({ lat, lng }) => {
-        const t = Date.now()
-        setErrorGps('')
-        setGps({ lat, lng })
-        setHistorialGps(prev => [...prev.slice(-19), { lat, lng, id: t }])
-        if (!ultimoEnvioRef.current || (t - ultimoEnvioRef.current) >= INTERVALO_ENVIO_MS) {
-          ultimoEnvioRef.current = t
-          enviarUbicacion(lat, lng)
-        }
-      },
-      (err) => {
-        setErrorGps(err.mensaje)
-      },
-      { precisionAlta: true, maximumAge: 3000, timeout: 10000 }
-    )
-
-    if ('wakeLock' in navigator) {
-      navigator.wakeLock.request('screen').catch(() => {})
-    }
-  }
-
-  function finalizarRecorrido() {
-    setEnRecorrido(false)
-    setEstado('fuera_de_servicio')
-    setGps(null)
-    setHistorialGps([])
-    setErrorGps('')
-    ultimoEnvioRef.current = 0
-    watchRef.current?.detener()
-    watchRef.current = null
-    actualizarEstadoBus('fuera_de_servicio')
-  }
-
-  function alternarDetenido() {
-    if (!enRecorrido) return
-    const nuevoEstado = estado === 'detenido' ? 'en_recorrido' : 'detenido'
-    setEstado(nuevoEstado)
-    actualizarEstadoBus(nuevoEstado)
-  }
-
-  async function actualizarEstadoBus(nuevoEstado) {
-    const idBus = busInfo?.id_bus
-    if (!idBus) {
-      setErrorAccion('No hay un bus asignado para actualizar su estado.')
-      return
-    }
-
-    try {
-      await api.patch(`/api/buses/${idBus}/estado`, { estado: nuevoEstado })
-      setErrorAccion('')
-    } catch {
-      setErrorAccion('No se pudo actualizar el estado del bus. Revisa tu conexión.')
-    }
-  }
-
-  async function enviarUbicacion(lat, lng) {
-    const idBus = busInfo?.id_bus
-    if (!idBus) return
-
-    try {
-      setEstadoConexion('syncing')
-      await api.post('/api/ubicacion', { id_bus: idBus, lat, lng })
-      setEstadoConexion('online')
-      setUltimoEnvioMs(Date.now())
-    } catch {
-      setEstadoConexion(hayRed() ? 'retrying' : 'offline')
-    }
-  }
-
-  async function enviarAviso(tipo, mensaje) {
-    try {
-      await api.post('/api/notificaciones', { mensaje, tipo })
-      return true
-    } catch {
-      return false
-    }
-  }
 
   // Vista del talón: el estado de ESTE teléfono manda sobre el que dice el servidor
   const sinRed = estadoConexion === 'offline' || estadoConexion === 'retrying'
