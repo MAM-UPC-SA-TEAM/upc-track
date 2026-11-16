@@ -1,4 +1,4 @@
-import logoUpc from '../../assets/logo-upc.png'
+import logoUpc from '../../assets/logo-upc-aguachica.png'
 import '../inicio/Talon.css'
 import './Acceso.css'
 
@@ -28,8 +28,7 @@ export default function AccesoLayout({ titulo, subtitulo, children }) {
       </section>
 
       <footer className="acceso-pie">
-        <img src={logoUpc} alt="Universidad Popular del Cesar" height="40" />
-        <p>Seccional Aguachica · 2026</p>
+        <img src={logoUpc} alt="Universidad Popular del Cesar, Seccional Aguachica" height="52" />
       </footer>
     </main>
   )

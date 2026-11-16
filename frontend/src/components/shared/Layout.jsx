@@ -72,7 +72,7 @@ import {
   faTriangleExclamation, faRotate, faCircleCheck,
   faDownload, faWifi, faArrowsRotate, faXmark
 } from '@fortawesome/free-solid-svg-icons'
-import logoUpc from '../../assets/logo-upc.png'
+import logoUpc from '../../assets/logo-upc-aguachica.png'
 import api from '../../services/api'
 import socket, { unirseRuta, salirRuta } from '../../services/socket'
 import { useCerrarConAtras } from '../../hooks/useCicloVida'
@@ -298,7 +298,7 @@ export default function Layout({ children, titulo, sinPadding = false }) {
       {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <img src={logoUpc} alt="Universidad Popular del Cesar" />
+          <img src={logoUpc} alt="Universidad Popular del Cesar, Seccional Aguachica" />
         </div>
 
         <nav className="sidebar-nav" aria-label="Principal">
@@ -495,8 +495,7 @@ export default function Layout({ children, titulo, sinPadding = false }) {
         {/* El logo de la universidad también se ve en móvil y tablet, donde el panel lateral no existe */}
         {!sinPadding && (
           <footer className="layout-pie">
-            <img src={logoUpc} alt="Universidad Popular del Cesar" />
-            <span>Seccional Aguachica</span>
+            <img src={logoUpc} alt="Universidad Popular del Cesar, Seccional Aguachica" />
           </footer>
         )}
       </div>

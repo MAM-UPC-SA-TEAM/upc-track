@@ -229,7 +229,7 @@ body[data-tema='oscuro'] .topbar-marca { padding: 2px; background: #fbfaf4; }
   font-size: var(--t-sm);
   font-weight: 600;
 }
-.layout-pie img { height: 44px; width: auto; padding: 4px 8px; background: #fbfaf4; }
+.layout-pie img { height: 52px; width: auto; padding: 4px 8px; background: #fbfaf4; }
 
 /* ── Navegación inferior (móvil y tablet) ── */
 .botnav {

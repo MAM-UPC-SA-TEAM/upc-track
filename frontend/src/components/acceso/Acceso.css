@@ -116,4 +116,4 @@ body[data-tema='oscuro'] .campo select {
 
 /* Pie: logo de la universidad sobre papel (también en oscuro) y texto con contraste */
 .acceso-pie { display: flex; align-items: center; justify-content: center; gap: var(--e3); color: var(--texto-suave); font-size: var(--t-sm); }
-.acceso-pie img { height: 40px; width: auto; padding: 4px 8px; background: #fbfaf4; }
+.acceso-pie img { height: 52px; width: auto; padding: 4px 8px; background: #fbfaf4; }
