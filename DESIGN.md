@@ -279,7 +279,8 @@ Rotulo rectangular con borde de 3px y texto en mayusculas condensadas, rojo, gir
 
 ### Buttons
 - **Primario:** relleno verde UPC plano, texto blanco 700, 48px de alto, esquinas rectas, ancho completo dentro del talon con margen de 16px. Es la unica pieza verde llena de una vista.
-- **Hover / Active:** el toque confirma con `scale(0.97)` en 140ms (curva `cubic-bezier(0.23, 1, 0.32, 1)`); el hover (fondo papel hundido) solo en puntero fino. Foco: anillo de 3px.
+- **Presion (touch) y hover:** el boton confirma con `scale(0.97)` en 140ms (curva `cubic-bezier(0.23, 1, 0.32, 1)`) y vuelve con la misma curva; vale tambien para los enlaces con aspecto de boton (`a.boton-contorno`, `a.talon-accion`). Las **filas y pestanas de navegacion** (filas de buses, paradas, accesos del admin, items de los menus, nav inferior y lateral) NO se encogen: se tiñen con `linea-suave` **al instante** al presionar y vuelven con 200ms al soltar; la pestana activa (losa verde) se oscurece a `verde-profundo` y el icono de la pestana cede a `scale(0.88)`. La presion gana siempre al hover. El hover (fondo papel hundido) solo existe en puntero fino (`@media (hover: hover) and (pointer: fine)`), para que no se quede pegado en tactil. Sin destello gris del WebView (`-webkit-tap-highlight-color: transparent`). Con `prefers-reduced-motion` se conserva el cambio de color y se quita todo desplazamiento. Nunca `transition: all` ni `ease-in`.
+- **Foco con teclado:** anillo de 3px en `trazo` con 2px de separacion; en lo que ocupa todo el ancho (filas, pestanas, panel lateral) el anillo va **hacia adentro** (`outline-offset: -3px`) para que no lo recorten los bordes, en blanco sobre la losa verde y en papel en el panel lateral (siempre oscuro, donde `trazo` era invisible).
 - **Secundario:** boton con borde de 2px en el color actual (banners); enlaces de texto en verde, 700, subrayados con separacion de 4px.
 
 ### Aviso del conductor
