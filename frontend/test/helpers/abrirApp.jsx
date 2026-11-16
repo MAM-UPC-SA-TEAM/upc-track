@@ -9,8 +9,9 @@ export const estudiante = { id_usuario: 1, nombre: 'Ana', nombre_usuario: 'ana',
 export const conductor = { id_usuario: 2, nombre: 'Pedro', nombre_usuario: 'pedro', tipo_usuario: 'conductor' }
 export const admin = { id_usuario: 3, nombre: 'Admin', nombre_usuario: 'admin', tipo_usuario: 'admin' }
 
-export function abrirApp(ruta = '/', usuario = null, { vencida = false } = {}) {
+export function abrirApp(ruta = '/', usuario = null, { vencida = false, tema = null } = {}) {
   localStorage.clear()
+  if (tema) localStorage.setItem('tema', tema)
   if (usuario) {
     const exp = Math.floor(Date.now() / 1000) + (vencida ? -60 : 3600)
     localStorage.setItem('token', jwt({ ...usuario, exp }))

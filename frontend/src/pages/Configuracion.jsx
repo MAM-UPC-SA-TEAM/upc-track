@@ -5,6 +5,7 @@ import {
   faFloppyDisk, faLock, faChevronDown, faChevronUp, faCircleCheck, faTriangleExclamation, faArrowLeft,
 } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '../context/AuthContext'
+import { useTema } from '../hooks/useTema'
 import Layout from '../components/shared/Layout'
 import Campo from '../components/acceso/Campo'
 import api from '../services/api'
@@ -25,11 +26,17 @@ function Resultado({ msg }) {
 }
 
 const CORREO_OK = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const TEMAS = [
+  { valor: 'claro', texto: 'Claro' },
+  { valor: 'oscuro', texto: 'Oscuro' },
+  { valor: 'auto', texto: 'Automático' },
+]
 const USUARIO_OK = /^[a-zA-Z0-9._-]{3,20}$/ // las mismas reglas que el registro
 
 // Configuración: aquí se EDITA (datos y contraseña). «Mi perfil» solo muestra los datos.
 export default function Configuracion() {
   const { usuario, actualizarUsuario } = useAuth()
+  const { preferencia: temaElegido, establecer: elegirTema } = useTema()
   const correoActual = usuario?.correo || usuario?.email || ''
 
   // ── Datos personales ────────────────────────────────────────
@@ -140,6 +147,27 @@ export default function Configuracion() {
                 <FontAwesomeIcon icon={faFloppyDisk} /> {guardandoInfo ? 'Guardando…' : 'Guardar cambios'}
               </button>
             </form>
+          </div>
+        </section>
+
+        <section className="talon" aria-labelledby="config-apariencia">
+          <div className="perfil-cuerpo perfil-cuerpo--form">
+            <h2 id="config-apariencia" className="perfil-seccion">Apariencia</h2>
+            <div className="tema-opciones" role="radiogroup" aria-label="Tema">
+              {TEMAS.map(t => (
+                <button
+                  key={t.valor}
+                  type="button"
+                  role="radio"
+                  aria-checked={temaElegido === t.valor}
+                  className={`tema-opcion ${temaElegido === t.valor ? 'tema-opcion--activa' : ''}`}
+                  onClick={() => elegirTema(t.valor)}
+                >
+                  {t.texto}
+                </button>
+              ))}
+            </div>
+            <p className="perfil-ayuda">«Automático» sigue el modo claro u oscuro de tu teléfono.</p>
           </div>
         </section>
 

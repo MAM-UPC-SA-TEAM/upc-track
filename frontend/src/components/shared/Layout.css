@@ -32,8 +32,7 @@
 }
 
 .topbar-marca { flex-shrink: 0; width: 36px; height: 36px; object-fit: contain; }
-/* En oscuro el logo (verde sobre transparente) pierde contraste: va sobre una pieza de papel */
-body[data-tema='oscuro'] .topbar-marca { padding: 2px; background: #fbfaf4; }
+/* En oscuro la marca y los logos usan su variante para fondo oscuro (LogoTema): sin recuadro de papel */
 
 .topbar-titulo {
   flex: 1;
@@ -229,7 +228,7 @@ body[data-tema='oscuro'] .topbar-marca { padding: 2px; background: #fbfaf4; }
   font-size: var(--t-sm);
   font-weight: 600;
 }
-.layout-pie img { height: 52px; width: auto; padding: 4px 8px; background: #fbfaf4; }
+.layout-pie img { height: 52px; width: auto; }
 
 /* ── Navegación inferior (móvil y tablet) ── */
 .botnav {
@@ -282,7 +281,11 @@ body[data-tema='oscuro'] .topbar-marca { padding: 2px; background: #fbfaf4; }
     background: #14261a;
     color: #f1eedf;
   }
+  /* En oscuro el panel lateral sigue la base neutra del tema (el verde de marca queda en el activo y en el logo) */
+  body[data-tema='oscuro'] .sidebar { background: var(--papel-hundido); color: var(--tinta); }
+  body[data-tema='oscuro'] .sidebar-link, body[data-tema='oscuro'] .sidebar-logout { color: var(--tinta); }
   .sidebar-logo { padding: var(--e4) var(--e5); background: #fbfaf4; }
+  body[data-tema='oscuro'] .sidebar-logo { background: transparent; }
   .sidebar-logo img { display: block; max-width: 170px; height: auto; }
   .sidebar-nav { flex: 1; display: flex; flex-direction: column; padding: var(--e3) 0; overflow-y: auto; }
   .sidebar-link {

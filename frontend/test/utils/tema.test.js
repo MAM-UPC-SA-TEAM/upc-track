@@ -31,12 +31,19 @@ describe('temaInicialOscuro', () => {
     window.matchMedia = vi.fn(() => ({ matches: true }))
     expect((await cargarTema(false)).temaInicialOscuro()).toBe(false)
   })
-  it('sin tema guardado sigue al sistema', async () => {
+  it('sin elegir nada arranca en claro, aunque el teléfono esté en oscuro', async () => {
+    window.matchMedia = vi.fn(() => ({ matches: true }))
+    expect((await cargarTema(false)).temaInicialOscuro()).toBe(false)
+  })
+  it('«auto» sigue al teléfono', async () => {
+    localStorage.setItem('tema', 'auto')
     window.matchMedia = vi.fn(() => ({ matches: true }))
     expect((await cargarTema(false)).temaInicialOscuro()).toBe(true)
-  })
-  it('si el almacenamiento falla, cae al sistema', async () => {
     window.matchMedia = vi.fn(() => ({ matches: false }))
+    expect((await cargarTema(false)).temaInicialOscuro()).toBe(false)
+  })
+  it('si el almacenamiento falla, arranca en claro', async () => {
+    window.matchMedia = vi.fn(() => ({ matches: true }))
     const espia = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('bloqueado') })
     expect((await cargarTema(false)).temaInicialOscuro()).toBe(false)
     espia.mockRestore()
@@ -47,7 +54,7 @@ describe('aplicarTema', () => {
   it('en web fija data-tema y theme-color, sin tocar la barra nativa', async () => {
     (await cargarTema(false)).aplicarTema(true)
     expect(document.body.dataset.tema).toBe('oscuro')
-    expect(document.querySelector('meta[name="theme-color"]').getAttribute('content')).toBe('#101a13')
+    expect(document.querySelector('meta[name="theme-color"]').getAttribute('content')).toBe('#111b21')
     expect(statusBar.setStyle).not.toHaveBeenCalled()
   })
   it('tema claro usa el color de papel claro', async () => {
@@ -58,10 +65,33 @@ describe('aplicarTema', () => {
   it('en la app nativa también ajusta la barra de estado', async () => {
     (await cargarTema(true)).aplicarTema(true)
     expect(statusBar.setStyle).toHaveBeenCalledWith({ style: 'DARK' })
-    expect(statusBar.setBackgroundColor).toHaveBeenCalledWith({ color: '#101a13' })
+    expect(statusBar.setBackgroundColor).toHaveBeenCalledWith({ color: '#111b21' })
   })
   it('en nativa con tema claro usa Style.Light', async () => {
     (await cargarTema(true)).aplicarTema(false)
     expect(statusBar.setStyle).toHaveBeenCalledWith({ style: 'LIGHT' })
+  })
+})
+
+describe('preferencia de tema (U33)', () => {
+  it('lee solo valores válidos; cualquier otra cosa es «claro»', async () => {
+    const t = await cargarTema(false)
+    expect(t.leerPreferenciaTema()).toBe('claro')
+    for (const v of ['claro', 'oscuro', 'auto']) { localStorage.setItem('tema', v); expect(t.leerPreferenciaTema()).toBe(v) }
+    localStorage.setItem('tema', 'azul')
+    expect(t.leerPreferenciaTema()).toBe('claro')
+  })
+  it('guarda la preferencia', async () => {
+    (await cargarTema(false)).guardarPreferenciaTema('auto')
+    expect(localStorage.getItem('tema')).toBe('auto')
+  })
+  it('esOscuro: «oscuro» siempre, «claro» nunca y «auto» según el teléfono', async () => {
+    const t = await cargarTema(false)
+    window.matchMedia = vi.fn(() => ({ matches: true }))
+    expect(t.esOscuro('oscuro')).toBe(true)
+    expect(t.esOscuro('claro')).toBe(false)
+    expect(t.esOscuro('auto')).toBe(true)
+    window.matchMedia = vi.fn(() => ({ matches: false }))
+    expect(t.esOscuro('auto')).toBe(false)
   })
 })

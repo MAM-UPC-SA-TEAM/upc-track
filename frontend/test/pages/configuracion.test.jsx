@@ -191,3 +191,51 @@ describe('Configuración — cambiar contraseña', () => {
     }
   })
 })
+
+describe('Configuración — apariencia (U33)', () => {
+  const opcion = (nombre) => screen.getByRole('radio', { name: nombre })
+
+  it('por defecto el tema es «Claro» y las tres opciones están', async () => {
+    abrir()
+    await screen.findByRole('heading', { name: 'Apariencia' })
+    expect(opcion('Claro')).toHaveAttribute('aria-checked', 'true')
+    expect(opcion('Oscuro')).toHaveAttribute('aria-checked', 'false')
+    expect(opcion('Automático')).toHaveAttribute('aria-checked', 'false')
+    expect(document.body.dataset.tema).not.toBe('oscuro')
+  })
+
+  it('elegir «Oscuro» lo aplica al instante y lo recuerda', async () => {
+    const user = userEvent.setup()
+    abrir()
+    await user.click(await screen.findByRole('radio', { name: 'Oscuro' }))
+    expect(opcion('Oscuro')).toHaveAttribute('aria-checked', 'true')
+    expect(document.body.dataset.tema).toBe('oscuro')
+    expect(localStorage.getItem('tema')).toBe('oscuro')
+  })
+
+  it('«Automático» se guarda como tal y sigue al teléfono', async () => {
+    window.matchMedia = vi.fn((q) => ({ matches: true, media: q, addEventListener: vi.fn(), removeEventListener: vi.fn() }))
+    const user = userEvent.setup()
+    abrir()
+    await user.click(await screen.findByRole('radio', { name: 'Automático' }))
+    expect(localStorage.getItem('tema')).toBe('auto')
+    expect(document.body.dataset.tema).toBe('oscuro') // el teléfono (simulado) está en oscuro
+    expect(opcion('Automático')).toHaveAttribute('aria-checked', 'true')
+  })
+
+  it('el botón rápido de la barra superior y el selector van de la mano', async () => {
+    const user = userEvent.setup()
+    abrir()
+    await user.click(await screen.findByRole('button', { name: 'Cambiar a tema oscuro' }))
+    expect(opcion('Oscuro')).toHaveAttribute('aria-checked', 'true')
+    expect(localStorage.getItem('tema')).toBe('oscuro')
+    await user.click(screen.getByRole('button', { name: 'Cambiar a tema claro' }))
+    expect(opcion('Claro')).toHaveAttribute('aria-checked', 'true')
+  })
+
+  it('entrar a la app no pisa «Automático» con el tema resuelto', async () => {
+    abrirApp('/configuracion', ana, { tema: 'auto' })
+    await screen.findByRole('heading', { name: 'Apariencia' })
+    expect(localStorage.getItem('tema')).toBe('auto')
+  })
+})

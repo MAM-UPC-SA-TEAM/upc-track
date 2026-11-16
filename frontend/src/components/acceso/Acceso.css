@@ -17,7 +17,6 @@
 /* Cabo del talón: la marca y el nombre, en texto vivo */
 .acceso-marca { display: flex; align-items: center; gap: var(--e4); padding-bottom: var(--e4); }
 .acceso-mark { flex-shrink: 0; width: 72px; height: 72px; object-fit: contain; }
-body[data-tema='oscuro'] .acceso-mark { padding: 2px; background: #fbfaf4; }
 .acceso-nombre { font-size: 2.25rem; line-height: 1; font-weight: 800; font-stretch: 76%; letter-spacing: -0.02em; }
 .acceso-lema { margin-top: var(--e1); color: var(--texto-suave); font-weight: 500; }
 
@@ -49,7 +48,7 @@ body[data-tema='oscuro'] .acceso-mark { padding: 2px; background: #fbfaf4; }
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%2314261a' stroke-width='2.5'%3E%3Cpath d='M3 6l5 5 5-5'/%3E%3C/svg%3E");
 }
 body[data-tema='oscuro'] .campo select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23f1eedf' stroke-width='2.5'%3E%3Cpath d='M3 6l5 5 5-5'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23e9edef' stroke-width='2.5'%3E%3Cpath d='M3 6l5 5 5-5'/%3E%3C/svg%3E");
 }
 .campo select option { color: #14261a; background: #fbfaf4; }
 .campo-ayuda { font-size: var(--t-sm); color: var(--texto-suave); }
@@ -114,6 +113,6 @@ body[data-tema='oscuro'] .campo select {
 .acceso-exito { display: flex; flex-direction: column; gap: var(--e4); }
 .acceso-exito .talon-accion { width: 100%; margin: 0; }
 
-/* Pie: logo de la universidad sobre papel (también en oscuro) y texto con contraste */
+/* Pie: logo de la universidad. Sobre el papel claro va tal cual; en oscuro, directo sobre el fondo (sus verdes se leen sin recuadro) */
 .acceso-pie { display: flex; align-items: center; justify-content: center; gap: var(--e3); color: var(--texto-suave); font-size: var(--t-sm); }
-.acceso-pie img { height: 52px; width: auto; padding: 4px 8px; background: #fbfaf4; }
+.acceso-pie img { height: 52px; width: auto; }
