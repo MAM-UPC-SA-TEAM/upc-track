@@ -144,17 +144,19 @@ export default function MapaTiempoReal() {
       // Preselección por URL (?ruta=X ?bus=X); si no, la primera ruta activa con bus
       const rutaParam = searchParams.get('ruta')
       const busParam = searchParams.get('bus')
+      // Con ?bus=X sin ?ruta, la ruta es la de ese bus (si no, el filtro por ruta lo ocultaría)
+      const busPedido = busParam ? listaBuses.find(b => b.id_bus === Number(busParam)) : null
+      const rutaDelBus = busPedido ? listaRutas.find(r => r.id_ruta === busPedido.id_ruta) : null
       if (rutaParam) {
         const ruta = listaRutas.find(r => r.id_ruta === Number(rutaParam))
         if (ruta) await cargarParadas(ruta)
+      } else if (rutaDelBus) {
+        await cargarParadas(rutaDelBus)
       } else {
         const rutaActiva = listaRutas.find(r => esActiva(r) && listaBuses.some(b => b.id_ruta === r.id_ruta)) || listaRutas.find(esActiva)
         if (rutaActiva) await cargarParadas(rutaActiva)
       }
-      if (busParam) {
-        const bus = listaBuses.find(b => b.id_bus === Number(busParam))
-        if (bus) setBusSeleccionado(bus)
-      }
+      if (busPedido) setBusSeleccionado(busPedido)
     } catch (err) {
       console.error('Error cargando mapa:', err)
       setErrorCarga(true)
