@@ -34,6 +34,16 @@ export class Usuario {
     return rows[0] || null
   }
 
+  // Igual que porNombreUsuario pero incluye cuentas inactivas: el login necesita distinguir
+  // «cuenta pendiente de aprobación» de «usuario o contraseña incorrectos» (A01)
+  static async porNombreUsuarioConEstado(nombre_usuario) {
+    const { rows } = await pool.query(
+      `SELECT * FROM usuario WHERE nombre_usuario = $1`,
+      [nombre_usuario]
+    )
+    return rows[0] || null
+  }
+
   // consultarRutas() — diagrama de clases
   // Retorna las rutas disponibles para el usuario
   static async consultarRutas() {

@@ -142,26 +142,29 @@ describe('Registro', () => {
     expect(backend.llamadas).toHaveLength(0)
   })
 
-  it('registro correcto envía el usuario en minúsculas e inicia sesión directo', async () => {
-    backend.respuestas['POST /api/auth/registro'] = { token: `h.${btoa(JSON.stringify({ ...estudiante, exp: 9999999999 }))}.s`, usuario: estudiante }
-    const user = userEvent.setup()
-    abrirApp('/registro')
-    await llenar(user)
-    await user.click(screen.getByRole('button', { name: /crear cuenta/i }))
-    expect(await titulo('Pantalla de inicio')).toBeInTheDocument()
-    expect(backend.llamadasA('POST', '/api/auth/registro')[0].cuerpo).toEqual({
-      nombre: 'Ana Pérez', nombre_usuario: 'ana.perez', correo: 'ana@unicesar.edu.co', password: 'clave1234',
-    })
-  })
-
-  it('si el backend no devuelve token muestra «Cuenta creada» y permite ir al login', async () => {
+  it('registro correcto envía el usuario en minúsculas y queda pendiente de aprobación, sin sesión', async () => {
+    backend.respuestas['POST /api/auth/registro'] = { pendiente: true, usuario: estudiante, mensaje: 'Cuenta creada.' }
     const user = userEvent.setup()
     abrirApp('/registro')
     await llenar(user)
     await user.click(screen.getByRole('button', { name: /crear cuenta/i }))
     expect(await titulo('Cuenta creada')).toBeInTheDocument()
+    expect(screen.getByText(/pendiente de aprobación/i)).toBeInTheDocument()
+    expect(backend.llamadasA('POST', '/api/auth/registro')[0].cuerpo).toEqual({
+      nombre: 'Ana Pérez', nombre_usuario: 'ana.perez', correo: 'ana@unicesar.edu.co', password: 'clave1234',
+    })
     await user.click(screen.getByRole('button', { name: /ir a iniciar sesión/i }))
     expect(await titulo('Iniciar sesión')).toBeInTheDocument()
+  })
+
+  it('iniciar sesión con una cuenta pendiente muestra el aviso del servidor', async () => {
+    backend.respuestas['POST /api/auth/login'] = rechazo(403, 'Tu cuenta aún no está activa. Un administrador debe aprobarla.')
+    const user = userEvent.setup()
+    abrirApp('/login')
+    await user.type(await screen.findByLabelText('Usuario'), 'ana.perez')
+    await user.type(screen.getByLabelText('Contraseña', { selector: 'input' }), 'clave1234')
+    await user.click(screen.getByRole('button', { name: /entrar/i }))
+    expect(await screen.findByRole('alert')).toHaveTextContent(/administrador debe aprobarla/i)
   })
 
   it('un correo ya registrado muestra el error del servidor', async () => {

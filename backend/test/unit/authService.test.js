@@ -35,14 +35,23 @@ test('login: contraseña incorrecta lanza CREDENCIALES_INVALIDAS', async () => {
   await assert.rejects(login('ana', 'mala'), { message: 'CREDENCIALES_INVALIDAS' })
 })
 
-test('registrarEstudiante: guarda hash (no la clave) y devuelve token', async () => {
+test('registrarEstudiante: guarda hash, deja la cuenta inactiva y NO devuelve token', async () => {
   query.mock.mockImplementation(async () => ({ rows: [{ id_usuario: 9 }] }))
   const r = await registrarEstudiante({ nombre: 'Luis', nombre_usuario: 'luis', correo: 'l@u.co', password: 'secreta1' })
   const params = query.mock.calls[0].arguments[1]
   assert.notEqual(params[3], 'secreta1')
   assert.ok(await bcrypt.compare('secreta1', params[3]))
   assert.equal(r.usuario.tipo_usuario, 'estudiante')
-  assert.equal(verificarToken(r.token).id_usuario, 9)
+  assert.equal(r.pendiente, true)
+  assert.equal(r.token, undefined)
+  assert.equal(r.usuario.id_usuario, 9)
+  assert.match(query.mock.calls[0].arguments[0], /'estudiante', 0\)/) // activo = 0
+})
+
+test('login: contraseña correcta en cuenta inactiva → CUENTA_INACTIVA; contraseña mala sigue siendo CREDENCIALES_INVALIDAS', async () => {
+  query.mock.mockImplementation(async () => ({ rows: [{ ...(await usuarioBD()), activo: 0 }] }))
+  await assert.rejects(login('ana', 'clave123'), { message: 'CUENTA_INACTIVA' })
+  await assert.rejects(login('ana', 'otra-clave'), { message: 'CREDENCIALES_INVALIDAS' })
 })
 
 test('registrarEstudiante: nombre_usuario duplicado → USUARIO_YA_REGISTRADO', async () => {

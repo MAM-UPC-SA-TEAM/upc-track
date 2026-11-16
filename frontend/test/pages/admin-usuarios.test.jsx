@@ -39,6 +39,17 @@ describe('Gestión de usuarios — lista', () => {
     expect(within(filaAdmin).getAllByText('Administrador')).toHaveLength(2) // nombre y rol
   })
 
+  it('aprobar una cuenta inactiva la activa con un solo toque y las activas no tienen el botón', async () => {
+    const user = userEvent.setup()
+    backend.respuestas['PATCH /api/usuarios/3'] = { ok: true }
+    abrir()
+    await screen.findByRole('heading', { name: '3 usuarios' })
+    expect(tabla().queryByRole('button', { name: 'Aprobar Conductor Demo' })).toBeNull()
+    await user.click(tabla().getByRole('button', { name: 'Aprobar Estudiante Demo' }))
+    await waitFor(() => expect(backend.llamadasA('PATCH', '/api/usuarios/3')).toHaveLength(1))
+    expect(backend.llamadasA('PATCH', '/api/usuarios/3')[0].cuerpo).toMatchObject({ activo: true, tipo_usuario: 'estudiante' })
+  })
+
   it('sin usuarios muestra el estado vacío', async () => {
     backend.respuestas['GET /api/usuarios'] = { usuarios: [] }
     abrir()
