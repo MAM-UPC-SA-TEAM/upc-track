@@ -87,8 +87,9 @@ const navEstudiante = [
   { path: '/inicio',         icono: faHouse,       label: 'Inicio' },
   { path: '/mapa',           icono: faLocationDot, label: 'Mapa en tiempo real', corto: 'Mapa' },
   { path: '/rutas',          icono: faRoute,       label: 'Rutas' },
-  { path: '/buses',          icono: faBus,         label: 'Buses', soloEscritorio: true },
-  { path: '/notificaciones', icono: faBell,        label: 'Alertas' },
+  { path: '/buses',          icono: faBus,         label: 'Buses' },
+  // En el móvil las alertas viven en la campana de la barra superior (con su contador); aquí solo en escritorio
+  { path: '/notificaciones', icono: faBell,        label: 'Alertas', soloEscritorio: true },
   { path: '/perfil',         icono: faUser,        label: 'Perfil', tambien: '/configuracion' },
 ]
 

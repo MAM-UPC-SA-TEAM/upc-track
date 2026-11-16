@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import Layout from '../components/shared/Layout'
 import TalonETA from '../components/inicio/TalonETA'
 import AvisoConductor from '../components/inicio/AvisoConductor'
@@ -9,16 +9,11 @@ import { alCambiarRed } from '../services/red'
 import { useAlReanudar, useEnLinea } from '../hooks/useCicloVida'
 import { calcularETA } from '../utils/calcularETA'
 import './Dashboard.css'
-import { MapContainer, Polyline, Marker, CircleMarker, Tooltip } from 'react-leaflet'
-import L from 'leaflet'
-import { iconoBus } from '../utils/marcadores'
 
 const FRESCO_MAX_S = 30        // meta del charter: posición visible actualizada en ≤ 30 s
 const FALLOS_PARA_ANULAR = 2   // un sondeo fallido no anula el dato: dos seguidos sí
 const AVISO_VIGENCIA_MIN = 90  // un aviso del conductor deja de mostrarse tras 90 min
 const CLAVE_PARADA = 'upctrack.miParada'
-
-const iconoParada = L.divIcon({ className: '', html: '<span class="mk mk-parada"></span>', iconSize: [22, 22], iconAnchor: [11, 11] })
 
 const num = v => Number.parseFloat(v)
 
@@ -143,18 +138,7 @@ export default function Dashboard() {
 
   const avisoVigente = aviso && (ahora - new Date(aviso.fecha_hora).getTime()) / 60000 < AVISO_VIGENCIA_MIN ? aviso : null
 
-  // Mapa esquemático: la ruta, las paradas y el bus sobre papel; sin teselas de calles
-  const puntosRuta = paradas.map(p => [num(p.lat), num(p.lng)])
   const busCerca = calculo?.busCercano
-  const hayMapa = puntosRuta.length > 0
-  const hayBus = Boolean(busCerca)
-  const encuadre = useMemo(() => {
-    const pts = [...puntosRuta]
-    if (busCerca) pts.push([busCerca.lat, busCerca.lng])
-    return pts.length > 1 ? L.latLngBounds(pts) : null
-    // se reencuadra al cambiar el conjunto de paradas o al aparecer el primer bus, no en cada posición nueva
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paradas.length, hayBus])
 
   function elegirParada(id) {
     setMiParadaId(id)
@@ -176,47 +160,12 @@ export default function Dashboard() {
           frescoMax={FRESCO_MAX_S}
           recibidoEn={recibidoEn}
           tardando={tardando}
-          onMapa={() => navigate('/mapa')}
+          onMapa={() => navigate(busCerca ? `/mapa?bus=${busCerca.id_bus}` : '/mapa')}
           onRutas={() => navigate('/rutas')}
           onReintentar={cargarEstado}
         />
 
         <AvisoConductor aviso={avisoVigente} />
-
-        {hayMapa && (
-          <Link to="/mapa" className="inicio-mapa" aria-label="Abrir el mapa en tiempo real">
-            <MapContainer
-              key={`${paradas.length}-${hayBus}`}
-              {...(encuadre
-                ? { bounds: encuadre, boundsOptions: { padding: [40, 40] } }
-                : { center: [num(paradas[0].lat), num(paradas[0].lng)], zoom: 15 })}
-              style={{ width: '100%', height: '100%' }}
-              zoomControl={false} dragging={false} scrollWheelZoom={false} doubleClickZoom={false}
-              touchZoom={false} keyboard={false} attributionControl={false}
-            >
-              {puntosRuta.length > 1 && <Polyline positions={puntosRuta} className="ruta-verde" color="#1e6b2e" weight={5} />}
-              {paradas.filter(p => p.id_parada !== parada?.id_parada).map(p => (
-                <CircleMarker key={p.id_parada} center={[num(p.lat), num(p.lng)]} radius={5}
-                  pathOptions={{ color: '#14261a', weight: 2, fillColor: '#fbfaf4', fillOpacity: 1 }} />
-              ))}
-              {parada && (
-                <Marker position={[num(parada.lat), num(parada.lng)]} icon={iconoParada}>
-                  <Tooltip permanent direction="bottom" offset={[0, 10]} className="etiqueta-mapa">Tu parada</Tooltip>
-                </Marker>
-              )}
-              {busCerca && (
-                <Marker position={[busCerca.lat, busCerca.lng]} icon={iconoBus}>
-                  <Tooltip permanent direction="top" offset={[0, -20]} className="etiqueta-mapa">{busCerca.nombre}</Tooltip>
-                </Marker>
-              )}
-            </MapContainer>
-          </Link>
-        )}
-
-        <nav className="inicio-enlaces" aria-label="Más">
-          <Link to="/rutas">Ver rutas</Link>
-          <Link to="/buses">Ver buses</Link>
-        </nav>
       </div>
     </Layout>
   )

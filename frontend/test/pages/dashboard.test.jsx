@@ -130,15 +130,25 @@ describe('Inicio del estudiante', () => {
     expect(backend.llamadasA('GET', '/api/buses/activos').length).toBeGreaterThan(antes)
   })
 
-  it('ofrece los enlaces a rutas y buses', async () => {
+  it('no repite en el Inicio los enlaces a rutas y buses: eso es del nav', async () => {
     montar()
-    const nav = await screen.findByRole('navigation', { name: 'Más' })
-    expect(within(nav).getByRole('link', { name: 'Ver rutas' })).toHaveAttribute('href', '/rutas')
-    expect(within(nav).getByRole('link', { name: 'Ver buses' })).toHaveAttribute('href', '/buses')
+    await seccionEta()
+    expect(screen.queryByRole('navigation', { name: 'Más' })).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Ver rutas' })).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Ver buses' })).toBeNull()
   })
 
-  it('con paradas muestra el mapa esquemático que abre el mapa en tiempo real', async () => {
+  it('no monta el mapa miniatura: el mapa real está en «Ver en el mapa»', async () => {
     montar()
-    expect(await screen.findByRole('link', { name: 'Abrir el mapa en tiempo real' })).toHaveAttribute('href', '/mapa')
+    await (await seccionEta()).findByText(/Validado/)
+    expect(screen.queryByRole('link', { name: 'Abrir el mapa en tiempo real' })).toBeNull()
+    expect(document.querySelector('.leaflet-container')).toBeNull()
+  })
+
+  it('«Ver en el mapa» abre el mapa con el bus que se espera ya seleccionado', async () => {
+    const user = userEvent.setup()
+    montar()
+    await user.click(await (await seccionEta()).findByRole('button', { name: /ver en el mapa/i }))
+    expect(window.location.pathname + window.location.search).toBe('/mapa?bus=1')
   })
 })
