@@ -17,6 +17,7 @@ const Rutas = lazy(() => import('./pages/Rutas'))
 const Buses = lazy(() => import('./pages/Buses'))
 const Notificaciones = lazy(() => import('./pages/Notificaciones'))
 const Perfil = lazy(() => import('./pages/Perfil'))
+const Configuracion = lazy(() => import('./pages/Configuracion'))
 const PanelAdmin = lazy(() => import('./pages/admin/PanelAdmin'))
 const GestionUsuarios = lazy(() => import('./pages/admin/GestionUsuarios'))
 const GestionBuses = lazy(() => import('./pages/admin/GestionBuses'))
@@ -84,6 +85,12 @@ export default function App() {
           <Route path="/perfil" element={
             <RutaProtegida roles={['estudiante', 'conductor', 'admin']}>
               <Perfil />
+            </RutaProtegida>
+          } />
+
+          <Route path="/configuracion" element={
+            <RutaProtegida roles={['estudiante', 'conductor', 'admin']}>
+              <Configuracion />
             </RutaProtegida>
           } />
 
