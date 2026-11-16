@@ -34,7 +34,7 @@ Cada ambigüedad detectada queda cerrada con una decisión, su motivo y el issue
 | D-22 | Recorte | Se trabaja todo lo `Must` del hito antes de tocar un `Should`. Si el tiempo se aprieta se corta lo `Could`, luego U05/U07 y B02/B05. **Nunca** D08, M10, M11, Q01 ni Q02. | Protege el criterio de aceptación del charter. | — |
 | D-23 | Equipo y revisión | Equipo de **una persona**. Sin revisión por pares: autorrevisión con lista de verificación + revisión asistida (`/code-review`) pegada en cada PR. El charter lo declara (R2). | Es la evidencia honesta de revisión que se puede dar; no se simula un equipo. | W04, Q01 |
 | D-24 | Capacidad | 41 issues, de los cuales **24 Must** son el compromiso real; los 16 `Should` y 1 `Could` son *stretch*. | 30 días para una persona. | todos |
-| D-25 | Registro institucional | El registro público solo acepta correos `@unicesar.edu.co` (igualdad exacta del dominio, validada **en el servidor**). La verificación de titularidad se decide en un spike de 1 día entre: **A** código por correo vía API HTTPS, **B** inicio de sesión con Microsoft, **C** aprobación manual por el administrador (último recurso). | El dominio por sí solo no prueba titularidad. Render free bloquea el SMTP saliente desde sept-2025 y el consentimiento de Microsoft depende del tenant de la universidad. | A01 |
+| D-25 | Registro institucional | El registro público solo acepta correos `@unicesar.edu.co` (igualdad exacta del dominio, validada **en el servidor**). La verificación de titularidad se decide en un spike de 1 día entre: **A** código por correo vía API HTTPS, **B** inicio de sesión con Microsoft, **C** aprobación manual por el administrador (último recurso). **Decisión (16-nov-2026): C.** El registro valida el dominio en el servidor, la cuenta nace inactiva y un administrador la aprueba en Gestión de usuarios; no se envía correo ni se usa Microsoft (proyecto universitario, sin acceso a un buzón institucional para el spike). Si en el futuro se quiere probar titularidad, el camino es A o B. | El dominio por sí solo no prueba titularidad. Render free bloquea el SMTP saliente desde sept-2025 y el consentimiento de Microsoft depende del tenant de la universidad. | A01 |
 | D-26 | Motor de base de datos | **PostgreSQL** en todos los entornos (Neon en producción, contenedor `postgres` en local). El backend migra de `mysql2` a `pg` (issue D10). | Neon solo ofrece PostgreSQL; mantener dos motores duplicaría el trabajo y las pruebas. | D10, D02 |
 
 ### Supuestos asumidos (ya no hay decisiones abiertas)
@@ -149,7 +149,7 @@ Secuencia: **U01** diagnóstico → **U02** tokens y fuentes → **U03** navegac
 | Sin revisión por pares ni aprobación del docente | CI obligatorio + revisión asistida por PR; charter v2 marcado como pendiente (D-23) |
 | Conductor con pantalla bloqueada | Wake Lock + indicación en pantalla; spike M05 opcional |
 | Entornos Android distintos entre integrantes | M03 documenta requisitos (JDK 21); M10 compila en CI |
-| Registro institucional: SMTP bloqueado en Render free y consentimiento de Microsoft desconocido | Spike de 1 día en A01 con tres opciones y criterio de decisión; no difundir la URL pública antes de A01 |
+| Registro institucional: SMTP bloqueado en Render free y consentimiento de Microsoft desconocido | Resuelto con la opción C (aprobación del administrador): una cuenta no entra hasta que se aprueba, aunque se difunda la URL |
 | Demo con servicios dormidos | D06 y Q06 (pre-calentar, respaldo local y video) |
 
 ## 11. Fuentes consultadas (05-nov-2026)
