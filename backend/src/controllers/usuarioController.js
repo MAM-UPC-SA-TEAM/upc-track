@@ -1,8 +1,6 @@
 // src/controllers/usuarioController.js
 import { Usuario } from '../models/Usuario.js'
-import bcrypt from 'bcryptjs'
-import { pool, esDuplicado } from '../config/database.js'
-import { generarToken } from '../utils/jwt.js'
+import * as usuarioService from '../services/usuarioService.js'
 
 // GET /api/usuarios
 export async function listarUsuarios(_req, res) {
@@ -17,7 +15,7 @@ export async function listarUsuarios(_req, res) {
 
 // POST /api/usuarios
 export async function crearUsuario(req, res) {
-  const { nombre, nombre_usuario, correo, password, tipo_usuario, activo } = req.body
+  const { nombre, nombre_usuario, correo, password } = req.body
 
   if (!nombre || !nombre_usuario || !correo || !password) {
     return res.status(400).json({ error: 'nombre, nombre_usuario, correo y password son obligatorios' })
@@ -28,19 +26,13 @@ export async function crearUsuario(req, res) {
   }
 
   try {
-    const password_hash = await bcrypt.hash(password, 10)
-    const { rows } = await pool.query(
-      `INSERT INTO usuario (nombre, nombre_usuario, correo, password_hash, tipo_usuario, activo)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING id_usuario`,
-      [nombre, nombre_usuario.toLowerCase(), correo, password_hash, tipo_usuario || 'estudiante', activo === false ? 0 : 1]
-    )
-    return res.status(201).json({ ok: true, id_usuario: rows[0].id_usuario })
+    const id_usuario = await usuarioService.crear(req.body)
+    return res.status(201).json({ ok: true, id_usuario })
   } catch (error) {
-    if (esDuplicado(error)) {
-      if (error.constraint?.includes('nombre_usuario')) {
-        return res.status(400).json({ error: 'Ese nombre de usuario ya está en uso' })
-      }
+    if (error.message === 'USUARIO_YA_REGISTRADO') {
+      return res.status(400).json({ error: 'Ese nombre de usuario ya está en uso' })
+    }
+    if (error.message === 'CORREO_YA_REGISTRADO') {
       return res.status(400).json({ error: 'Ya existe un usuario con ese correo' })
     }
     console.error('Error creando usuario:', error)
@@ -51,35 +43,26 @@ export async function crearUsuario(req, res) {
 // PATCH /api/usuarios/:id
 export async function editarUsuario(req, res) {
   const { id } = req.params
-  const { nombre, nombre_usuario, correo, tipo_usuario, activo, password } = req.body
+  const { nombre, nombre_usuario, correo, tipo_usuario, password } = req.body
 
   // El PATCH reemplaza todos los campos: sin ellos el UPDATE violaría NOT NULL (antes respondía 500)
   if (!nombre || !nombre_usuario || !correo || !tipo_usuario) {
     return res.status(400).json({ error: 'nombre, nombre_usuario, correo y tipo_usuario son obligatorios' })
   }
 
+  if (password && password.length < 8) {
+    return res.status(400).json({ error: 'La contraseña debe tener mínimo 8 caracteres' })
+  }
+
   try {
-    if (password) {
-      if (password.length < 8) {
-        return res.status(400).json({ error: 'La contraseña debe tener mínimo 8 caracteres' })
-      }
-      const password_hash = await bcrypt.hash(password, 10)
-      await pool.query(
-        `UPDATE usuario SET nombre=$1, nombre_usuario=$2, correo=$3, tipo_usuario=$4, activo=$5, password_hash=$6
-         WHERE id_usuario=$7`,
-        [nombre, nombre_usuario?.toLowerCase(), correo, tipo_usuario, activo === false ? 0 : 1, password_hash, id]
-      )
-    } else {
-      await pool.query(
-        `UPDATE usuario SET nombre=$1, nombre_usuario=$2, correo=$3, tipo_usuario=$4, activo=$5
-         WHERE id_usuario=$6`,
-        [nombre, nombre_usuario?.toLowerCase(), correo, tipo_usuario, activo === false ? 0 : 1, id]
-      )
-    }
+    await usuarioService.editar(id, req.body)
     return res.status(200).json({ ok: true })
   } catch (error) {
-    if (esDuplicado(error)) {
+    if (error.message === 'USUARIO_YA_REGISTRADO') {
       return res.status(400).json({ error: 'Ese nombre de usuario ya está en uso' })
+    }
+    if (error.message === 'CORREO_YA_REGISTRADO') {
+      return res.status(400).json({ error: 'Ese correo ya está en uso' })
     }
     console.error('Error editando usuario:', error)
     return res.status(500).json({ error: 'Error interno del servidor' })
@@ -110,34 +93,15 @@ export async function editarPerfil(req, res) {
   }
 
   try {
-    if (cambiaUsuario) {
-      await pool.query(
-        `UPDATE usuario SET nombre=$1, correo=COALESCE($2, correo), nombre_usuario=$3 WHERE id_usuario=$4`,
-        [nombre.trim(), correo, nombre_usuario, id]
-      )
-    } else {
-      await pool.query(
-        `UPDATE usuario SET nombre=$1, correo=COALESCE($2, correo) WHERE id_usuario=$3`,
-        [nombre.trim(), correo, id]
-      )
-    }
-    const { rows: [usuario] } = await pool.query(
-      `SELECT id_usuario, nombre, nombre_usuario, correo, tipo_usuario FROM usuario WHERE id_usuario=$1`,
-      [id]
-    )
-    const token = generarToken({
-      id_usuario:     usuario.id_usuario,
-      nombre:         usuario.nombre,
-      nombre_usuario: usuario.nombre_usuario,
-      correo:         usuario.correo,
-      tipo_usuario:   usuario.tipo_usuario,
+    const { usuario, token } = await usuarioService.editarPerfil(id, {
+      nombre: nombre.trim(), correo, nombre_usuario,
     })
     return res.status(200).json({ ok: true, usuario, token })
   } catch (error) {
-    if (esDuplicado(error)) {
-      if (error.constraint?.includes('nombre_usuario')) {
-        return res.status(409).json({ error: 'Ese nombre de usuario ya está en uso' })
-      }
+    if (error.message === 'USUARIO_YA_REGISTRADO') {
+      return res.status(409).json({ error: 'Ese nombre de usuario ya está en uso' })
+    }
+    if (error.message === 'CORREO_YA_REGISTRADO') {
       return res.status(400).json({ error: 'Ese correo ya está en uso' })
     }
     console.error('Error editando perfil:', error)
@@ -158,20 +122,15 @@ export async function cambiarPassword(req, res) {
   }
 
   try {
-    const { rows: [usuario] } = await pool.query(
-      `SELECT password_hash FROM usuario WHERE id_usuario=$1`, [id]
-    )
-    const coincide = await bcrypt.compare(password_actual, usuario.password_hash)
-    if (!coincide) {
-      return res.status(401).json({ error: 'La contraseña actual es incorrecta' })
-    }
-
-    const nuevoHash = await bcrypt.hash(password_nueva, 10)
-    await pool.query(
-      `UPDATE usuario SET password_hash=$1 WHERE id_usuario=$2`, [nuevoHash, id]
-    )
+    await usuarioService.cambiarPassword(id, password_actual, password_nueva)
     return res.status(200).json({ ok: true })
   } catch (error) {
+    if (error.message === 'PASSWORD_ACTUAL_INCORRECTA') {
+      return res.status(401).json({ error: 'La contraseña actual es incorrecta' })
+    }
+    if (error.message === 'USUARIO_NO_ENCONTRADO') {
+      return res.status(404).json({ error: 'Usuario no encontrado' })
+    }
     console.error('Error cambiando contraseña:', error)
     return res.status(500).json({ error: 'Error interno del servidor' })
   }
@@ -181,7 +140,7 @@ export async function cambiarPassword(req, res) {
 export async function eliminarUsuario(req, res) {
   const { id } = req.params
   try {
-    await pool.query(`DELETE FROM usuario WHERE id_usuario=$1`, [id])
+    await usuarioService.eliminar(id)
     return res.status(200).json({ ok: true })
   } catch (error) {
     console.error('Error eliminando usuario:', error)

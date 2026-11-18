@@ -74,6 +74,12 @@ Define como se organiza el codigo **dentro de cada componente/servicio**
 - El backend sigue una organizacion por capas de tipo **MVC extendido con
   capa de services** (routes -> controllers -> services -> models ->
   PostgreSQL). Ver secciones 2 y 3 para el detalle de cada capa.
+- Los controllers **no ejecutan SQL**: validan la entrada HTTP, llaman al servicio o al modelo y traducen los errores de
+  dominio (`PLACA_DUPLICADA`, `BUS_NO_ENCONTRADO`, `USUARIO_YA_REGISTRADO`, ...) a codigos HTTP. Servicios con reglas de
+  escritura: `authService`, `busService`, `usuarioService`, `rutaService` y `ubicacionService`. Las operaciones de varios
+  pasos (crear bus + ruta, editar + reasignar ruta) corren en una transaccion (`transaccion()` de `config/database.js`).
+  El alcance real fue mayor que el del plan original (B01/B02): ademas de buses, tenian SQL directo `usuarioController`
+  (9 consultas), `rutaController`, `notificacionController` y el cierre de sesion.
 - No se adopta Clean Architecture ni Arquitectura Hexagonal: los modelos
   consultan PostgreSQL directamente y no existen puertos/adaptadores de dominio.
   Es una decision valida para este alcance porque el proyecto no requiere

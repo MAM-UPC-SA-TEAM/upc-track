@@ -3,7 +3,7 @@
 // y llama al servicio correspondiente
 
 import { login, registrarEstudiante } from '../services/authService.js'
-import { pool } from '../config/database.js'
+import { liberarDeConductor } from '../services/busService.js'
 import { esCorreoPermitido, mensajeCorreoNoPermitido, normalizarCorreo } from '../utils/correo.js'
 
 // POST /api/auth/login
@@ -92,10 +92,7 @@ export async function registroController(req, res) {
 export async function logoutController(req, res) {
   try {
     if (req.usuario?.tipo_usuario === 'conductor') {
-      await pool.query(
-        `UPDATE bus SET estado = 'inactivo' WHERE id_conductor = $1 AND estado != 'inactivo'`,
-        [req.usuario.id_usuario]
-      )
+      await liberarDeConductor(req.usuario.id_usuario)
     }
   } catch (err) {
     console.error('Error reseteando bus en logout:', err)

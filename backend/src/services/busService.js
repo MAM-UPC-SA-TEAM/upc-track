@@ -56,3 +56,8 @@ export async function editar(idBus, { nombre, placa, capacidad, estado, id_ruta,
 export async function eliminar(idBus) {
   if (await Bus.eliminar(idBus) === 0) throw new Error('BUS_NO_ENCONTRADO')
 }
+
+/** Cierre de sesión del conductor: su bus deja de figurar en servicio. */
+export function liberarDeConductor(idConductor) {
+  return Bus.desactivarDeConductor(idConductor)
+}

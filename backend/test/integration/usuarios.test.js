@@ -130,6 +130,13 @@ test('PATCH /usuarios/:id: duplicado → 400', async () => {
   assert.equal((await request(app).patch('/api/usuarios/7').set(admin()).send(edicion)).status, 400)
 })
 
+test('PATCH /usuarios/:id: correo duplicado → 400 con mensaje de correo (no de usuario)', async () => {
+  query.mock.mockImplementation(duplicado('usuario_correo_key'))
+  const res = await request(app).patch('/api/usuarios/7').set(admin()).send(edicion)
+  assert.equal(res.status, 400)
+  assert.match(res.body.error, /correo/)
+})
+
 test('PATCH /usuarios/:id: error inesperado → 500', async () => {
   query.mock.mockImplementation(fallo)
   assert.equal((await request(app).patch('/api/usuarios/7').set(admin()).send(edicion)).status, 500)
@@ -236,6 +243,12 @@ test('PATCH /perfil: error inesperado → 500', async () => {
 // ── Cambiar contraseña ──────────────────────────────────────
 test('PATCH /password: faltan datos → 400', async () => {
   assert.equal((await request(app).patch('/api/usuarios/password').set(estudiante()).send({ password_actual: 'x' })).status, 400)
+})
+
+test('PATCH /password: el usuario ya no existe → 404', async () => {
+  query.mock.mockImplementation(async () => ({ rows: [] }))
+  const res = await request(app).patch('/api/usuarios/password').set(estudiante()).send({ password_actual: 'x', password_nueva: 'nueva12345' })
+  assert.equal(res.status, 404)
 })
 
 test('PATCH /password: nueva contraseña corta → 400', async () => {
