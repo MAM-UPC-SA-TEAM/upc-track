@@ -14,8 +14,18 @@ const { Ubicacion } = await import('../../src/models/Ubicacion.js')
 const { olvidarPosiciones, procesarUbicacion } = await import('../../src/services/ubicacionService.js')
 
 let query
+let control // BEGIN/COMMIT/ROLLBACK de las transacciones del servicio (no cuentan como consultas)
 beforeEach(() => {
   query = mock.method(pool, 'query', async () => ({ rows: [{ id_bus: 1 }], rowCount: 1 }))
+  control = []
+  // busService usa transaccion(): pool.connect() entrega un cliente cuyas consultas van al mismo mock
+  mock.method(pool, 'connect', async () => ({
+    query: async (sql, ...resto) => {
+      if (/^(BEGIN|COMMIT|ROLLBACK)$/.test(sql)) { control.push(sql); return { rows: [] } }
+      return query(sql, ...resto)
+    },
+    release() {},
+  }))
   mock.method(console, 'error', () => {})
 })
 afterEach(() => { mock.timers.reset(); mock.restoreAll(); app.set('io', undefined) })
@@ -151,6 +161,20 @@ test('POST /buses: con id_ruta también inserta en bus_ruta', async () => {
   assert.deepEqual(query.mock.calls[1].arguments[1], [1, 4])
 })
 
+test('POST /buses: la creación se confirma con COMMIT; si falla, ROLLBACK y nada queda a medias', async () => {
+  await request(app).post('/api/buses').set(admin()).send({ nombre: 'B1', placa: 'A1', id_ruta: 4 })
+  assert.deepEqual(control, ['BEGIN', 'COMMIT'])
+
+  control.length = 0
+  query.mock.mockImplementation(async (sql) => {
+    if (/INSERT INTO bus_ruta/.test(sql)) throw new Error('ruta inexistente')
+    return { rows: [{ id_bus: 1 }], rowCount: 1 }
+  })
+  const res = await request(app).post('/api/buses').set(admin()).send({ nombre: 'B1', placa: 'A2', id_ruta: 999 })
+  assert.equal(res.status, 500)
+  assert.deepEqual(control, ['BEGIN', 'ROLLBACK'])
+})
+
 test('POST /buses: placa duplicada → 400', async () => {
   query.mock.mockImplementation(async () => { throw Object.assign(new Error('dup'), { code: '23505' }) })
   const res = await request(app).post('/api/buses').set(admin()).send({ nombre: 'B', placa: 'P' })
@@ -193,6 +217,21 @@ test('PATCH /:id: bus inexistente → 404 y no toca bus_ruta', async () => {
   const res = await request(app).patch('/api/buses/999').set(admin()).send({ nombre: 'N', placa: 'P', estado: 'inactivo', id_ruta: 7 })
   assert.equal(res.status, 404)
   assert.equal(query.mock.callCount(), 1)
+})
+
+test('PATCH /:id: si falla la reasignación de ruta se hace ROLLBACK (editar + reasignar es todo o nada)', async () => {
+  query.mock.mockImplementation(async (sql) => {
+    if (/INSERT INTO bus_ruta/.test(sql)) throw new Error('ruta inexistente')
+    return { rows: [], rowCount: 1 }
+  })
+  const res = await request(app).patch('/api/buses/1').set(admin()).send({ nombre: 'N', placa: 'P', estado: 'inactivo', id_ruta: 999 })
+  assert.equal(res.status, 500)
+  assert.deepEqual(control, ['BEGIN', 'ROLLBACK'])
+})
+
+test('PATCH /:id: placa duplicada → 400', async () => {
+  query.mock.mockImplementation(async () => { throw Object.assign(new Error('dup'), { code: '23505' }) })
+  assert.equal((await request(app).patch('/api/buses/1').set(admin()).send({ nombre: 'N', placa: 'P', estado: 'inactivo' })).status, 400)
 })
 
 test('PATCH /:id → 500 si falla la BD', async () => {

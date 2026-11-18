@@ -4,7 +4,7 @@
 import { Bus } from '../models/Bus.js'
 import { Notificacion } from '../models/Notificacion.js'
 import { velocidadActual } from '../services/ubicacionService.js'
-import { pool, esDuplicado } from '../config/database.js'
+import * as busService from '../services/busService.js'
 
 // GET /api/buses — lista completa
 export async function listarBuses(req, res) {
@@ -71,32 +71,17 @@ export async function obtenerBus(req, res) {
 
 // POST /api/buses — crear bus
 export async function crearBus(req, res) {
-  const { nombre, placa, capacidad, id_ruta, estado, id_conductor } = req.body
+  const { nombre, placa } = req.body
 
   if (!nombre || !placa) {
     return res.status(400).json({ error: 'nombre y placa son obligatorios' })
   }
 
   try {
-    const { rows } = await pool.query(
-      `INSERT INTO bus (nombre, placa, capacidad, estado, id_conductor)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING id_bus`,
-      [nombre, placa, capacidad || 45, estado || 'inactivo', id_conductor || null]
-    )
-    const id_bus = rows[0].id_bus
-
-    // Asignar ruta si viene
-    if (id_ruta) {
-      await pool.query(
-        `INSERT INTO bus_ruta (id_bus, id_ruta) VALUES ($1, $2)`,
-        [id_bus, id_ruta]
-      )
-    }
-
+    const id_bus = await busService.crear(req.body)
     return res.status(201).json({ ok: true, id_bus })
   } catch (error) {
-    if (esDuplicado(error)) {
+    if (error.message === 'PLACA_DUPLICADA') {
       return res.status(400).json({ error: 'Ya existe un bus con esa placa' })
     }
     console.error('Error creando bus:', error)
@@ -106,32 +91,16 @@ export async function crearBus(req, res) {
 
 // PATCH /api/buses/:id — editar bus
 export async function editarBus(req, res) {
-  const { id } = req.params
-  const { nombre, placa, capacidad, estado, id_ruta, id_conductor } = req.body
-
   try {
-    const { rowCount } = await pool.query(
-      `UPDATE bus SET nombre=$1, placa=$2, capacidad=$3, estado=$4, id_conductor=$5
-       WHERE id_bus=$6`,
-      [nombre, placa, capacidad || 45, estado, id_conductor || null, id]
-    )
-    if (rowCount === 0) {
-      return res.status(404).json({ error: 'Bus no encontrado' })
-    }
-
-    if (id_ruta !== undefined) {
-      // Elimina cualquier asignación anterior antes de insertar la nueva
-      await pool.query(`DELETE FROM bus_ruta WHERE id_bus = $1`, [id])
-      if (id_ruta) {
-        await pool.query(
-          `INSERT INTO bus_ruta (id_bus, id_ruta) VALUES ($1, $2)`,
-          [id, id_ruta]
-        )
-      }
-    }
-
+    await busService.editar(req.params.id, req.body)
     return res.status(200).json({ ok: true })
   } catch (error) {
+    if (error.message === 'BUS_NO_ENCONTRADO') {
+      return res.status(404).json({ error: 'Bus no encontrado' })
+    }
+    if (error.message === 'PLACA_DUPLICADA') {
+      return res.status(400).json({ error: 'Ya existe un bus con esa placa' })
+    }
     console.error('Error editando bus:', error)
     return res.status(500).json({ error: 'Error interno del servidor' })
   }
@@ -139,16 +108,13 @@ export async function editarBus(req, res) {
 
 // DELETE /api/buses/:id — eliminar bus
 export async function eliminarBus(req, res) {
-  const { id } = req.params
   try {
-    const { rowCount } = await pool.query(
-      `DELETE FROM bus WHERE id_bus = $1`, [id]
-    )
-    if (rowCount === 0) {
-      return res.status(404).json({ error: 'Bus no encontrado' })
-    }
+    await busService.eliminar(req.params.id)
     return res.status(200).json({ ok: true })
   } catch (error) {
+    if (error.message === 'BUS_NO_ENCONTRADO') {
+      return res.status(404).json({ error: 'Bus no encontrado' })
+    }
     console.error('Error eliminando bus:', error)
     return res.status(500).json({ error: 'Error interno del servidor' })
   }
