@@ -37,22 +37,59 @@ export function velocidadParaETA(bus) {
   return Math.min(VELOCIDAD_MAX_KMH, Math.max(VELOCIDAD_MIN_KMH, Number(bus.velocidad_kmh)))
 }
 
-/** Minutos para recorrer `km` a la velocidad de ese bus (o a `velocidadKmH`, si se fija). */
-export function minutosHasta(km, bus, velocidadKmH) {
+/** Minutos (sin redondear) para recorrer `km` a la velocidad de ese bus (o a `velocidadKmH`, si se fija). */
+function minutosExactos(km, bus, velocidadKmH) {
   const v = Number.isFinite(velocidadKmH) ? velocidadKmH : velocidadParaETA(bus)
-  return Math.round((km / v) * 60)
+  return (km / v) * 60
+}
+
+/** Minutos redondeados para recorrer `km` a la velocidad de ese bus (o a `velocidadKmH`, si se fija). */
+export function minutosHasta(km, bus, velocidadKmH) {
+  return Math.round(minutosExactos(km, bus, velocidadKmH))
+}
+
+// ── Patrón Strategy ──────────────────────────────────────────────────────────────────────────────────
+// Una estrategia decide CÓMO se estima la llegada de UN bus a una parada; calcularETA decide CUÁL bus llega
+// antes y no sabe nada del algoritmo. Para otro cálculo (p. ej. por el trazado de la ruta o con tráfico) basta
+// con otra estrategia, sin tocar a quien invoca calcularETA (principio abierto/cerrado).
+//
+//   interface EstrategiaETA {
+//     nombre: string
+//     estimar(parada: { lat, lng }, bus: { lat, lng, velocidad_kmh? }): { minutos: number, distanciaKm: number }
+//   }
+//
+// `minutos` va sin redondear (sirve para comparar buses); calcularETA redondea solo el resultado final.
+
+/** Línea recta (Haversine) a la velocidad reciente de cada bus, con piso y techo (ver velocidadParaETA). */
+export const estrategiaLineal = {
+  nombre: 'lineal',
+  estimar(parada, bus) {
+    const distancia = distanciaKm(bus.lat, bus.lng, parada.lat, parada.lng)
+    return { minutos: minutosExactos(distancia, bus), distanciaKm: distancia }
+  },
+}
+
+/** Línea recta a una velocidad fija para todos los buses (ignora `velocidad_kmh`). */
+export function estrategiaVelocidadFija(velocidadKmH) {
+  return {
+    nombre: `velocidad-fija-${velocidadKmH}`,
+    estimar(parada, bus) {
+      const distancia = distanciaKm(bus.lat, bus.lng, parada.lat, parada.lng)
+      return { minutos: minutosExactos(distancia, bus, velocidadKmH), distanciaKm: distancia }
+    },
+  }
 }
 
 /**
  * Calcula el ETA en minutos del bus que llegará antes a una parada (el de menor tiempo, que con velocidades
- * distintas no siempre es el más cercano). Cada bus usa su velocidad reciente (ver velocidadParaETA).
+ * distintas no siempre es el más cercano). Cómo se estima cada bus lo decide la estrategia.
  *
  * @param {Object} parada  - { lat, lng }
  * @param {Array}  buses   - [{ id_bus, lat, lng, estado, velocidad_kmh?, ... }]
- * @param {number} [velocidadKmH] - si se indica, se usa para todos los buses (ignora velocidad_kmh)
+ * @param {Object} [estrategia=estrategiaLineal] - ver EstrategiaETA
  * @returns {{ etaMinutos: number|null, busCercano: Object|null, distanciaKmVal: number|null }}
  */
-export function calcularETA(parada, buses, velocidadKmH) {
+export function calcularETA(parada, buses, estrategia = estrategiaLineal) {
   // Solo considerar buses en recorrido con coordenadas válidas
   const busesActivos = buses.filter(
     (b) => b.estado === 'en_recorrido' && b.lat != null && b.lng != null
@@ -63,24 +100,20 @@ export function calcularETA(parada, buses, velocidadKmH) {
   }
 
   let busCercano = null
-  let menorTiempo = Infinity
-  let menorDistancia = Infinity
+  let mejor = null
 
   for (const bus of busesActivos) {
-    const d = distanciaKm(bus.lat, bus.lng, parada.lat, parada.lng)
-    const v = Number.isFinite(velocidadKmH) ? velocidadKmH : velocidadParaETA(bus)
-    const tiempo = d / v
-    if (tiempo < menorTiempo || (tiempo === menorTiempo && d < menorDistancia)) {
-      menorTiempo = tiempo
-      menorDistancia = d
+    const e = estrategia.estimar(parada, bus)
+    if (!mejor || e.minutos < mejor.minutos || (e.minutos === mejor.minutos && e.distanciaKm < mejor.distanciaKm)) {
+      mejor = e
       busCercano = bus
     }
   }
 
   return {
-    etaMinutos: minutosHasta(menorDistancia, busCercano, velocidadKmH),
+    etaMinutos: Math.round(mejor.minutos),
     busCercano,
-    distanciaKmVal: Math.round(menorDistancia * 100) / 100,
+    distanciaKmVal: Math.round(mejor.distanciaKm * 100) / 100,
   }
 }
 
