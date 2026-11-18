@@ -38,7 +38,7 @@ export async function crear({ nombre, nombre_usuario, correo, password, tipo_usu
 /** El admin reemplaza los datos; con `password` también cambia la clave. */
 export async function editar(id, { nombre, nombre_usuario, correo, tipo_usuario, activo, password }) {
   try {
-    await Usuario.actualizar(id, {
+    const cambiados = await Usuario.actualizar(id, {
       nombre,
       nombre_usuario: nombre_usuario?.toLowerCase(),
       correo,
@@ -46,6 +46,7 @@ export async function editar(id, { nombre, nombre_usuario, correo, tipo_usuario,
       activo: activoComoNumero(activo),
       password_hash: password ? await bcrypt.hash(password, COSTO_HASH) : undefined,
     })
+    if (cambiados === 0) throw new Error('USUARIO_NO_ENCONTRADO')
   } catch (error) {
     throw traducirDuplicado(error)
   }
@@ -82,5 +83,5 @@ export async function cambiarPassword(id, passwordActual, passwordNueva) {
 }
 
 export async function eliminar(id) {
-  await Usuario.eliminar(id)
+  if (await Usuario.eliminar(id) === 0) throw new Error('USUARIO_NO_ENCONTRADO')
 }

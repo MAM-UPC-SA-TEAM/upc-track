@@ -58,6 +58,9 @@ export async function editarUsuario(req, res) {
     await usuarioService.editar(id, req.body)
     return res.status(200).json({ ok: true })
   } catch (error) {
+    if (error.message === 'USUARIO_NO_ENCONTRADO') {
+      return res.status(404).json({ error: 'Usuario no encontrado' })
+    }
     if (error.message === 'USUARIO_YA_REGISTRADO') {
       return res.status(400).json({ error: 'Ese nombre de usuario ya está en uso' })
     }
@@ -143,6 +146,9 @@ export async function eliminarUsuario(req, res) {
     await usuarioService.eliminar(id)
     return res.status(200).json({ ok: true })
   } catch (error) {
+    if (error.message === 'USUARIO_NO_ENCONTRADO') {
+      return res.status(404).json({ error: 'Usuario no encontrado' })
+    }
     console.error('Error eliminando usuario:', error)
     return res.status(500).json({ error: 'Error interno del servidor' })
   }

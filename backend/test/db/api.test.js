@@ -251,6 +251,17 @@ describe('usuarios (admin)', () => {
     assert.equal(res.status, 400)
   })
 
+  test('editar y eliminar un usuario inexistente → 404', async () => {
+    const cuerpo = { nombre: 'X', nombre_usuario: 'inexistente_x', correo: 'x@unicesar.edu.co', tipo_usuario: 'estudiante', activo: true }
+    assert.equal((await request(app).patch('/api/usuarios/999999').set(admin).send(cuerpo)).status, 404)
+    assert.equal((await request(app).delete('/api/usuarios/999999').set(admin)).status, 404)
+  })
+
+  test('editar y eliminar una ruta inexistente → 404', async () => {
+    assert.equal((await request(app).patch('/api/rutas/999999').set(admin).send({ nombre: 'X' })).status, 404)
+    assert.equal((await request(app).delete('/api/rutas/999999').set(admin)).status, 404)
+  })
+
   test('listar usuarios: admin 200; estudiante 403', async () => {
     assert.equal((await request(app).get('/api/usuarios').set(admin)).status, 200)
     assert.equal((await request(app).get('/api/usuarios').set(estudiante)).status, 403)

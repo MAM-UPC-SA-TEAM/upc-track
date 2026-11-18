@@ -12,7 +12,7 @@ const { generarToken, verificarToken } = await import('../../src/utils/jwt.js')
 
 let query
 beforeEach(() => {
-  query = mock.method(pool, 'query', async () => ({ rows: [{ id_usuario: 1 }] }))
+  query = mock.method(pool, 'query', async () => ({ rows: [{ id_usuario: 1 }], rowCount: 1 }))
   mock.method(console, 'error', () => {})
 })
 afterEach(() => mock.restoreAll())
@@ -137,6 +137,13 @@ test('PATCH /usuarios/:id: correo duplicado → 400 con mensaje de correo (no de
   assert.match(res.body.error, /correo/)
 })
 
+test('PATCH /usuarios/:id: usuario inexistente → 404', async () => {
+  query.mock.mockImplementation(async () => ({ rows: [], rowCount: 0 }))
+  const res = await request(app).patch('/api/usuarios/999').set(admin()).send(edicion)
+  assert.equal(res.status, 404)
+  assert.equal(res.body.error, 'Usuario no encontrado')
+})
+
 test('PATCH /usuarios/:id: error inesperado → 500', async () => {
   query.mock.mockImplementation(fallo)
   assert.equal((await request(app).patch('/api/usuarios/7').set(admin()).send(edicion)).status, 500)
@@ -147,6 +154,13 @@ test('DELETE /usuarios/:id: admin → 200', async () => {
   const res = await request(app).delete('/api/usuarios/7').set(admin())
   assert.equal(res.status, 200)
   assert.deepEqual(query.mock.calls[0].arguments[1], ['7'])
+})
+
+test('DELETE /usuarios/:id: usuario inexistente → 404', async () => {
+  query.mock.mockImplementation(async () => ({ rows: [], rowCount: 0 }))
+  const res = await request(app).delete('/api/usuarios/999').set(admin())
+  assert.equal(res.status, 404)
+  assert.equal(res.body.error, 'Usuario no encontrado')
 })
 
 test('DELETE /usuarios/:id → 500 si falla la BD', async () => {
