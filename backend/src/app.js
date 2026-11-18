@@ -1,6 +1,7 @@
 // src/app.js
 import express          from 'express'
 import cors             from 'cors'
+import helmet           from 'helmet'
 import { corsOptions }  from './utils/cors.js'
 import authRoutes       from './routes/authRoutes.js'
 import ubicacionRoutes from './routes/ubicacionRoutes.js'
@@ -24,6 +25,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 app.use(express.static(join(__dirname, '../public')))
 
 // ── Middlewares globales ─────────────────────────────────────
+// Cabeceras de seguridad (HSTS, nosniff, sin X-Powered-By…). El frontend vive en otro origen (Cloudflare o la
+// WebView del APK) y consume esta API por CORS, así que los recursos deben poder leerse desde otros orígenes.
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }))
 app.use(cors(corsOptions))
 app.use(express.json())
 
