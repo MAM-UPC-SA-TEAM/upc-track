@@ -1,9 +1,10 @@
 # Checklist de Validacion RNF (RNF1-RNF15)
 
 Proyecto: Monitoreo de Buses UPCSA
-Fecha: ____/____/______
-Responsable: __________________
-Ambiente: [ ] Local  [ ] Ngrok  [ ] Produccion
+Fecha: 18/11/2026
+Responsable: equipo de desarrollo
+Ambiente: [x] Local (réplica con base desechable)  [ ] Ngrok  [x] Produccion (solo lectura: salud, latencia, CORS, Socket.IO)
+Evidencia y resultados por requisito: [`14_validacion_rf_rnf.md`](14_validacion_rf_rnf.md) (los casilleros de abajo son la plantilla de la prueba manual; el resultado oficial está en ese informe).
 
 Instruccion: ejecuta cada prueba, marca el resultado y guarda evidencia (captura, video, logs, tiempo medido).
 
@@ -174,16 +175,17 @@ Evidencia: ________________________________
 
 ## Cierre de validacion RNF
 
-- RNF cumplidos: ______ / 15
-- RNF parciales: ______ / 15
-- RNF no cumplidos: ______ / 15
+- RNF cumplidos: 10 / 15 (RNF1, RNF2, RNF6, RNF7, RNF8, RNF10, RNF11, RNF13, RNF14 y RNF15)
+- RNF parciales: 4 / 15 (RNF3, RNF5, RNF9 y RNF12)
+- RNF pendientes de validación manual: 1 / 15 (RNF4)
+- RNF no cumplidos: 0 / 15
 
 Riesgos detectados:
-1. _______________________________________________
-2. _______________________________________________
-3. _______________________________________________
+1. Producción aún sin `helmet` ni dependencias corregidas hasta la release de `develop` a `main`.
+2. Planes gratuitos sin garantía 24/7: arranque en frío de Render de ~17 s (excepción documentada, riesgo R4).
+3. Endpoints autenticados de la nube sin medir (producción no tiene usuarios de prueba).
 
 Plan de mejora:
-1. _______________________________________________
-2. _______________________________________________
-3. _______________________________________________
+1. Hacer la release a `main` y verificar las cabeceras (Q07).
+2. Calentar el servicio antes de la sustentación y mantener el plan B local (Q06).
+3. Completar la guía manual de la sección 6 de `14_validacion_rf_rnf.md` y las pruebas en dispositivo (#39) y con usuarios (#42).
