@@ -2,6 +2,7 @@
 // Política de orígenes permitidos, compartida por Express (app.js) y Socket.IO (server.js).
 
 import { env } from '../config/env.js'
+import { forbidden } from './httpError.js'
 
 // Orígenes con los que la WebView de Capacitor sirve la app empaquetada:
 // Android usa https://localhost (androidScheme: 'https') e iOS usa capacitor://localhost.
@@ -65,7 +66,8 @@ function crearOpciones(etiqueta) {
   return {
     origin: (origin, callback) => {
       if (origenPermitido(origin)) return callback(null, true)
-      return callback(new Error(`Origin no permitido por ${etiqueta}: ${origin}`))
+      // 403 (no 500): el navegador igual lo bloquea por no recibir cabeceras CORS; el detalle va solo a los registros
+      return callback(forbidden('Origen no permitido', { detalle: `Origin no permitido por ${etiqueta}: ${origin}` }))
     },
     credentials: true,
   }

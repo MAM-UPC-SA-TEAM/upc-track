@@ -1,20 +1,19 @@
 // src/controllers/usuarioController.js
 import { Usuario } from '../models/Usuario.js'
 import * as usuarioService from '../services/usuarioService.js'
+import { asyncHandler } from '../middlewares/errorMiddleware.js'
+
+const USUARIO_NO_ENCONTRADO = [404, 'Usuario no encontrado']
+const USUARIO_YA_REGISTRADO = [400, 'Ese nombre de usuario ya está en uso']
 
 // GET /api/usuarios
-export async function listarUsuarios(_req, res) {
-  try {
-    const usuarios = await Usuario.todos()
-    return res.status(200).json({ usuarios })
-  } catch (error) {
-    console.error('Error listando usuarios:', error)
-    return res.status(500).json({ error: 'Error interno del servidor' })
-  }
-}
+export const listarUsuarios = asyncHandler(async (_req, res) => {
+  const usuarios = await Usuario.todos()
+  return res.status(200).json({ usuarios })
+})
 
 // POST /api/usuarios
-export async function crearUsuario(req, res) {
+export const crearUsuario = asyncHandler(async (req, res) => {
   const { nombre, nombre_usuario, correo, password } = req.body
 
   if (!nombre || !nombre_usuario || !correo || !password) {
@@ -25,23 +24,15 @@ export async function crearUsuario(req, res) {
     return res.status(400).json({ error: 'La contraseña debe tener mínimo 8 caracteres' })
   }
 
-  try {
-    const id_usuario = await usuarioService.crear(req.body)
-    return res.status(201).json({ ok: true, id_usuario })
-  } catch (error) {
-    if (error.message === 'USUARIO_YA_REGISTRADO') {
-      return res.status(400).json({ error: 'Ese nombre de usuario ya está en uso' })
-    }
-    if (error.message === 'CORREO_YA_REGISTRADO') {
-      return res.status(400).json({ error: 'Ya existe un usuario con ese correo' })
-    }
-    console.error('Error creando usuario:', error)
-    return res.status(500).json({ error: 'Error interno del servidor' })
-  }
-}
+  const id_usuario = await usuarioService.crear(req.body)
+  return res.status(201).json({ ok: true, id_usuario })
+}, {
+  USUARIO_YA_REGISTRADO,
+  CORREO_YA_REGISTRADO: [400, 'Ya existe un usuario con ese correo'],
+})
 
 // PATCH /api/usuarios/:id
-export async function editarUsuario(req, res) {
+export const editarUsuario = asyncHandler(async (req, res) => {
   const { id } = req.params
   const { nombre, nombre_usuario, correo, tipo_usuario, password } = req.body
 
@@ -54,23 +45,13 @@ export async function editarUsuario(req, res) {
     return res.status(400).json({ error: 'La contraseña debe tener mínimo 8 caracteres' })
   }
 
-  try {
-    await usuarioService.editar(id, req.body)
-    return res.status(200).json({ ok: true })
-  } catch (error) {
-    if (error.message === 'USUARIO_NO_ENCONTRADO') {
-      return res.status(404).json({ error: 'Usuario no encontrado' })
-    }
-    if (error.message === 'USUARIO_YA_REGISTRADO') {
-      return res.status(400).json({ error: 'Ese nombre de usuario ya está en uso' })
-    }
-    if (error.message === 'CORREO_YA_REGISTRADO') {
-      return res.status(400).json({ error: 'Ese correo ya está en uso' })
-    }
-    console.error('Error editando usuario:', error)
-    return res.status(500).json({ error: 'Error interno del servidor' })
-  }
-}
+  await usuarioService.editar(id, req.body)
+  return res.status(200).json({ ok: true })
+}, {
+  USUARIO_NO_ENCONTRADO,
+  USUARIO_YA_REGISTRADO,
+  CORREO_YA_REGISTRADO: [400, 'Ese correo ya está en uso'],
+})
 
 const REGEX_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -79,7 +60,7 @@ const REGEX_NOMBRE_USUARIO = /^[a-zA-Z0-9._-]{3,20}$/
 
 // PATCH /api/usuarios/perfil  — el propio usuario edita sus datos (nombre, correo y, opcionalmente, su nombre de usuario).
 // Devuelve un token nuevo: el JWT lleva nombre y nombre_usuario, y la sesión abierta no debe quedarse con los viejos.
-export async function editarPerfil(req, res) {
+export const editarPerfil = asyncHandler(async (req, res) => {
   const id = req.usuario.id_usuario
   const { nombre, correo } = req.body
   const cambiaUsuario = req.body.nombre_usuario !== undefined
@@ -95,25 +76,17 @@ export async function editarPerfil(req, res) {
     return res.status(400).json({ error: 'El nombre de usuario debe tener de 3 a 20 caracteres: letras, números, punto, guion o guion bajo' })
   }
 
-  try {
-    const { usuario, token } = await usuarioService.editarPerfil(id, {
-      nombre: nombre.trim(), correo, nombre_usuario,
-    })
-    return res.status(200).json({ ok: true, usuario, token })
-  } catch (error) {
-    if (error.message === 'USUARIO_YA_REGISTRADO') {
-      return res.status(409).json({ error: 'Ese nombre de usuario ya está en uso' })
-    }
-    if (error.message === 'CORREO_YA_REGISTRADO') {
-      return res.status(400).json({ error: 'Ese correo ya está en uso' })
-    }
-    console.error('Error editando perfil:', error)
-    return res.status(500).json({ error: 'Error interno del servidor' })
-  }
-}
+  const { usuario, token } = await usuarioService.editarPerfil(id, {
+    nombre: nombre.trim(), correo, nombre_usuario,
+  })
+  return res.status(200).json({ ok: true, usuario, token })
+}, {
+  USUARIO_YA_REGISTRADO: [409, 'Ese nombre de usuario ya está en uso'],
+  CORREO_YA_REGISTRADO: [400, 'Ese correo ya está en uso'],
+})
 
 // PATCH /api/usuarios/password  — el propio usuario cambia su contraseña
-export async function cambiarPassword(req, res) {
+export const cambiarPassword = asyncHandler(async (req, res) => {
   const id = req.usuario.id_usuario
   const { password_actual, password_nueva } = req.body
 
@@ -124,32 +97,16 @@ export async function cambiarPassword(req, res) {
     return res.status(400).json({ error: 'La nueva contraseña debe tener mínimo 8 caracteres' })
   }
 
-  try {
-    await usuarioService.cambiarPassword(id, password_actual, password_nueva)
-    return res.status(200).json({ ok: true })
-  } catch (error) {
-    if (error.message === 'PASSWORD_ACTUAL_INCORRECTA') {
-      return res.status(401).json({ error: 'La contraseña actual es incorrecta' })
-    }
-    if (error.message === 'USUARIO_NO_ENCONTRADO') {
-      return res.status(404).json({ error: 'Usuario no encontrado' })
-    }
-    console.error('Error cambiando contraseña:', error)
-    return res.status(500).json({ error: 'Error interno del servidor' })
-  }
-}
+  await usuarioService.cambiarPassword(id, password_actual, password_nueva)
+  return res.status(200).json({ ok: true })
+}, {
+  PASSWORD_ACTUAL_INCORRECTA: [401, 'La contraseña actual es incorrecta'],
+  USUARIO_NO_ENCONTRADO,
+})
 
 // DELETE /api/usuarios/:id
-export async function eliminarUsuario(req, res) {
+export const eliminarUsuario = asyncHandler(async (req, res) => {
   const { id } = req.params
-  try {
-    await usuarioService.eliminar(id)
-    return res.status(200).json({ ok: true })
-  } catch (error) {
-    if (error.message === 'USUARIO_NO_ENCONTRADO') {
-      return res.status(404).json({ error: 'Usuario no encontrado' })
-    }
-    console.error('Error eliminando usuario:', error)
-    return res.status(500).json({ error: 'Error interno del servidor' })
-  }
-}
+  await usuarioService.eliminar(id)
+  return res.status(200).json({ ok: true })
+}, { USUARIO_NO_ENCONTRADO })

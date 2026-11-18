@@ -38,3 +38,17 @@ test('un Origin desconocido no recibe cabeceras CORS (el navegador lo bloquea)',
     .set('Access-Control-Request-Method', 'POST')
   assert.equal(res.headers['access-control-allow-origin'], undefined)
 })
+
+// ── Errores centralizados (B05) ──────────────────────────────
+test('un origen no permitido por CORS recibe 403 en JSON (antes 500) y sin cabeceras CORS', async () => {
+  const res = await request(app).get('/api/health').set('Origin', 'https://malicioso.example')
+  assert.equal(res.status, 403)
+  assert.deepEqual(res.body, { error: 'Origen no permitido' })
+  assert.equal(res.headers['access-control-allow-origin'], undefined)
+})
+
+test('un cuerpo JSON mal formado en la API responde 400 con { error }', async () => {
+  const res = await request(app).post('/api/auth/login').set('Content-Type', 'application/json').send('{"nombre_usuario": ')
+  assert.equal(res.status, 400)
+  assert.equal(typeof res.body.error, 'string')
+})

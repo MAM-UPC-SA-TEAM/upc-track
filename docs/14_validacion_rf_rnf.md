@@ -76,7 +76,7 @@ Con un conductor transmitiendo cada 4 s: el evento llega al estudiante en **6 ms
 | # | Hallazgo | Decisión |
 |---|---|---|
 | 1 | **Producción aún no tiene `helmet` ni las dependencias corregidas.** Las cabeceras de la nube muestran `x-powered-by: Express` y no hay HSTS: Render despliega `main` y esos cambios (PR #156) están en `develop`. | Se resuelve con la release de `develop` a `main` (#45, Q07). Debe verificarse después con `curl -I`. |
-| 2 | Un origen rechazado por CORS responde **500** en lugar de 403. No afecta a los navegadores (que lo bloquean igual). | Mejora cubierta por #20 (B05, errores centralizados). |
+| 2 | Un origen rechazado por CORS responde **500** en lugar de 403. No afecta a los navegadores (que lo bloquean igual). | **Resuelto en #20** (B05, errores centralizados): ahora responde 403 en JSON. |
 | 3 | No garantiza 24/7 en planes gratuitos (RNF3) y el arranque en frío tarda ~17 s (RNF12). | **Excepción documentada** (riesgo R4 del charter v2): aviso «Despertando el servidor», reconexión automática y plan B local. Calentar el servicio antes de la sustentación. |
 | 4 | RF9, RF10, RF13, RF14 y RNF4 necesitan revisión visual; RF8 y RNF5 necesitan dispositivo y navegadores reales. | Se ejecutan en #39 (M11, APK en dispositivos reales) y en las pruebas de #42 (Q03). |
 

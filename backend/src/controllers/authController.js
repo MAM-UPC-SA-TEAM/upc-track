@@ -4,10 +4,11 @@
 
 import { login, registrarEstudiante } from '../services/authService.js'
 import { liberarDeConductor } from '../services/busService.js'
+import { asyncHandler } from '../middlewares/errorMiddleware.js'
 import { esCorreoPermitido, mensajeCorreoNoPermitido, normalizarCorreo } from '../utils/correo.js'
 
 // POST /api/auth/login
-export async function loginController(req, res) {
+export const loginController = asyncHandler(async (req, res) => {
   const { nombre_usuario, password } = req.body
 
   if (!nombre_usuario || !password) {
@@ -22,30 +23,15 @@ export async function loginController(req, res) {
     })
   }
 
-  try {
-    const resultado = await login(nombre_usuario, password)
-    return res.status(200).json(resultado)
-  } catch (error) {
-    if (error.message === 'CREDENCIALES_INVALIDAS') {
-      return res.status(401).json({
-        error: 'Usuario o contraseña incorrectos'
-      })
-    }
-    if (error.message === 'CUENTA_INACTIVA') {
-      return res.status(403).json({
-        error: 'Tu cuenta aún no está activa. Un administrador debe aprobarla.',
-        codigo: 'CUENTA_INACTIVA'
-      })
-    }
-    console.error('Error en login:', error)
-    return res.status(500).json({
-      error: 'Error interno del servidor'
-    })
-  }
-}
+  const resultado = await login(nombre_usuario, password)
+  return res.status(200).json(resultado)
+}, {
+  CREDENCIALES_INVALIDAS: [401, 'Usuario o contraseña incorrectos'],
+  CUENTA_INACTIVA: [403, 'Tu cuenta aún no está activa. Un administrador debe aprobarla.', { codigo: 'CUENTA_INACTIVA' }],
+})
 
 // POST /api/auth/registro
-export async function registroController(req, res) {
+export const registroController = asyncHandler(async (req, res) => {
   const { nombre, nombre_usuario, correo, password } = req.body
 
   if (!nombre || !nombre_usuario || !correo || !password) {
@@ -65,28 +51,20 @@ export async function registroController(req, res) {
     return res.status(400).json({ error: mensajeCorreoNoPermitido() })
   }
 
-  try {
-    const resultado = await registrarEstudiante({
-      nombre:         String(nombre).trim(),
-      nombre_usuario: String(nombre_usuario).trim().toLowerCase(),
-      correo:         normalizarCorreo(correo),
-      password,
-    })
-    return res.status(201).json({
-      ...resultado,
-      mensaje: 'Cuenta creada. Un administrador debe aprobarla antes de que puedas iniciar sesión.',
-    })
-  } catch (error) {
-    if (error.message === 'CORREO_YA_REGISTRADO') {
-      return res.status(400).json({ error: 'Ya existe una cuenta con ese correo' })
-    }
-    if (error.message === 'USUARIO_YA_REGISTRADO') {
-      return res.status(400).json({ error: 'Ese nombre de usuario ya está en uso' })
-    }
-    console.error('Error en registro:', error)
-    return res.status(500).json({ error: 'Error interno del servidor' })
-  }
-}
+  const resultado = await registrarEstudiante({
+    nombre:         String(nombre).trim(),
+    nombre_usuario: String(nombre_usuario).trim().toLowerCase(),
+    correo:         normalizarCorreo(correo),
+    password,
+  })
+  return res.status(201).json({
+    ...resultado,
+    mensaje: 'Cuenta creada. Un administrador debe aprobarla antes de que puedas iniciar sesión.',
+  })
+}, {
+  CORREO_YA_REGISTRADO: [400, 'Ya existe una cuenta con ese correo'],
+  USUARIO_YA_REGISTRADO: [400, 'Ese nombre de usuario ya está en uso'],
+})
 
 // POST /api/auth/logout
 export async function logoutController(req, res) {
