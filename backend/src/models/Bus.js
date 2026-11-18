@@ -157,6 +157,41 @@ export const Bus = {
     )
   },
 
+  // Escrituras: reciben `db` (pool por defecto o el cliente de una transacción) para componerse en el servicio.
+  async crear({ nombre, placa, capacidad, estado, id_conductor }, db = pool) {
+    const { rows } = await db.query(
+      `INSERT INTO bus (nombre, placa, capacidad, estado, id_conductor)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id_bus`,
+      [nombre, placa, capacidad, estado, id_conductor]
+    )
+    return rows[0].id_bus
+  },
+
+  // Devuelve cuántas filas cambió (0 = el bus no existe)
+  async actualizar(idBus, { nombre, placa, capacidad, estado, id_conductor }, db = pool) {
+    const { rowCount } = await db.query(
+      `UPDATE bus SET nombre=$1, placa=$2, capacidad=$3, estado=$4, id_conductor=$5
+       WHERE id_bus=$6`,
+      [nombre, placa, capacidad, estado, id_conductor, idBus]
+    )
+    return rowCount
+  },
+
+  // Devuelve cuántas filas borró (0 = el bus no existe)
+  async eliminar(idBus, db = pool) {
+    const { rowCount } = await db.query('DELETE FROM bus WHERE id_bus = $1', [idBus])
+    return rowCount
+  },
+
+  async asignarRuta(idBus, idRuta, db = pool) {
+    await db.query('INSERT INTO bus_ruta (id_bus, id_ruta) VALUES ($1, $2)', [idBus, idRuta])
+  },
+
+  async quitarRutas(idBus, db = pool) {
+    await db.query('DELETE FROM bus_ruta WHERE id_bus = $1', [idBus])
+  },
+
   // Obtener ruta del bus
   async obtenerRuta(idBus) {
     const { rows: rows } = await pool.query(`
