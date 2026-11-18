@@ -104,6 +104,8 @@ USUARIO_CLAVE='clave-de-12-o-mas-caracteres' npm run db:usuario -- --nombre "Adm
 
 ## Checklist de sustentacion
 
+Guion cronometrado, lista previa completa, plan de contingencia por escenario y ensayo general: [`docs/16_sustentacion_contingencia.md`](docs/16_sustentacion_contingencia.md). Resumen:
+
 1. `https://upc-track.onrender.com/api/health` responde `200` (la primera vez puede tardar ~1 min por el arranque en frio: abrirlo antes de empezar).
 2. El frontend carga y permite login con los tres roles.
 3. `CLIENT_URL` de Render contiene el dominio de Cloudflare.
