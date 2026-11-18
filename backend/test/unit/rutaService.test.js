@@ -36,6 +36,13 @@ test('eliminar: delega en el modelo', async () => {
   assert.deepEqual(eliminar.mock.calls[0].arguments, ['4'])
 })
 
+test('editar y eliminar: ruta inexistente (0 filas) → RUTA_NO_ENCONTRADA', async () => {
+  mock.method(Ruta, 'actualizar', async () => 0)
+  mock.method(Ruta, 'eliminar', async () => 0)
+  await assert.rejects(rutaService.editar('9', { nombre: 'N' }), { message: 'RUTA_NO_ENCONTRADA' })
+  await assert.rejects(rutaService.eliminar('9'), { message: 'RUTA_NO_ENCONTRADA' })
+})
+
 test('busService.liberarDeConductor: deja inactivo el bus del conductor', async () => {
   const desactivar = mock.method(Bus, 'desactivarDeConductor', async () => {})
   await busService.liberarDeConductor(2)

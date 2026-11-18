@@ -49,6 +49,9 @@ export async function editarRuta(req, res) {
     await rutaService.editar(req.params.id, req.body)
     return res.status(200).json({ ok: true })
   } catch (error) {
+    if (error.message === 'RUTA_NO_ENCONTRADA') {
+      return res.status(404).json({ error: 'Ruta no encontrada' })
+    }
     console.error('Error editando ruta:', error)
     return res.status(500).json({ error: 'Error interno del servidor' })
   }
@@ -60,6 +63,9 @@ export async function eliminarRuta(req, res) {
     await rutaService.eliminar(req.params.id)
     return res.status(200).json({ ok: true })
   } catch (error) {
+    if (error.message === 'RUTA_NO_ENCONTRADA') {
+      return res.status(404).json({ error: 'Ruta no encontrada' })
+    }
     console.error('Error eliminando ruta:', error)
     return res.status(500).json({ error: 'Error interno del servidor' })
   }

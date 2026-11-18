@@ -1,5 +1,6 @@
 // src/services/rutaService.js
 // Escrituras de rutas (B02): normaliza los valores por defecto; el controlador solo habla HTTP.
+// Error de dominio (código en `message`): RUTA_NO_ENCONTRADA
 
 import { Ruta } from '../models/Ruta.js'
 
@@ -11,9 +12,10 @@ export function crear({ nombre, descripcion, activa }) {
 }
 
 export async function editar(id, { nombre, descripcion, activa }) {
-  await Ruta.actualizar(id, { nombre, descripcion: descripcion || '', activa: activaComoNumero(activa) })
+  const cambiadas = await Ruta.actualizar(id, { nombre, descripcion: descripcion || '', activa: activaComoNumero(activa) })
+  if (cambiadas === 0) throw new Error('RUTA_NO_ENCONTRADA')
 }
 
 export async function eliminar(id) {
-  await Ruta.eliminar(id)
+  if (await Ruta.eliminar(id) === 0) throw new Error('RUTA_NO_ENCONTRADA')
 }

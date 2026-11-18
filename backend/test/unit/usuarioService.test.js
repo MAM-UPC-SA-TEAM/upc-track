@@ -60,6 +60,13 @@ test('editar: sin password no manda hash; con password sí, y activo=false → 0
   assert.ok(await bcrypt.compare('otraclave1', datos.password_hash))
 })
 
+test('editar y eliminar: usuario inexistente (0 filas) → USUARIO_NO_ENCONTRADO', async () => {
+  mock.method(Usuario, 'actualizar', async () => 0)
+  mock.method(Usuario, 'eliminar', async () => 0)
+  await assert.rejects(usuarioService.editar(99, { nombre: 'N', nombre_usuario: 'n', correo: 'n@u.co', tipo_usuario: 'admin' }), { message: 'USUARIO_NO_ENCONTRADO' })
+  await assert.rejects(usuarioService.eliminar(99), { message: 'USUARIO_NO_ENCONTRADO' })
+})
+
 test('editarPerfil: devuelve el usuario y un token nuevo con los datos actualizados', async () => {
   mock.method(Usuario, 'actualizarPerfil', async () => ({
     id_usuario: 5, nombre: 'Nuevo', nombre_usuario: 'nuevo', correo: 'n@u.co', tipo_usuario: 'estudiante',
