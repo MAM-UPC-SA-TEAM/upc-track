@@ -51,6 +51,13 @@ describe('Mi perfil (solo lectura)', () => {
 })
 
 describe('Menú de la cuenta', () => {
+  it('el nombre accesible del avatar incluye sus iniciales visibles (WCAG 2.5.3)', async () => {
+    abrirApp('/inicio', ana)
+    backend.respuestas['GET /api/notificaciones'] = { notificaciones: [] }
+    const boton = await screen.findByRole('button', { name: /cuenta de ana/i })
+    expect(boton).toHaveAccessibleName(`${boton.textContent}, cuenta de Ana`)
+  })
+
   it('«Ver perfil» y «Configuración» llevan a pantallas distintas', async () => {
     const user = userEvent.setup()
     abrirApp('/inicio', ana)
