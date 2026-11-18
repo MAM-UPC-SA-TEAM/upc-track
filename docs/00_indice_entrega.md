@@ -19,7 +19,8 @@
 16. Checklists de validacion de requisitos: docs/checklist_validacion_rf.md y docs/checklist_validacion_rnf.md
 17. Validación de RF y RNF sobre el entorno (evidencia de las checklists): docs/14_validacion_rf_rnf.md
 18. Pruebas de usabilidad y aceptación (protocolo, guion, cuestionarios y plantilla de resultados): docs/15_pruebas_usabilidad.md
-19. Requisitos y casos de uso: docs/requisitos_funcionales.md, docs/requisitos_no_funcionales.md y docs/casos_de_uso.md
+19. Sustentación y plan de contingencia (guion, lista previa, escenarios y simulador de conductor): docs/16_sustentacion_contingencia.md
+20. Requisitos y casos de uso: docs/requisitos_funcionales.md, docs/requisitos_no_funcionales.md y docs/casos_de_uso.md
 
 ## Evidencias recomendadas para anexar
 - Capturas por rol (admin, conductor, estudiante).
