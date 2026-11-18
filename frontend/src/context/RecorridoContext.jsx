@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import api from '../services/api'
 import { watchPosition, disponible } from '../services/geolocation'
 import { alCambiarRed, hayRed } from '../services/red'
+import { mantener as mantenerPantalla, liberar as liberarPantalla } from '../services/pantallaEncendida'
 import { useAuth } from './AuthContext'
 
 // El recorrido del conductor vive POR ENCIMA de las rutas: ir a Alertas o a Perfil desmonta la pantalla
@@ -44,6 +45,7 @@ export function RecorridoProvider({ children }) {
   const cerrarSiActivo = useCallback(async () => {
     watchRef.current?.detener()
     watchRef.current = null
+    liberarPantalla()
     const idBus = busRef.current?.id_bus
     if (debeCerrarRef.current && idBus) {
       debeCerrarRef.current = false
@@ -153,9 +155,7 @@ export function RecorridoProvider({ children }) {
       { precisionAlta: true, maximumAge: 3000, timeout: 10000 }
     )
 
-    if ('wakeLock' in navigator) {
-      navigator.wakeLock.request('screen').catch(() => {})
-    }
+    mantenerPantalla()
   }
 
   function finalizarRecorrido() {
@@ -167,6 +167,7 @@ export function RecorridoProvider({ children }) {
     ultimoEnvioRef.current = 0
     watchRef.current?.detener()
     watchRef.current = null
+    liberarPantalla()
     actualizarEstadoBus('fuera_de_servicio')
   }
 
