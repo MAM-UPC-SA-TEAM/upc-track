@@ -2,14 +2,19 @@
 
 [![CI](https://github.com/MAM-UPC-SA-TEAM/upc-track/actions/workflows/ci.yml/badge.svg)](https://github.com/MAM-UPC-SA-TEAM/upc-track/actions/workflows/ci.yml)
 
-Aplicacion web para monitoreo de buses en tiempo real con:
+Aplicacion para monitoreo de buses en tiempo real (web/PWA y app Android) con:
 - Backend Node.js + Express + Socket.IO
-- Frontend React + Vite + Leaflet
+- Frontend React + Vite + Leaflet (empaquetado con Capacitor para Android)
 - Base de datos PostgreSQL (Neon en producción)
 
-## Documentacion de entrega academica
+Tres roles: `estudiante` (ve buses, rutas y tiempos de llegada), `conductor` (transmite su posicion) y `admin` (gestiona usuarios, buses y rutas). El registro publico solo acepta correos `@unicesar.edu.co` y la cuenta queda pendiente hasta que un administrador la apruebe.
 
-Indice principal: docs/00_indice_entrega.md
+## Documentacion
+
+- Entrega academica: [`docs/00_indice_entrega.md`](docs/00_indice_entrega.md) (manual tecnico, manual de usuario, BD, pruebas).
+- Arquitectura y decisiones: [`docs/05_manual_tecnico.md`](docs/05_manual_tecnico.md) y [`docs/12_ruta_trabajo_semestre.md`](docs/12_ruta_trabajo_semestre.md).
+- Pruebas y cobertura: [`docs/testing.md`](docs/testing.md). Flujo de trabajo: [`CONTRIBUTING.md`](CONTRIBUTING.md).
+- Diseno: [`PRODUCT.md`](PRODUCT.md) y [`DESIGN.md`](DESIGN.md).
 
 ## Arquitectura de despliegue (nube gratuita)
 
@@ -35,8 +40,10 @@ Limitaciones del plan gratuito que conviene conocer:
    Sin el plugin compose: `docker run -d --name monitoreo-buses-pg -e POSTGRES_PASSWORD=<DB_PASSWORD> -e POSTGRES_DB=bd_monitoreo_buses -p 5433:5432 -v monitoreo_pg_data:/var/lib/postgresql/data -v $PWD/database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro -v $PWD/database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro postgres:16-alpine`
    (`DB_PASSWORD` debe coincidir con `backend/.env`; por defecto `postgres`. El esquema y los datos solo se cargan la primera vez: para rehacerlos hay que borrar el volumen.)
 2. `cp backend/.env.example backend/.env` y ajustar `DB_PORT=5433`, `DB_USER=postgres`, `DB_NAME=bd_monitoreo_buses`.
-3. `npm install` en la raiz, `backend/` y `frontend/`.
+3. `npm run install:all` (instala la raiz, `backend/` y `frontend/`).
 4. `npm run dev` (backend en :3000, frontend en :5173).
+
+Pruebas y calidad (desde la raiz): `npm run lint`, `npm test` (backend con `node:test` y frontend con Vitest) y `npm run build`. Las pruebas de extremo a extremo (Playwright) usan su propia base desechable: `npm run e2e:db:up && npm run e2e`. Detalle en `docs/testing.md`. El CI (`.github/workflows/ci.yml`) corre lint, cobertura, build y e2e en cada PR.
 
 Usuarios demo (clave `Admin123*`): `admin`, `conductor`, `estudiante`.
 
@@ -45,14 +52,12 @@ Usuarios demo (clave `Admin123*`): `admin`, `conductor`, `estudiante`.
 ### Backend (`backend/.env.example`)
 
 - `PORT`
-- `DB_HOST`
-- `DB_PORT`
-- `DB_USER`
-- `DB_PASSWORD`
-- `DB_NAME`
+- Base de datos, una de dos formas: `DATABASE_URL` (Neon, con `sslmode=require`) **o** `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` (local). `DB_SSL=true` fuerza TLS.
 - `JWT_SECRET`
 - `JWT_EXPIRES_IN`
 - `CLIENT_URL` (uno o varios dominios separados por coma)
+
+Si falta una variable requerida el backend termina al arrancar (`config/env.js`).
 
 Ejemplo de `CLIENT_URL`:
 
@@ -141,27 +146,6 @@ La keystore del equipo **no está en el repositorio** (`*.jks`, `*.keystore` y `
 
   y ejecutar `npm run cap:sync && cd android && .\gradlew.bat assembleRelease`. El APK queda en `app/build/outputs/apk/release/app-release.apk`. Sin keystore, Gradle genera `app-release-unsigned.apk`, que Android no instala.
 
-## Desarrollo local
+## Contingencia
 
-### Requisitos
-
-- Node.js 20+
-- PostgreSQL local o en Neon
-
-### Pasos
-
-1. Copiar variables:
-   - `backend/.env.example` -> `backend/.env`
-   - `frontend/.env.example` -> `frontend/.env` (opcional en local)
-2. Instalar dependencias:
-   - Raiz: `npm install`
-   - Backend: `cd backend && npm install`
-   - Frontend: `cd ../frontend && npm install`
-3. Ejecutar ambos servicios desde raiz:
-   - `npm run dev`
-
-## Evidencia para Issue #25
-
-- Configuracion de frontend cloud (SPA): ver seccion «Despliegue»
-- Variables de entorno documentadas: `backend/.env.example`, `frontend/.env.example`
-- Instrucciones de deploy y redespliegue para sustentacion: este README
+Si Render o Neon fallaran durante una demostracion: backend local con `npm run dev` y el PostgreSQL de `docker-compose.yml` (`docker compose up -d`), y un tunel (ngrok) solo si hace falta que otros dispositivos lo alcancen. La base de produccion se recrea con `database/schema.sql` + `database/seed.prod.sql` (`npm run db:migrate` en `backend/`). Mas en `docs/05_manual_tecnico.md`, seccion 9.
