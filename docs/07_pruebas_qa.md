@@ -44,8 +44,8 @@ La estrategia, la estructura de carpetas, los comandos y la auditoría de aserci
 
 | Nivel | Paquete | Pruebas | Cómo generar el reporte |
 |---|---|---|---|
-| Unitarias + integración HTTP con mocks | backend (`node:test`, `supertest`) | 236 | `npm run test:coverage --prefix backend` |
-| Integración con PostgreSQL real | backend (`test/db`) | 28 | `npm run e2e:db:up` y `npm run test:coverage:full --prefix backend` |
+| Unitarias + integración HTTP con mocks | backend (`node:test`, `supertest`) | 266 | `npm run test:coverage --prefix backend` |
+| Integración con PostgreSQL real | backend (`test/db`) | 40 | `npm run e2e:db:up` y `npm run test:coverage:full --prefix backend` |
 | Unitarias y de componentes | frontend (Vitest) | 354 | `npm run test:coverage --prefix frontend` |
 | End-to-end | Playwright (`e2e/`) | ver `testing.md` | `npm run e2e` |
 

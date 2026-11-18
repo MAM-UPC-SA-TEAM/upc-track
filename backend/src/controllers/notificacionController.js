@@ -2,7 +2,7 @@
 // Endpoints para enviar y consultar notificaciones
 
 import { Notificacion } from '../models/Notificacion.js'
-import { pool }         from '../config/database.js'
+import { Bus }          from '../models/Bus.js'
 
 // POST /api/notificaciones — conductor envía alerta (RF-04)
 export async function enviarNotificacion(req, res) {
@@ -21,18 +21,11 @@ export async function enviarNotificacion(req, res) {
 
   try {
     // Obtener la ruta del bus del conductor
-    const { rows } = await pool.query(
-      `SELECT br.id_ruta FROM bus b
-       JOIN bus_ruta br ON b.id_bus = br.id_bus
-       WHERE b.id_conductor = $1`,
-      [id_conductor]
-    )
+    const id_ruta = await Bus.rutaDeConductor(id_conductor)
 
-    if (rows.length === 0) {
+    if (!id_ruta) {
       return res.status(404).json({ error: 'No tienes una ruta asignada' })
     }
-
-    const id_ruta = rows[0].id_ruta
 
     // Guardar en BD
     const id_notificacion = await Notificacion.guardar({

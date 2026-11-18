@@ -93,7 +93,7 @@ En CI el reporte se publica como artefacto `coverage-backend` / `coverage-fronte
 |-------|-------|-----------|-----------------|
 | Unitarias (base) | `backend/test/unit`, `frontend/test/{utils,components,...}` | Funciones puras, validadores, utilidades y servicios de dominio. Patrón AAA, rápidas y sin red (F.I.R.S.T.) | ~230 + 354 |
 | Integración HTTP con mocks | `backend/test/integration` | Rutas, roles y validaciones de cada endpoint con modelos/`pool` simulados | incluidas arriba |
-| Integración con BD real | `backend/test/db` | Endpoints reales + consulta directa a PostgreSQL tras cada escritura | 28 |
+| Integración con BD real | `backend/test/db` | Endpoints reales + consulta directa a PostgreSQL tras cada escritura | 40 |
 | E2E (valor agregado) | `e2e/tests` (Playwright) | Navegador real: login, paneles por rol, tiempo real conductor→estudiante | ver arriba |
 
 **Dónde está cada criterio de la rúbrica**

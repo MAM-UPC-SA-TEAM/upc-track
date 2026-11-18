@@ -202,4 +202,23 @@ export const Bus = {
     `, [idBus])
     return rows[0] || null
   },
+
+  // id_ruta del bus que maneja el conductor (null si no tiene bus o su bus no tiene ruta)
+  async rutaDeConductor(idConductor) {
+    const { rows } = await pool.query(
+      `SELECT br.id_ruta FROM bus b
+       JOIN bus_ruta br ON b.id_bus = br.id_bus
+       WHERE b.id_conductor = $1`,
+      [idConductor]
+    )
+    return rows[0]?.id_ruta ?? null
+  },
+
+  // Deja inactivo el bus del conductor (cierre de sesión); no toca los que ya lo están
+  async desactivarDeConductor(idConductor) {
+    await pool.query(
+      `UPDATE bus SET estado = 'inactivo' WHERE id_conductor = $1 AND estado != 'inactivo'`,
+      [idConductor]
+    )
+  },
 }

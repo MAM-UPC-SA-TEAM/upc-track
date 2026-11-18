@@ -48,4 +48,25 @@ export const Ruta = {
     `, [idRuta])
     return rows
   },
+
+  async crear({ nombre, descripcion, activa }) {
+    const { rows } = await pool.query(
+      'INSERT INTO ruta (nombre, descripcion, activa) VALUES ($1, $2, $3) RETURNING id_ruta',
+      [nombre, descripcion, activa]
+    )
+    return rows[0].id_ruta
+  },
+
+  async actualizar(idRuta, { nombre, descripcion, activa }) {
+    const { rowCount } = await pool.query(
+      'UPDATE ruta SET nombre=$1, descripcion=$2, activa=$3 WHERE id_ruta=$4',
+      [nombre, descripcion, activa, idRuta]
+    )
+    return rowCount
+  },
+
+  async eliminar(idRuta) {
+    const { rowCount } = await pool.query('DELETE FROM ruta WHERE id_ruta=$1', [idRuta])
+    return rowCount
+  },
 }
