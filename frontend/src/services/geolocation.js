@@ -4,6 +4,7 @@
 //   const h = watchPosition(({ lat, lng }) => ..., (err) => ..., { precisionAlta: true })
 //   h.detener()
 //   const { lat, lng } = await getCurrentPosition()
+//   await verificarPermiso()   // rápido, sin esperar un fix: lanza { codigo, mensaje } si el GPS no se puede usar
 //
 // Los errores llegan como { codigo, mensaje } con codigo:
 //   'permiso_denegado' | 'no_disponible' | 'tiempo_agotado' | 'inseguro'
@@ -44,6 +45,27 @@ async function asegurarPermiso() {
 
 export function disponible() {
   return esNativa || (typeof navigator !== 'undefined' && 'geolocation' in navigator)
+}
+
+/**
+ * Comprueba, sin esperar una posición, que la ubicación se puede usar. En nativo pide el permiso si falta.
+ * En web solo bloquea lo que ya es seguro que fallará (página sin HTTPS o permiso ya denegado); si el permiso
+ * está «por preguntar», deja que el navegador lo pregunte al empezar a escuchar y avisa por `alError`.
+ * Lanza error('permiso_denegado' | 'inseguro').
+ */
+export async function verificarPermiso() {
+  if (esNativa) {
+    try { await asegurarPermiso() } catch (err) { throw normalizar(err) }
+    return
+  }
+  if (!window.isSecureContext) throw error('inseguro')
+  try {
+    const estado = await navigator.permissions?.query({ name: 'geolocation' })
+    if (estado?.state === 'denied') throw error('permiso_denegado')
+  } catch (err) {
+    if (err?.codigo) throw err
+    // Permissions API no disponible para «geolocation» (p. ej. Safari antiguo): se intenta igual
+  }
 }
 
 export async function getCurrentPosition({ precisionAlta = true, timeout = 10000 } = {}) {
