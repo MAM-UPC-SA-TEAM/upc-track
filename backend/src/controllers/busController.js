@@ -110,11 +110,14 @@ export async function editarBus(req, res) {
   const { nombre, placa, capacidad, estado, id_ruta, id_conductor } = req.body
 
   try {
-    await pool.query(
+    const { rowCount } = await pool.query(
       `UPDATE bus SET nombre=$1, placa=$2, capacidad=$3, estado=$4, id_conductor=$5
        WHERE id_bus=$6`,
       [nombre, placa, capacidad || 45, estado, id_conductor || null, id]
     )
+    if (rowCount === 0) {
+      return res.status(404).json({ error: 'Bus no encontrado' })
+    }
 
     if (id_ruta !== undefined) {
       // Elimina cualquier asignación anterior antes de insertar la nueva
@@ -138,9 +141,12 @@ export async function editarBus(req, res) {
 export async function eliminarBus(req, res) {
   const { id } = req.params
   try {
-    await pool.query(
+    const { rowCount } = await pool.query(
       `DELETE FROM bus WHERE id_bus = $1`, [id]
     )
+    if (rowCount === 0) {
+      return res.status(404).json({ error: 'Bus no encontrado' })
+    }
     return res.status(200).json({ ok: true })
   } catch (error) {
     console.error('Error eliminando bus:', error)

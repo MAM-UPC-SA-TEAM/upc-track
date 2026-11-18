@@ -135,11 +135,13 @@ código?». Resultado en `test/db`:
 
 | Hallazgo | Regla de negocio | Comportamiento actual | Tratamiento |
 |----------|------------------|-----------------------|-------------|
-| `PATCH /api/buses/:id` con id inexistente | 404 | 200 (no se mira `rowCount`) | prueba `todo` |
-| `DELETE /api/buses/:id` con id inexistente | 404 | 200 | prueba `todo` |
-| `PATCH /api/usuarios/:id` con cuerpo incompleto | 400 | 500 (violación NOT NULL) | prueba `todo` |
+| `PATCH /api/buses/:id` con id inexistente | 404 | 200 (no se mira `rowCount`) | corregido; prueba de regresión |
+| `DELETE /api/buses/:id` con id inexistente | 404 | 200 | corregido; prueba de regresión |
+| `PATCH /api/usuarios/:id` con cuerpo incompleto | 400 | 500 (violación NOT NULL) | corregido; prueba de regresión |
 
-Las pruebas `todo` de `node:test` **se ejecutan y se reportan** sin romper el CI; al corregir el defecto se les quita la marca.
-Así la suite no «aprueba» un error copiando su comportamiento ni se oculta quitando la prueba. (Además, un primer intento de
+Los tres se marcaron primero como `todo` de `node:test` (se ejecutan y reportan sin romper el CI, de modo que la suite no
+«aprueba» un error copiando su comportamiento) y después se corrigieron: `editarBus`/`eliminarBus` miran `rowCount` y
+responden 404, y `editarUsuario` valida los campos obligatorios y responde 400. Las pruebas pasaron a ser de regresión, en
+`test/db` y con mocks en `test/integration`. (Además, un primer intento de
 `test/db` con `delete process.env.DATABASE_URL` habría vuelto a leer Neon desde `backend/.env`; la revisión lo detectó y se
 fijó a cadena vacía.)

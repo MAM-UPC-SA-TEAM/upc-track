@@ -15,7 +15,7 @@ const { olvidarPosiciones, procesarUbicacion } = await import('../../src/service
 
 let query
 beforeEach(() => {
-  query = mock.method(pool, 'query', async () => ({ rows: [{ id_bus: 1 }] }))
+  query = mock.method(pool, 'query', async () => ({ rows: [{ id_bus: 1 }], rowCount: 1 }))
   mock.method(console, 'error', () => {})
 })
 afterEach(() => { mock.timers.reset(); mock.restoreAll(); app.set('io', undefined) })
@@ -188,6 +188,13 @@ test('PATCH /:id con id_ruta nulo solo quita la asignación', async () => {
   assert.equal(query.mock.callCount(), 2)
 })
 
+test('PATCH /:id: bus inexistente → 404 y no toca bus_ruta', async () => {
+  query.mock.mockImplementation(async () => ({ rows: [], rowCount: 0 }))
+  const res = await request(app).patch('/api/buses/999').set(admin()).send({ nombre: 'N', placa: 'P', estado: 'inactivo', id_ruta: 7 })
+  assert.equal(res.status, 404)
+  assert.equal(query.mock.callCount(), 1)
+})
+
 test('PATCH /:id → 500 si falla la BD', async () => {
   query.mock.mockImplementation(async () => fallo())
   assert.equal((await request(app).patch('/api/buses/1').set(admin()).send({})).status, 500)
@@ -201,6 +208,11 @@ test('DELETE /:id: admin → 200', async () => {
   const res = await request(app).delete('/api/buses/1').set(admin())
   assert.equal(res.status, 200)
   assert.deepEqual(query.mock.calls[0].arguments[1], ['1'])
+})
+
+test('DELETE /:id: bus inexistente → 404', async () => {
+  query.mock.mockImplementation(async () => ({ rows: [], rowCount: 0 }))
+  assert.equal((await request(app).delete('/api/buses/999').set(admin())).status, 404)
 })
 
 test('DELETE /:id → 500 si falla la BD', async () => {
