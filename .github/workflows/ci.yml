@@ -40,6 +40,21 @@ jobs:
   backend:
     name: backend (lint + test)
     runs-on: ubuntu-latest
+    services:
+      # Base desechable para test/db (integración con PostgreSQL real); mismos valores por defecto que test/helpers/bd.js
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: bd_e2e
+        ports:
+          - 5434:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d bd_e2e"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 30
     defaults:
       run:
         working-directory: backend
@@ -52,7 +67,7 @@ jobs:
           cache-dependency-path: backend/package-lock.json
       - run: npm ci
       - run: npm run lint
-      - run: npm run test:coverage
+      - run: npm run test:coverage:full
       - uses: actions/upload-artifact@v4
         with:
           name: coverage-backend
