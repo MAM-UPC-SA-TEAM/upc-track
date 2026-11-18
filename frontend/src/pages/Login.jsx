@@ -65,6 +65,7 @@ export default function Login() {
           value={nombreUsuario}
           error={errores.usuario}
           autoComplete="username"
+          enterKeyHint="next"
           autoCapitalize="none"
           autoCorrect="off"
           spellCheck={false}
@@ -78,6 +79,7 @@ export default function Login() {
           value={password}
           error={errores.password}
           autoComplete="current-password"
+          enterKeyHint="go"
           onChange={e => { setPassword(e.target.value); if (errores.password) setErrores(p => ({ ...p, password: '' })) }}
         />
 

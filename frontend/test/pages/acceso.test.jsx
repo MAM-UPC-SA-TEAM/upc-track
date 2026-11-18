@@ -22,6 +22,12 @@ beforeEach(() => {
 const titulo = (nombre) => screen.findByRole('heading', { name: nombre })
 
 describe('Login', () => {
+  it('el teclado móvil indica «siguiente» en el usuario e «ir» en la contraseña', async () => {
+    abrirApp('/login')
+    expect(await screen.findByLabelText('Usuario')).toHaveAttribute('enterkeyhint', 'next')
+    expect(screen.getByLabelText('Contraseña')).toHaveAttribute('enterkeyhint', 'go')
+  })
+
   it('sin sesión, entrar a una ruta protegida lleva al login', async () => {
     abrirApp('/rutas')
     expect(await titulo('Iniciar sesión')).toBeInTheDocument()

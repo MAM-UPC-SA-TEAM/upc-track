@@ -392,7 +392,8 @@ export default function Layout({ children, titulo, sinPadding = false }) {
               <button
                 className="topbar-avatar"
                 onClick={() => { setPerfilMenu(v => !v); setNotifPanel(false) }}
-                aria-label={`Cuenta de ${usuario?.nombre || 'usuario'}`}
+                // el nombre accesible incluye las iniciales visibles (WCAG 2.5.3: quien usa voz dice lo que ve)
+                aria-label={`${iniciales}, cuenta de ${usuario?.nombre || 'usuario'}`}
                 aria-expanded={perfilMenu}
               >
                 <span aria-hidden="true">{iniciales}</span>

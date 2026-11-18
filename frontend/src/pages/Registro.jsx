@@ -8,19 +8,19 @@ import AccesoLayout from '../components/acceso/AccesoLayout'
 import Campo from '../components/acceso/Campo'
 
 const CAMPOS = [
-  { key: 'nombre', label: 'Nombre completo', autoComplete: 'name' },
+  { key: 'nombre', label: 'Nombre completo', autoComplete: 'name', enterKeyHint: 'next' },
   {
-    key: 'nombre_usuario', label: 'Nombre de usuario', autoComplete: 'username',
+    key: 'nombre_usuario', label: 'Nombre de usuario', autoComplete: 'username', enterKeyHint: 'next',
     ayuda: '3 a 20 caracteres: letras, números, punto, guion y guion bajo.',
     autoCapitalize: 'none', autoCorrect: 'off', spellCheck: false,
   },
   {
-    key: 'correo', label: 'Correo electrónico', type: 'email', autoComplete: 'email', inputMode: 'email',
+    key: 'correo', label: 'Correo electrónico', type: 'email', autoComplete: 'email', inputMode: 'email', enterKeyHint: 'next',
     placeholder: 'usuario@unicesar.edu.co', ayuda: 'Usa tu correo institucional @unicesar.edu.co.',
     autoCapitalize: 'none', autoCorrect: 'off', spellCheck: false,
   },
-  { key: 'password', label: 'Contraseña', secreto: true, autoComplete: 'new-password', ayuda: 'Mínimo 8 caracteres.' },
-  { key: 'confirmar', label: 'Confirmar contraseña', secreto: true, autoComplete: 'new-password' },
+  { key: 'password', label: 'Contraseña', secreto: true, autoComplete: 'new-password', enterKeyHint: 'next', ayuda: 'Mínimo 8 caracteres.' },
+  { key: 'confirmar', label: 'Confirmar contraseña', secreto: true, autoComplete: 'new-password', enterKeyHint: 'go' },
 ]
 
 export default function Registro() {
