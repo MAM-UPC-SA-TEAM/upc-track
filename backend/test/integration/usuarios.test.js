@@ -116,6 +116,15 @@ test('PATCH /usuarios/:id: password corta → 400 sin consultar la BD', async ()
   assert.equal(query.mock.callCount(), 0)
 })
 
+for (const campo of ['nombre', 'nombre_usuario', 'correo', 'tipo_usuario']) {
+  test(`PATCH /usuarios/:id sin ${campo} → 400 sin consultar la BD`, async () => {
+    const incompleto = { ...edicion }
+    delete incompleto[campo]
+    assert.equal((await request(app).patch('/api/usuarios/7').set(admin()).send(incompleto)).status, 400)
+    assert.equal(query.mock.callCount(), 0)
+  })
+}
+
 test('PATCH /usuarios/:id: duplicado → 400', async () => {
   query.mock.mockImplementation(duplicado('usuario_nombre_usuario_key'))
   assert.equal((await request(app).patch('/api/usuarios/7').set(admin()).send(edicion)).status, 400)

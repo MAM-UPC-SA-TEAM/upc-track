@@ -53,6 +53,11 @@ export async function editarUsuario(req, res) {
   const { id } = req.params
   const { nombre, nombre_usuario, correo, tipo_usuario, activo, password } = req.body
 
+  // El PATCH reemplaza todos los campos: sin ellos el UPDATE violaría NOT NULL (antes respondía 500)
+  if (!nombre || !nombre_usuario || !correo || !tipo_usuario) {
+    return res.status(400).json({ error: 'nombre, nombre_usuario, correo y tipo_usuario son obligatorios' })
+  }
+
   try {
     if (password) {
       if (password.length < 8) {
@@ -182,4 +187,4 @@ export async function eliminarUsuario(req, res) {
     console.error('Error eliminando usuario:', error)
     return res.status(500).json({ error: 'Error interno del servidor' })
   }
-}
+}

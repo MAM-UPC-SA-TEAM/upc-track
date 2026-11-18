@@ -173,15 +173,13 @@ describe('buses', () => {
     assert.equal((await unaFila('SELECT estado FROM bus WHERE id_bus = $1', [id_bus])).estado, 'en_recorrido')
   })
 
-  // DEFECTOS CONOCIDOS (hallados al auditar las pruebas, ver docs/testing.md): el negocio exige 404 al operar
-  // sobre un bus que no existe, pero hoy responde 200 porque no se mira rowCount. `todo` = se ejecuta y se
-  // reporta, sin romper el CI, hasta que se corrija; entonces se quita la marca.
-  test('editar un bus inexistente → 404', { todo: 'editarBus responde 200' }, async () => {
+  // Defectos hallados por la auditoría (ver docs/testing.md), ya corregidos: se conservan como regresión.
+  test('editar un bus inexistente → 404', async () => {
     const res = await request(app).patch('/api/buses/999999').set(admin).send({ nombre: 'X', placa: 'ZZZ999', estado: 'inactivo' })
     assert.equal(res.status, 404)
   })
 
-  test('eliminar un bus inexistente → 404', { todo: 'eliminarBus responde 200' }, async () => {
+  test('eliminar un bus inexistente → 404', async () => {
     assert.equal((await request(app).delete('/api/buses/999999').set(admin)).status, 404)
   })
 
@@ -248,7 +246,7 @@ describe('usuarios (admin)', () => {
     assert.equal(login.status, 200)
   })
 
-  test('editar un usuario con el cuerpo incompleto → 400 (no 500)', { todo: 'editarUsuario no valida y responde 500' }, async () => {
+  test('editar un usuario con el cuerpo incompleto → 400 (no 500)', async () => {
     const res = await request(app).patch('/api/usuarios/1').set(admin).send({ activo: true })
     assert.equal(res.status, 400)
   })
