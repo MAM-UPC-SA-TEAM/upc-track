@@ -28,7 +28,7 @@ heredado de un semestre anterior.
 | 4 | DIP | **Limitación documentada** | Sin inyección formal, como se planeó; explicado en `05_manual_tecnico.md` §1.2. |
 | 5 | ESLint en el backend | **Hecho** | Parte del CI (#7). |
 | 5 | JSDoc en funciones públicas | **Parcial** | Algunos módulos (p. ej. el cálculo de ETA) tienen JSDoc; no se aplicó de forma general. |
-| 5 | Helper común de errores | **Pendiente** | Los controladores aún repiten el `try/catch`; queda como mejora (#20). |
+| 5 | Helper común de errores | **Hecho** | `HttpError`, `asyncHandler` y un `errorHandler` final: los controladores ya no repiten el `try/catch` y las respuestas conservan la forma `{ error }` (#20). |
 
 **Fuera del plan original** pero hecho: endurecimiento de producción con `helmet` y dependencias sin
 vulnerabilidades (#16, PR #156), registro con correo institucional y aprobación del administrador (#51),

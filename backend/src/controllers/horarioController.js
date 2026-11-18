@@ -1,27 +1,24 @@
 import { Horario } from '../models/Horario.js'
+import { asyncHandler } from '../middlewares/errorMiddleware.js'
+import { notFound } from '../utils/httpError.js'
 
 function esHoraValida(value) {
   return /^([01]\d|2[0-3]):[0-5]\d$/.test(String(value || ''))
 }
 
-export async function listarHorarios(req, res) {
+export const listarHorarios = asyncHandler(async (req, res) => {
   const { ruta_id } = req.query
 
-  try {
-    if (ruta_id) {
-      const horarios = await Horario.porRuta(Number(ruta_id))
-      return res.status(200).json({ horarios })
-    }
-
-    const horarios = await Horario.todos()
+  if (ruta_id) {
+    const horarios = await Horario.porRuta(Number(ruta_id))
     return res.status(200).json({ horarios })
-  } catch (error) {
-    console.error('Error listando horarios:', error)
-    return res.status(500).json({ error: 'Error interno del servidor' })
   }
-}
 
-export async function crearHorario(req, res) {
+  const horarios = await Horario.todos()
+  return res.status(200).json({ horarios })
+})
+
+export const crearHorario = asyncHandler(async (req, res) => {
   const { ruta_id, hora_salida, hora_llegada } = req.body
 
   if (!ruta_id || !hora_salida || !hora_llegada) {
@@ -32,21 +29,16 @@ export async function crearHorario(req, res) {
     return res.status(400).json({ error: 'Formato de hora invalido. Usa HH:mm' })
   }
 
-  try {
-    const idHorario = await Horario.crear({
-      id_ruta: Number(ruta_id),
-      hora_salida,
-      hora_llegada,
-    })
+  const idHorario = await Horario.crear({
+    id_ruta: Number(ruta_id),
+    hora_salida,
+    hora_llegada,
+  })
 
-    return res.status(201).json({ ok: true, id_horario: idHorario })
-  } catch (error) {
-    console.error('Error creando horario:', error)
-    return res.status(500).json({ error: 'Error interno del servidor' })
-  }
-}
+  return res.status(201).json({ ok: true, id_horario: idHorario })
+})
 
-export async function editarHorario(req, res) {
+export const editarHorario = asyncHandler(async (req, res) => {
   const { id } = req.params
   const { hora_salida, hora_llegada } = req.body
 
@@ -58,29 +50,19 @@ export async function editarHorario(req, res) {
     return res.status(400).json({ error: 'Formato de hora invalido. Usa HH:mm' })
   }
 
-  try {
-    const horario = await Horario.porId(Number(id))
-    if (!horario) return res.status(404).json({ error: 'Horario no encontrado' })
+  const horario = await Horario.porId(Number(id))
+  if (!horario) throw notFound('Horario no encontrado')
 
-    await Horario.editar(Number(id), { hora_salida, hora_llegada })
-    return res.status(200).json({ ok: true })
-  } catch (error) {
-    console.error('Error editando horario:', error)
-    return res.status(500).json({ error: 'Error interno del servidor' })
-  }
-}
+  await Horario.editar(Number(id), { hora_salida, hora_llegada })
+  return res.status(200).json({ ok: true })
+})
 
-export async function eliminarHorario(req, res) {
+export const eliminarHorario = asyncHandler(async (req, res) => {
   const { id } = req.params
 
-  try {
-    const horario = await Horario.porId(Number(id))
-    if (!horario) return res.status(404).json({ error: 'Horario no encontrado' })
+  const horario = await Horario.porId(Number(id))
+  if (!horario) throw notFound('Horario no encontrado')
 
-    await Horario.eliminar(Number(id))
-    return res.status(200).json({ ok: true })
-  } catch (error) {
-    console.error('Error eliminando horario:', error)
-    return res.status(500).json({ error: 'Error interno del servidor' })
-  }
-}
+  await Horario.eliminar(Number(id))
+  return res.status(200).json({ ok: true })
+})

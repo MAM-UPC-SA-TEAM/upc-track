@@ -2,8 +2,9 @@
 // POST /api/ubicacion — recibe GPS del conductor (#07)
 
 import { procesarUbicacion } from '../services/ubicacionService.js'
+import { asyncHandler } from '../middlewares/errorMiddleware.js'
 
-export async function recibirUbicacion(req, res) {
+export const recibirUbicacion = asyncHandler(async (req, res) => {
   const { id_bus, lat, lng } = req.body
 
   // Validar campos requeridos (RNF10 — confiabilidad)
@@ -23,12 +24,7 @@ export async function recibirUbicacion(req, res) {
     return res.status(400).json({ error: 'Coordenadas fuera de rango válido' })
   }
 
-  try {
-    const io = req.app.get('io')
-    await procesarUbicacion(io, id_bus, latNum, lngNum)
-    return res.status(200).json({ ok: true })
-  } catch (error) {
-    console.error('Error guardando ubicación:', error)
-    return res.status(500).json({ error: 'Error interno del servidor' })
-  }
-}
+  const io = req.app.get('io')
+  await procesarUbicacion(io, id_bus, latNum, lngNum)
+  return res.status(200).json({ ok: true })
+})

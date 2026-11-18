@@ -107,7 +107,7 @@ La posición se muestra como vigente («Validado · hace Xs») mientras tenga 30
 
 ### 3.3 Errores
 
-Los servicios lanzan errores de dominio cuyo `message` es un código (`BUS_NO_ENCONTRADO`); el controlador los traduce a HTTP y deja el resto como 500 con `{ error }` genérico. Centralizarlo en un `errorHandler` es trabajo futuro (issue B05).
+Los servicios lanzan errores de dominio cuyo `message` es un código (`BUS_NO_ENCONTRADO`). El manejo es **centralizado** (`middlewares/errorMiddleware.js`, `utils/httpError.js`): cada controlador se envuelve en `asyncHandler(handler, traducciones)`, donde `traducciones` mapea el código de dominio a `[estado HTTP, mensaje]`; lo que lanza el handler llega al `errorHandler` final de `app.js`, que responde siempre `{ error: string }`. Un `HttpError` (con atajos `notFound`, `badRequest`, …) responde con su código; un JSON mal formado, 400; un origen rechazado por CORS, 403; y cualquier otro error, un 500 genérico que **no filtra el mensaje interno** y se registra con el método y la ruta. Los controladores ya no repiten `try/catch`; la única excepción es `logout`, que a propósito responde 200 aunque falle liberar el bus.
 
 ## 4. Frontend
 
@@ -166,5 +166,4 @@ Detalle en [`testing.md`](testing.md). Resumen:
 - **Factory de notificadores:** un canal de notificación intercambiable (socket, local, push) detrás de una fábrica.
 - **Seguimiento en segundo plano** del conductor con un servicio en primer plano de Android (issue M05).
 - **Verificación de titularidad** del correo institucional por código (hoy la aprobación es manual del administrador).
-- **Manejo de errores centralizado** (`errorHandler` y helper de errores con estado HTTP) en el backend (issue B05).
 - **Rate limit por usuario** además de por IP.

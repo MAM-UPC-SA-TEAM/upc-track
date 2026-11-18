@@ -13,6 +13,7 @@ import paradaRoutes    from './routes/paradaRoutes.js'
 import horarioRoutes   from './routes/horarioRoutes.js'
 import notificacionRoutes from './routes/notificacionRoutes.js'
 import usuarioRoutes from './routes/usuarioRoutes.js'
+import { errorHandler, rutaNoEncontrada } from './middlewares/errorMiddleware.js'
 
 
 const app = express()
@@ -50,9 +51,8 @@ app.use('/api/horarios',  horarioRoutes)
 app.use('/api/notificaciones', notificacionRoutes)
 app.use('/api/usuarios', usuarioRoutes)
 
-// ── Ruta no encontrada ───────────────────────────────────────
-app.use((_req, res) => {
-  res.status(404).json({ error: 'Ruta no encontrada' })
-})
+// ── Ruta no encontrada y manejo de errores (siempre al final) ─
+app.use(rutaNoEncontrada)
+app.use(errorHandler)
 
 export default app
