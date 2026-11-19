@@ -7,7 +7,10 @@ import {
   debeMostrarSplash, reiniciarSplash, DURACION_MIN_MS, DURACION_MIN_REDUCIDA_MS, DURACION_SALIDA_MS,
 } from '../../src/utils/splash'
 import { EVENTO_SERVIDOR } from '../../src/services/api'
+import { fijarBarraEstadoClara } from '../../src/utils/tema'
 import { readFileSync } from 'node:fs'
+
+vi.mock('../../src/utils/tema', () => ({ fijarBarraEstadoClara: vi.fn() }))
 
 const css = readFileSync(`${import.meta.dirname}/../../src/components/shared/Splash.css`, 'utf8')
 const tokens = readFileSync(`${import.meta.dirname}/../../src/styles/tokens.css`, 'utf8')
@@ -27,6 +30,7 @@ const avanzar = (ms) => act(() => { vi.advanceTimersByTime(ms) })
 const servidor = (activo) => act(() => { window.dispatchEvent(new CustomEvent(EVENTO_SERVIDOR, { detail: { activo } })) })
 
 beforeEach(() => {
+  fijarBarraEstadoClara.mockClear()
   vi.useFakeTimers()
   reiniciarSplash()
   entorno()
@@ -117,6 +121,31 @@ describe('<Splash />', () => {
     } finally {
       delete document.body.dataset.tema
     }
+  })
+
+  it('mantiene la barra de estado clara mientras dura y la suelta al empezar el fundido', () => {
+    render(<Splash />)
+    expect(fijarBarraEstadoClara).toHaveBeenCalledWith(true)
+    expect(fijarBarraEstadoClara).not.toHaveBeenCalledWith(false)
+
+    avanzar(DURACION_MIN_MS)
+    expect(fijarBarraEstadoClara).toHaveBeenCalledWith(false) // junto con el fundido de salida
+    expect(fijarBarraEstadoClara).toHaveBeenCalledTimes(2) // fijar y soltar, sin repetir al terminar el fundido
+    avanzar(DURACION_SALIDA_MS)
+    expect(fijarBarraEstadoClara).toHaveBeenCalledTimes(2)
+  })
+
+  it('al desmontarse a medio camino suelta la barra de estado (no la deja clara para siempre)', () => {
+    const { unmount } = render(<Splash />)
+    avanzar(200)
+    unmount()
+    expect(fijarBarraEstadoClara).toHaveBeenLastCalledWith(false)
+  })
+
+  it('si no se muestra (landing en el navegador) no toca la barra de estado', () => {
+    irA('/')
+    render(<Splash />)
+    expect(fijarBarraEstadoClara).not.toHaveBeenCalled()
   })
 
   it('en la PWA instalada (standalone) aparece aunque la ruta sea /', () => {

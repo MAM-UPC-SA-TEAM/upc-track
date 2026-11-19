@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBus } from '@fortawesome/free-solid-svg-icons'
 import { EVENTO_SERVIDOR } from '../../services/api'
+import { fijarBarraEstadoClara } from '../../utils/tema'
 import {
   DURACION_MAX_MS, DURACION_MIN_MS, DURACION_MIN_REDUCIDA_MS, DURACION_SALIDA_MS,
   debeMostrarSplash, marcarSplashMostrado, prefiereMenosMovimiento,
@@ -30,12 +31,14 @@ export default function Splash() {
     const reducido = prefiereMenosMovimiento()
     let cerrado = false
     const timers = []
+    fijarBarraEstadoClara(true) // idempotente: main.jsx ya la fijó antes del primer aplicarTema
 
     const salir = () => {
       if (cerrado) return
       cerrado = true
       timers.forEach(clearTimeout)
       marcarSplashMostrado()
+      fijarBarraEstadoClara(false) // la barra de estado toma el tema de la app junto con el fundido de salida
       if (reducido) { setFase('oculto'); return }
       setFase('saliendo')
       setTimeout(() => setFase('oculto'), DURACION_SALIDA_MS)
@@ -50,9 +53,10 @@ export default function Splash() {
     timers.push(setTimeout(salir, DURACION_MAX_MS))
 
     return () => {
-      cerrado = true
       timers.forEach(clearTimeout)
       window.removeEventListener(EVENTO_SERVIDOR, alServidor)
+      if (!cerrado) fijarBarraEstadoClara(false) // desmontado a medio camino: no deja la barra fija
+      cerrado = true
     }
   }, [fase])
 

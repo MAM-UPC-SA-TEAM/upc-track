@@ -33,13 +33,31 @@ export function temaInicialOscuro() {
   return esOscuro()
 }
 
+// Mientras el splash de arranque está visible, la barra de estado se queda clara (el splash va siempre en papel claro,
+// como el nativo): si no, con el tema oscuro quedaba una franja oscura con íconos oscuros sobre el splash.
+let barraClaraFija = false
+
+function aplicarBarraEstado(oscuro) {
+  if (!esNativa) return
+  // Style.Light = texto oscuro (fondo claro); Style.Dark = texto claro (fondo oscuro)
+  StatusBar.setStyle({ style: oscuro ? Style.Dark : Style.Light }).catch(() => {})
+  StatusBar.setBackgroundColor({ color: PAPEL[oscuro ? 'oscuro' : 'claro'] }).catch(() => {})
+}
+
+/**
+ * Fija (true) o suelta (false) la barra de estado en claro. Fija: aplicarTema sigue cambiando el tema de la página
+ * pero no toca la barra. Suelta: la barra toma el tema vigente.
+ */
+export function fijarBarraEstadoClara(fija) {
+  barraClaraFija = fija
+  aplicarBarraEstado(fija ? false : document.body.dataset.tema === 'oscuro')
+}
+
 // Aplica el tema a la página y, en la app nativa, a la barra de estado.
 export function aplicarTema(oscuro) {
   const tema = oscuro ? 'oscuro' : 'claro'
   document.body.dataset.tema = tema
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', PAPEL[tema])
-  if (!esNativa) return
-  // Style.Light = texto oscuro (fondo claro); Style.Dark = texto claro (fondo oscuro)
-  StatusBar.setStyle({ style: oscuro ? Style.Dark : Style.Light }).catch(() => {})
-  StatusBar.setBackgroundColor({ color: PAPEL[tema] }).catch(() => {})
+  if (barraClaraFija) return
+  aplicarBarraEstado(oscuro)
 }
