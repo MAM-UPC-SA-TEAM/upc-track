@@ -75,12 +75,30 @@ Con un conductor transmitiendo cada 4 s: el evento llega al estudiante en **6 ms
 
 | # | Hallazgo | Decisión |
 |---|---|---|
-| 1 | **Producción aún no tiene `helmet` ni las dependencias corregidas.** Las cabeceras de la nube muestran `x-powered-by: Express` y no hay HSTS: Render despliega `main` y esos cambios (PR #156) están en `develop`. | Se resuelve con la release de `develop` a `main` (#45, Q07). Debe verificarse después con `curl -I`. |
+| 1 | **Producción no tenía `helmet` ni las dependencias corregidas.** Las cabeceras de la nube mostraban `x-powered-by: Express` y no había HSTS: Render despliega `main` y esos cambios (PR #156) estaban en `develop`. | **Resuelto**: la release a `main` (PR #167) está desplegada y verificada en producción (sección 5.1). |
 | 2 | Un origen rechazado por CORS responde **500** en lugar de 403. No afecta a los navegadores (que lo bloquean igual). | **Resuelto en #20** (B05, errores centralizados): ahora responde 403 en JSON. |
 | 3 | No garantiza 24/7 en planes gratuitos (RNF3) y el arranque en frío tarda ~17 s (RNF12). | **Excepción documentada** (riesgo R4 del charter v2): aviso «Despertando el servidor», reconexión automática y plan B local. Calentar el servicio antes de la sustentación. |
 | 4 | RF9, RF10, RF13, RF14 y RNF4 necesitan revisión visual; RF8 y RNF5 necesitan dispositivo y navegadores reales. | Se ejecutan en #39 (M11, APK en dispositivos reales) y en las pruebas de #42 (Q03). |
 
 No se encontró ningún requisito en estado «No cumple».
+
+### 5.1 Verificación de producción tras la release (PR #167)
+
+Ejecutada la noche del 18-nov-2026, justo después de fusionar la release de `develop` a `main` (`eea9488`). Son comprobaciones **sin sesión y sin escribir datos**, hechas contra Render y Cloudflare.
+
+| Comprobación | Resultado |
+|---|---|
+| `GET /api/health` | 200. El primer acceso tras el redespliegue tardó **11,3 s** (arranque en frío); después, 0,36 s. |
+| Cabeceras de seguridad (`helmet`) | Presentes: `strict-transport-security` (1 año, subdominios), `x-content-type-options: nosniff`, `x-frame-options: SAMEORIGIN`, `content-security-policy` y `cross-origin-resource-policy: cross-origin`. **`x-powered-by` ya no aparece.** |
+| CORS del frontend oficial | Preflight 204 con `access-control-allow-origin` y credenciales. |
+| Origen desconocido | **403** `{"error":"Origen no permitido"}` y sin cabeceras CORS (antes, 500). |
+| JSON mal formado en `POST /api/auth/login` | **400** `{"error":"El cuerpo de la petición no es un JSON válido"}` (antes, una página HTML). |
+| Registro con un correo que no es institucional | 400 «Usa tu correo institucional @unicesar.edu.co». |
+| Ruta inexistente / ruta protegida sin token | 404 `Ruta no encontrada` / 401 `Token no proporcionado`. |
+| Socket.IO (handshake HTTP) | 200 en 0,26 s. |
+| Frontend (Cloudflare) | 200 en 0,31 s; las rutas de la SPA caen en `index.html`. El build de Workers terminó con éxito y el bundle de entrada cambió (`index-D2RFGX57` a `index-DpZiT7P3`); contiene los textos de la release («Mantén la app abierta y el teléfono cargando», «Reanudar transmisión», «Avisar a mi ruta», `enterKeyHint`, botón «Aprobar»). |
+
+**Qué no cubre esta verificación:** los flujos con sesión (login de los tres roles, aprobar cuentas, transmisión del conductor), la rotación del `JWT_SECRET` (no se puede ver desde fuera) y el APK, que se prueba en el teléfono (#39).
 
 ## 6. Guía para completar la validación manual en producción (~15 min)
 
@@ -92,4 +110,4 @@ Requiere una cuenta de administrador de producción; las cuentas de prueba se cr
 4. Cortar y recuperar los datos móviles del conductor y confirmar que la transmisión se reanuda sola (RF8).
 5. Abrir el flujo login → mapa en Firefox y, si es posible, en Safari (RNF5).
 6. Revisar la paleta y el logo contra la identidad institucional (RNF4).
-7. Tras la release a `main`, comprobar `curl -I https://upc-track.onrender.com/api/health`: deben aparecer `strict-transport-security` y desaparecer `x-powered-by`.
+7. ~~Tras la release a `main`, comprobar las cabeceras de seguridad~~: **hecho** (sección 5.1).
