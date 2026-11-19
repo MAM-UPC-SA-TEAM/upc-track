@@ -116,6 +116,10 @@ export default function TalonConductor({
         </p>
       )}
 
+      {(vista === 'buscando' || vista === 'vivo' || vista === 'detenido' || vista === 'viejo') && (
+        <p className="talon-vacio cond-explica">Mantén la app abierta y el teléfono cargando.</p>
+      )}
+
       {errores.lista.map(msg => (
         <p key={msg} className="cond-error" role="alert">
           <FontAwesomeIcon icon={faTriangleExclamation} /> <span>{msg}</span>

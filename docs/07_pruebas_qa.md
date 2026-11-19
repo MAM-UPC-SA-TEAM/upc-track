@@ -37,3 +37,24 @@
 - 0 criticos abiertos.
 - Flujos principales aprobados por rol.
 - Mapa y notificaciones funcionando en movil HTTPS.
+
+## 6. Evidencia automatizada (suite de pruebas)
+
+La estrategia, la estructura de carpetas, los comandos y la auditoría de aserciones están en [`testing.md`](testing.md).
+
+| Nivel | Paquete | Pruebas | Cómo generar el reporte |
+|---|---|---|---|
+| Unitarias + integración HTTP con mocks | backend (`node:test`, `supertest`) | 266 | `npm run test:coverage --prefix backend` |
+| Integración con PostgreSQL real | backend (`test/db`) | 40 | `npm run e2e:db:up` y `npm run test:coverage:full --prefix backend` |
+| Unitarias y de componentes | frontend (Vitest) | 354 | `npm run test:coverage --prefix frontend` |
+| End-to-end | Playwright (`e2e/`) | ver `testing.md` | `npm run e2e` |
+
+- **Cobertura:** backend 83 % y frontend 73 % (sentencias); umbral mínimo de 60 % que rompe el CI si no se cumple.
+  Reporte en consola y HTML (`backend/coverage/index.html`, `frontend/coverage/index.html`); el CI lo publica como artefacto
+  `coverage-backend` / `coverage-frontend`.
+- **Correspondencia con la matriz de la sección 2:** QA-01/02 (login por rol) en `e2e/tests/acceso.spec.js` y `test/db`;
+  QA-03/04/05 en `backend/test/integration` (`buses`, `notificaciones`); QA-06/07 en `e2e/tests/admin.spec.js` y `test/db`
+  (horarios); QA-08 en `backend/test/unit/authMiddleware.test.js`. QA-09 y QA-10 siguen siendo manuales (carga y dispositivo
+  real, issue M11).
+- **Defectos:** la auditoría registró tres (404 en bus inexistente ×2, 400 en usuario incompleto); los tres están corregidos
+  (#147).

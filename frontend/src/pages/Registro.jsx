@@ -8,18 +8,19 @@ import AccesoLayout from '../components/acceso/AccesoLayout'
 import Campo from '../components/acceso/Campo'
 
 const CAMPOS = [
-  { key: 'nombre', label: 'Nombre completo', autoComplete: 'name' },
+  { key: 'nombre', label: 'Nombre completo', autoComplete: 'name', enterKeyHint: 'next' },
   {
-    key: 'nombre_usuario', label: 'Nombre de usuario', autoComplete: 'username',
+    key: 'nombre_usuario', label: 'Nombre de usuario', autoComplete: 'username', enterKeyHint: 'next',
     ayuda: '3 a 20 caracteres: letras, números, punto, guion y guion bajo.',
     autoCapitalize: 'none', autoCorrect: 'off', spellCheck: false,
   },
   {
-    key: 'correo', label: 'Correo electrónico', type: 'email', autoComplete: 'email', inputMode: 'email',
+    key: 'correo', label: 'Correo electrónico', type: 'email', autoComplete: 'email', inputMode: 'email', enterKeyHint: 'next',
+    placeholder: 'usuario@unicesar.edu.co', ayuda: 'Usa tu correo institucional @unicesar.edu.co.',
     autoCapitalize: 'none', autoCorrect: 'off', spellCheck: false,
   },
-  { key: 'password', label: 'Contraseña', secreto: true, autoComplete: 'new-password', ayuda: 'Mínimo 8 caracteres.' },
-  { key: 'confirmar', label: 'Confirmar contraseña', secreto: true, autoComplete: 'new-password' },
+  { key: 'password', label: 'Contraseña', secreto: true, autoComplete: 'new-password', enterKeyHint: 'next', ayuda: 'Mínimo 8 caracteres.' },
+  { key: 'confirmar', label: 'Confirmar contraseña', secreto: true, autoComplete: 'new-password', enterKeyHint: 'go' },
 ]
 
 export default function Registro() {
@@ -48,6 +49,8 @@ export default function Registro() {
     if (!form.correo.trim())         e.correo         = 'El correo es obligatorio'
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.correo))
                                      e.correo         = 'Correo no válido'
+    else if (!/@unicesar\.edu\.co$/i.test(form.correo.trim()))
+                                     e.correo         = 'Usa tu correo institucional @unicesar.edu.co'
     if (!form.password)              e.password       = 'La contraseña es obligatoria'
     else if (form.password.length < 8)
                                      e.password       = 'Mínimo 8 caracteres'
@@ -92,7 +95,7 @@ export default function Registro() {
     return (
       <AccesoLayout titulo="Cuenta creada">
         <div className="acceso-exito" role="status">
-          <p>Tu cuenta de estudiante quedó registrada. Ya puedes iniciar sesión.</p>
+          <p>Tu cuenta de estudiante quedó registrada y está pendiente de aprobación. Un administrador la activará y entonces podrás iniciar sesión.</p>
           <button type="button" className="talon-accion" onClick={() => navigate('/login')}>
             <FontAwesomeIcon icon={faRightToBracket} /> Ir a iniciar sesión
           </button>

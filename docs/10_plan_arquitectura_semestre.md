@@ -5,6 +5,36 @@ presenta para la exposicion como la hoja de ruta de mejoras arquitectonicas
 que el equipo propone construir durante el semestre, partiendo del proyecto
 heredado de un semestre anterior.
 
+> **Estado final (cierre del semestre, 18-nov-2026).** El plan de abajo se conserva tal como se presentó; esta
+> sección registra qué se hizo de cada propuesta y qué cambió. Los números son issues (`#N`) o PR de
+> `MAM-UPC-SA-TEAM/upc-track`.
+
+## Estado final por propuesta
+
+| Nivel | Propuesta | Estado | Qué pasó (issue / PR) |
+|---|---|---|---|
+| 1 | Backend en Render free con aviso de suspensión | **Hecho** | Desplegado en Render (#12, PR #67). Se mitigó el arranque en frío con el aviso «Despertando el servidor» y la reconexión automática del socket (#13, PR #69); WebSockets verificados en Render (#15, PR #68). |
+| 1 | Base de datos en Aiven (MySQL) | **Cambió** | Se usó **Neon (PostgreSQL)**, no Aiven: Neon solo ofrece PostgreSQL, así que el backend migró de `mysql2` a `pg` (#61) y se conectó con TLS (#10, PR #64). Decisiones D-05, D-06 y D-26 de `12_ruta_trabajo_semestre.md`. |
+| 1 | Frontend en Vercel | **Cambió** | Se movió a **Cloudflare** por recomendación del docente (#14, PR #67). |
+| 1 | CI con GitHub Actions (lint + build) | **Hecho y ampliado** | Lint, pruebas con cobertura, build y e2e en cada PR (#7, #80); compilación del APK en `android.yml`. |
+| 1 | Dockerfile del backend (opcional) | **Descartado** | Render construye desde Node y el plan B usa `npm run dev` más PostgreSQL en Docker; sin uso real (#11). |
+| 1 | Capacitor sobre la PWA | **Hecho (APK)** | APK Android firmado y publicable: base (#32), geolocalización nativa con Adapter (#33), notificaciones locales (#35), identidad nativa (#36), ciclo de vida (#37), compilación y Release (#38). Publicación en tiendas e iOS quedaron fuera de alcance (charter v2). |
+| 1 | Geolocalización en segundo plano en Android | **Parcial** | Se resolvió con Wake Lock y el aviso «mantén la app abierta» (#27, PR #155) y verificación de permiso (#74, PR #159). El servicio en primer plano real sigue como spike opcional (#34). |
+| 2 | Extraer `busService` y sacar SQL de los controladores | **Hecho, con más alcance** | `busService` (#17, PR #150) y también `usuarioService`, `rutaService` y el cierre de sesión (#18, PR #151): el SQL directo no estaba solo en buses. Además, errores 404 uniformes (#152). |
+| 3 | Strategy para el cálculo de ETA | **Hecho** | `estrategiaLineal` y `estrategiaVelocidadFija`, resultados idénticos a los previos (#21, PR #157). |
+| 3 | Factory de notificadores | **Descartado (trabajo futuro)** | Solo tendría sentido con notificaciones push remotas, que no se construyeron (YAGNI). Ver «Trabajo futuro» en `05_manual_tecnico.md`. |
+| 4 | SRP: mover SQL a servicios | **Hecho** | Ver Nivel 2. |
+| 4 | DRY: extraer `utils/cors.js` | **Hecho** | Un solo módulo para Express y Socket.IO, con los orígenes de Capacitor (#19). |
+| 4 | DIP | **Limitación documentada** | Sin inyección formal, como se planeó; explicado en `05_manual_tecnico.md` §1.2. |
+| 5 | ESLint en el backend | **Hecho** | Parte del CI (#7). |
+| 5 | JSDoc en funciones públicas | **Parcial** | Algunos módulos (p. ej. el cálculo de ETA) tienen JSDoc; no se aplicó de forma general. |
+| 5 | Helper común de errores | **Hecho** | `HttpError`, `asyncHandler` y un `errorHandler` final: los controladores ya no repiten el `try/catch` y las respuestas conservan la forma `{ error }` (#20). |
+
+**Fuera del plan original** pero hecho: endurecimiento de producción con `helmet` y dependencias sin
+vulnerabilidades (#16, PR #156), registro con correo institucional y aprobación del administrador (#51),
+pirámide de pruebas con base de datos real y e2e (#80), y rediseño móvil «El Talón» con auditoría de
+accesibilidad.
+
 Se organiza en los 5 niveles definidos por la materia. Cada nivel muestra:
 **Estado actual** (lo que ya existe y por que es valido dejarlo), **Propuesta
 de mejora** (lo que se plantea construir este semestre) y **Justificacion**

@@ -2,10 +2,12 @@
 // Endpoints para enviar y consultar notificaciones
 
 import { Notificacion } from '../models/Notificacion.js'
-import { pool }         from '../config/database.js'
+import { Bus }          from '../models/Bus.js'
+import { asyncHandler } from '../middlewares/errorMiddleware.js'
+import { notFound } from '../utils/httpError.js'
 
 // POST /api/notificaciones — conductor envía alerta (RF-04)
-export async function enviarNotificacion(req, res) {
+export const enviarNotificacion = asyncHandler(async (req, res) => {
   const { tipo, mensaje } = req.body
   const id_conductor = req.usuario.id_usuario
 
@@ -19,72 +21,47 @@ export async function enviarNotificacion(req, res) {
     return res.status(400).json({ error: 'tipo debe ser cambio_ruta, retraso o info' })
   }
 
-  try {
-    // Obtener la ruta del bus del conductor
-    const { rows } = await pool.query(
-      `SELECT br.id_ruta FROM bus b
-       JOIN bus_ruta br ON b.id_bus = br.id_bus
-       WHERE b.id_conductor = $1`,
-      [id_conductor]
-    )
+  // Obtener la ruta del bus del conductor
+  const id_ruta = await Bus.rutaDeConductor(id_conductor)
 
-    if (rows.length === 0) {
-      return res.status(404).json({ error: 'No tienes una ruta asignada' })
-    }
+  if (!id_ruta) throw notFound('No tienes una ruta asignada')
 
-    const id_ruta = rows[0].id_ruta
+  // Guardar en BD
+  const id_notificacion = await Notificacion.guardar({
+    id_ruta,
+    id_conductor,
+    tipo,
+    mensaje: mensaje.trim(),
+  })
 
-    // Guardar en BD
-    const id_notificacion = await Notificacion.guardar({
-      id_ruta,
-      id_conductor,
-      tipo,
-      mensaje: mensaje.trim(),
-    })
-
-    const notificacion = {
-      id_notificacion,
-      id_ruta,
-      tipo,
-      mensaje: mensaje.trim(),
-      nombre_conductor: req.usuario.nombre,
-      fecha_hora: new Date().toISOString(),
-    }
-
-    // Emitir a todos los usuarios del room de la ruta (RF-04 — < 5 segundos)
-    req.app.get('io').to(`ruta_${id_ruta}`).emit('notificacion:nueva', notificacion)
-
-    return res.status(201).json({ ok: true, notificacion })
-
-  } catch (error) {
-    console.error('Error enviando notificación:', error)
-    return res.status(500).json({ error: 'Error interno del servidor' })
+  const notificacion = {
+    id_notificacion,
+    id_ruta,
+    tipo,
+    mensaje: mensaje.trim(),
+    nombre_conductor: req.usuario.nombre,
+    fecha_hora: new Date().toISOString(),
   }
-}
+
+  // Emitir a todos los usuarios del room de la ruta (RF-04 — < 5 segundos)
+  req.app.get('io').to(`ruta_${id_ruta}`).emit('notificacion:nueva', notificacion)
+
+  return res.status(201).json({ ok: true, notificacion })
+})
 
 // GET /api/notificaciones/mias — avisos que envió el conductor autenticado
-export async function listarMisNotificaciones(req, res) {
-  try {
-    const notificaciones = await Notificacion.porConductor(req.usuario.id_usuario)
-    return res.status(200).json({ notificaciones })
-  } catch (error) {
-    console.error('Error listando avisos enviados:', error)
-    return res.status(500).json({ error: 'Error interno del servidor' })
-  }
-}
+export const listarMisNotificaciones = asyncHandler(async (req, res) => {
+  const notificaciones = await Notificacion.porConductor(req.usuario.id_usuario)
+  return res.status(200).json({ notificaciones })
+})
 
 // GET /api/notificaciones — historial del día
-export async function listarNotificaciones(req, res) {
+export const listarNotificaciones = asyncHandler(async (req, res) => {
   const { ruta_id } = req.query
 
-  try {
-    const notificaciones = ruta_id
-      ? await Notificacion.porRutaHoy(ruta_id)
-      : await Notificacion.hoy()
+  const notificaciones = ruta_id
+    ? await Notificacion.porRutaHoy(ruta_id)
+    : await Notificacion.hoy()
 
-    return res.status(200).json({ notificaciones })
-  } catch (error) {
-    console.error('Error listando notificaciones:', error)
-    return res.status(500).json({ error: 'Error interno del servidor' })
-  }
-}
+  return res.status(200).json({ notificaciones })
+})

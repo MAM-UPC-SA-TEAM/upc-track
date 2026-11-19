@@ -138,16 +138,6 @@ export default defineConfig(({ mode }) => {
             },
           },
 
-          // Google Fonts — Stale While Revalidate
-          {
-            urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
-            handler: 'StaleWhileRevalidate',
-            options: {
-              cacheName: 'google-fonts',
-              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 },
-            },
-          },
-
           // API del backend — Network First (siempre intenta servidor)
           {
             urlPattern: /\/api\/.*/i,

@@ -1,7 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import api from '../services/api'
-import { watchPosition, disponible } from '../services/geolocation'
+import { watchPosition, disponible, verificarPermiso } from '../services/geolocation'
 import { alCambiarRed, hayRed } from '../services/red'
+import { mantener as mantenerPantalla, liberar as liberarPantalla } from '../services/pantallaEncendida'
 import { useAuth } from './AuthContext'
 
 // El recorrido del conductor vive POR ENCIMA de las rutas: ir a Alertas o a Perfil desmonta la pantalla
@@ -44,6 +45,7 @@ export function RecorridoProvider({ children }) {
   const cerrarSiActivo = useCallback(async () => {
     watchRef.current?.detener()
     watchRef.current = null
+    liberarPantalla()
     const idBus = busRef.current?.id_bus
     if (debeCerrarRef.current && idBus) {
       debeCerrarRef.current = false
@@ -123,7 +125,7 @@ export function RecorridoProvider({ children }) {
     }
   }
 
-  function iniciarRecorrido() {
+  async function iniciarRecorrido() {
     if (!disponible()) {
       setErrorGps('GPS no disponible en este dispositivo.')
       return
@@ -131,6 +133,16 @@ export function RecorridoProvider({ children }) {
 
     setErrorGps('')
     setErrorAccion('')
+
+    // Sin permiso de ubicación no se cambia ningún estado: el bus sigue «fuera de servicio» (local y en el
+    // servidor) y el mensaje explica cómo activarlo; «Iniciar recorrido» sirve de reintento. (M12)
+    try {
+      await verificarPermiso()
+    } catch (err) {
+      setErrorGps(err.mensaje)
+      return
+    }
+
     setEnRecorrido(true)
     setEstado('en_recorrido')
     setInicioMs(ahoraMs())
@@ -149,13 +161,19 @@ export function RecorridoProvider({ children }) {
           enviarUbicacion(lat, lng)
         }
       },
-      (err) => { setErrorGps(err.mensaje) },
+      (err) => {
+        // El permiso se denegó (o se retiró) con el recorrido ya iniciado: no se queda «en recorrido» sin transmitir
+        if (err.codigo === 'permiso_denegado') {
+          finalizarRecorrido()
+          setErrorGps(err.mensaje)
+          return
+        }
+        setErrorGps(err.mensaje)
+      },
       { precisionAlta: true, maximumAge: 3000, timeout: 10000 }
     )
 
-    if ('wakeLock' in navigator) {
-      navigator.wakeLock.request('screen').catch(() => {})
-    }
+    mantenerPantalla()
   }
 
   function finalizarRecorrido() {
@@ -167,6 +185,7 @@ export function RecorridoProvider({ children }) {
     ultimoEnvioRef.current = 0
     watchRef.current?.detener()
     watchRef.current = null
+    liberarPantalla()
     actualizarEstadoBus('fuera_de_servicio')
   }
 

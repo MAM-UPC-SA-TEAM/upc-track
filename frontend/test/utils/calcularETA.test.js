@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   distanciaKm, calcularETA, formatearETA, velocidadParaETA, minutosHasta, tieneVelocidadReciente,
+  estrategiaLineal, estrategiaVelocidadFija,
   VELOCIDAD_DEFECTO_KMH, VELOCIDAD_MIN_KMH, VELOCIDAD_MAX_KMH,
 } from '../../src/utils/calcularETA'
 
@@ -40,7 +41,7 @@ describe('calcularETA', () => {
   })
 
   it('respeta una velocidad distinta', () => {
-    const r = calcularETA(parada, [{ id_bus: 1, estado: 'en_recorrido', lat: 50 / 111.19, lng: 0 }], 50)
+    const r = calcularETA(parada, [{ id_bus: 1, estado: 'en_recorrido', lat: 50 / 111.19, lng: 0 }], estrategiaVelocidadFija(50))
     expect(r.etaMinutos).toBe(60)
   })
 })
@@ -95,8 +96,70 @@ describe('velocidad reciente para el ETA (U24)', () => {
   })
 
   it('una velocidad fijada explícitamente manda sobre la de los buses', () => {
-    const r = calcularETA({ lat: 0, lng: 0 }, [{ estado: 'en_recorrido', lat: 20 * KM, lng: 0, velocidad_kmh: 40 }], 20)
+    const r = calcularETA({ lat: 0, lng: 0 }, [{ estado: 'en_recorrido', lat: 20 * KM, lng: 0, velocidad_kmh: 40 }], estrategiaVelocidadFija(20))
     expect(r.etaMinutos).toBe(60)
+  })
+})
+
+describe('estrategias de ETA (B07)', () => {
+  const parada = { lat: 0, lng: 0 }
+  const KM = 1 / 111.19
+
+  it('con la parada exactamente donde está el bus: 0 min y 0 km', () => {
+    const r = calcularETA(parada, [{ id_bus: 1, estado: 'en_recorrido', lat: 0, lng: 0 }])
+    expect(r).toMatchObject({ etaMinutos: 0, distanciaKmVal: 0 })
+    expect(r.busCercano.id_bus).toBe(1)
+  })
+
+  it('un bus detenido (estado) no compite, aunque esté sobre la parada', () => {
+    const buses = [
+      { id_bus: 1, estado: 'detenido', lat: 0, lng: 0 },
+      { id_bus: 2, estado: 'en_recorrido', lat: 5 * KM, lng: 0 },
+    ]
+    expect(calcularETA(parada, buses).busCercano.id_bus).toBe(2)
+  })
+
+  it('la estrategia por defecto es la lineal y da el mismo resultado que pasarla explícita', () => {
+    const buses = [
+      { id_bus: 1, estado: 'en_recorrido', lat: 4 * KM, lng: 0, velocidad_kmh: 30 },
+      { id_bus: 2, estado: 'en_recorrido', lat: 9 * KM, lng: 0 },
+    ]
+    expect(calcularETA(parada, buses)).toEqual(calcularETA(parada, buses, estrategiaLineal))
+    expect(estrategiaLineal.nombre).toBe('lineal')
+  })
+
+  it('estimar devuelve minutos sin redondear y la distancia en km', () => {
+    const e = estrategiaLineal.estimar(parada, { lat: 10 * KM, lng: 0 })
+    expect(e.distanciaKm).toBeCloseTo(10, 1)
+    expect(e.minutos).toBeCloseTo(24, 1) // 10 km a 25 km/h
+  })
+
+  it('cambiar de estrategia no exige tocar a quien llama: una estrategia propia manda sobre el cálculo', () => {
+    // Estrategia de prueba: cada bus tarda un minuto por cada id (ignora distancia y velocidad)
+    const porId = { nombre: 'por-id', estimar: (_p, bus) => ({ minutos: bus.id_bus, distanciaKm: 99 }) }
+    const buses = [
+      { id_bus: 7, estado: 'en_recorrido', lat: 0, lng: 0.001 },
+      { id_bus: 3, estado: 'en_recorrido', lat: 0, lng: 5 },
+    ]
+    const r = calcularETA(parada, buses, porId)
+    expect(r.busCercano.id_bus).toBe(3)
+    expect(r.etaMinutos).toBe(3)
+    expect(r.distanciaKmVal).toBe(99)
+  })
+
+  it('con empate de minutos gana el bus más cerca', () => {
+    const igual = { nombre: 'igual', estimar: (_p, bus) => ({ minutos: 10, distanciaKm: bus.id_bus }) }
+    const buses = [
+      { id_bus: 5, estado: 'en_recorrido', lat: 0, lng: 0 },
+      { id_bus: 2, estado: 'en_recorrido', lat: 0, lng: 0 },
+    ]
+    expect(calcularETA(parada, buses, igual).busCercano.id_bus).toBe(2)
+  })
+
+  it('estrategiaVelocidadFija ignora la velocidad reciente del bus', () => {
+    const e = estrategiaVelocidadFija(60).estimar(parada, { lat: 30 * KM, lng: 0, velocidad_kmh: 10 })
+    expect(e.minutos).toBeCloseTo(30, 1)
+    expect(estrategiaVelocidadFija(60).nombre).toBe('velocidad-fija-60')
   })
 })
 

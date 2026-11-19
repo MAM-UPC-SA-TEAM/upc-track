@@ -34,6 +34,16 @@ export class Usuario {
     return rows[0] || null
   }
 
+  // Igual que porNombreUsuario pero incluye cuentas inactivas: el login necesita distinguir
+  // «cuenta pendiente de aprobación» de «usuario o contraseña incorrectos» (A01)
+  static async porNombreUsuarioConEstado(nombre_usuario) {
+    const { rows } = await pool.query(
+      `SELECT * FROM usuario WHERE nombre_usuario = $1`,
+      [nombre_usuario]
+    )
+    return rows[0] || null
+  }
+
   // consultarRutas() — diagrama de clases
   // Retorna las rutas disponibles para el usuario
   static async consultarRutas() {
@@ -103,5 +113,66 @@ export class Usuario {
        FROM usuario`
     )
     return rows
+  }
+
+  // Alta por el admin (el registro público pasa por authService)
+  static async crear({ nombre, nombre_usuario, correo, password_hash, tipo_usuario, activo }) {
+    const { rows } = await pool.query(
+      `INSERT INTO usuario (nombre, nombre_usuario, correo, password_hash, tipo_usuario, activo)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING id_usuario`,
+      [nombre, nombre_usuario, correo, password_hash, tipo_usuario, activo]
+    )
+    return rows[0].id_usuario
+  }
+
+  // El admin reemplaza todos los campos; `password_hash` solo si se cambia la clave
+  static async actualizar(id_usuario, { nombre, nombre_usuario, correo, tipo_usuario, activo, password_hash }) {
+    const { rowCount } = password_hash
+      ? await pool.query(
+        `UPDATE usuario SET nombre=$1, nombre_usuario=$2, correo=$3, tipo_usuario=$4, activo=$5, password_hash=$6
+         WHERE id_usuario=$7`,
+        [nombre, nombre_usuario, correo, tipo_usuario, activo, password_hash, id_usuario]
+      )
+      : await pool.query(
+        `UPDATE usuario SET nombre=$1, nombre_usuario=$2, correo=$3, tipo_usuario=$4, activo=$5
+         WHERE id_usuario=$6`,
+        [nombre, nombre_usuario, correo, tipo_usuario, activo, id_usuario]
+      )
+    return rowCount
+  }
+
+  // El propio usuario: `correo` null conserva el actual; `nombre_usuario` undefined no lo toca
+  static async actualizarPerfil(id_usuario, { nombre, correo, nombre_usuario }) {
+    if (nombre_usuario !== undefined) {
+      await pool.query(
+        `UPDATE usuario SET nombre=$1, correo=COALESCE($2, correo), nombre_usuario=$3 WHERE id_usuario=$4`,
+        [nombre, correo, nombre_usuario, id_usuario]
+      )
+    } else {
+      await pool.query(
+        `UPDATE usuario SET nombre=$1, correo=COALESCE($2, correo) WHERE id_usuario=$3`,
+        [nombre, correo, id_usuario]
+      )
+    }
+    const { rows } = await pool.query(
+      `SELECT id_usuario, nombre, nombre_usuario, correo, tipo_usuario FROM usuario WHERE id_usuario=$1`,
+      [id_usuario]
+    )
+    return rows[0] || null
+  }
+
+  static async hashDe(id_usuario) {
+    const { rows } = await pool.query('SELECT password_hash FROM usuario WHERE id_usuario=$1', [id_usuario])
+    return rows[0]?.password_hash ?? null
+  }
+
+  static async cambiarHash(id_usuario, password_hash) {
+    await pool.query('UPDATE usuario SET password_hash=$1 WHERE id_usuario=$2', [password_hash, id_usuario])
+  }
+
+  static async eliminar(id_usuario) {
+    const { rowCount } = await pool.query('DELETE FROM usuario WHERE id_usuario=$1', [id_usuario])
+    return rowCount
   }
 }

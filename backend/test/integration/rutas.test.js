@@ -11,7 +11,7 @@ const { generarToken } = await import('../../src/utils/jwt.js')
 
 let query
 beforeEach(() => {
-  query = mock.method(pool, 'query', async () => ({ rows: [{ id_ruta: 1 }] }))
+  query = mock.method(pool, 'query', async () => ({ rows: [{ id_ruta: 1 }], rowCount: 1 }))
   mock.method(console, 'error', () => {})
 })
 afterEach(() => mock.restoreAll())
@@ -93,6 +93,13 @@ test('PATCH /rutas/:id: actualiza la ruta indicada', async () => {
   assert.deepEqual(query.mock.calls[0].arguments[1], ['Nueva', 'x', 0, '4'])
 })
 
+test('PATCH /rutas/:id: ruta inexistente → 404', async () => {
+  query.mock.mockImplementation(async () => ({ rows: [], rowCount: 0 }))
+  const res = await request(app).patch('/api/rutas/999').set(admin()).send({ nombre: 'N' })
+  assert.equal(res.status, 404)
+  assert.equal(res.body.error, 'Ruta no encontrada')
+})
+
 test('PATCH /rutas/:id → 500 si falla la BD', async () => {
   query.mock.mockImplementation(async () => fallo())
   assert.equal((await request(app).patch('/api/rutas/4').set(admin()).send({ nombre: 'N' })).status, 500)
@@ -107,6 +114,13 @@ test('DELETE /rutas/:id: admin → 200', async () => {
   const res = await request(app).delete('/api/rutas/4').set(admin())
   assert.equal(res.status, 200)
   assert.deepEqual(query.mock.calls[0].arguments[1], ['4'])
+})
+
+test('DELETE /rutas/:id: ruta inexistente → 404', async () => {
+  query.mock.mockImplementation(async () => ({ rows: [], rowCount: 0 }))
+  const res = await request(app).delete('/api/rutas/999').set(admin())
+  assert.equal(res.status, 404)
+  assert.equal(res.body.error, 'Ruta no encontrada')
 })
 
 test('DELETE /rutas/:id → 500 si falla la BD', async () => {

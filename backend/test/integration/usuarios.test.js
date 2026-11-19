@@ -12,7 +12,7 @@ const { generarToken, verificarToken } = await import('../../src/utils/jwt.js')
 
 let query
 beforeEach(() => {
-  query = mock.method(pool, 'query', async () => ({ rows: [{ id_usuario: 1 }] }))
+  query = mock.method(pool, 'query', async () => ({ rows: [{ id_usuario: 1 }], rowCount: 1 }))
   mock.method(console, 'error', () => {})
 })
 afterEach(() => mock.restoreAll())
@@ -116,9 +116,32 @@ test('PATCH /usuarios/:id: password corta → 400 sin consultar la BD', async ()
   assert.equal(query.mock.callCount(), 0)
 })
 
+for (const campo of ['nombre', 'nombre_usuario', 'correo', 'tipo_usuario']) {
+  test(`PATCH /usuarios/:id sin ${campo} → 400 sin consultar la BD`, async () => {
+    const incompleto = { ...edicion }
+    delete incompleto[campo]
+    assert.equal((await request(app).patch('/api/usuarios/7').set(admin()).send(incompleto)).status, 400)
+    assert.equal(query.mock.callCount(), 0)
+  })
+}
+
 test('PATCH /usuarios/:id: duplicado → 400', async () => {
   query.mock.mockImplementation(duplicado('usuario_nombre_usuario_key'))
   assert.equal((await request(app).patch('/api/usuarios/7').set(admin()).send(edicion)).status, 400)
+})
+
+test('PATCH /usuarios/:id: correo duplicado → 400 con mensaje de correo (no de usuario)', async () => {
+  query.mock.mockImplementation(duplicado('usuario_correo_key'))
+  const res = await request(app).patch('/api/usuarios/7').set(admin()).send(edicion)
+  assert.equal(res.status, 400)
+  assert.match(res.body.error, /correo/)
+})
+
+test('PATCH /usuarios/:id: usuario inexistente → 404', async () => {
+  query.mock.mockImplementation(async () => ({ rows: [], rowCount: 0 }))
+  const res = await request(app).patch('/api/usuarios/999').set(admin()).send(edicion)
+  assert.equal(res.status, 404)
+  assert.equal(res.body.error, 'Usuario no encontrado')
 })
 
 test('PATCH /usuarios/:id: error inesperado → 500', async () => {
@@ -131,6 +154,13 @@ test('DELETE /usuarios/:id: admin → 200', async () => {
   const res = await request(app).delete('/api/usuarios/7').set(admin())
   assert.equal(res.status, 200)
   assert.deepEqual(query.mock.calls[0].arguments[1], ['7'])
+})
+
+test('DELETE /usuarios/:id: usuario inexistente → 404', async () => {
+  query.mock.mockImplementation(async () => ({ rows: [], rowCount: 0 }))
+  const res = await request(app).delete('/api/usuarios/999').set(admin())
+  assert.equal(res.status, 404)
+  assert.equal(res.body.error, 'Usuario no encontrado')
 })
 
 test('DELETE /usuarios/:id → 500 si falla la BD', async () => {
@@ -227,6 +257,12 @@ test('PATCH /perfil: error inesperado → 500', async () => {
 // ── Cambiar contraseña ──────────────────────────────────────
 test('PATCH /password: faltan datos → 400', async () => {
   assert.equal((await request(app).patch('/api/usuarios/password').set(estudiante()).send({ password_actual: 'x' })).status, 400)
+})
+
+test('PATCH /password: el usuario ya no existe → 404', async () => {
+  query.mock.mockImplementation(async () => ({ rows: [] }))
+  const res = await request(app).patch('/api/usuarios/password').set(estudiante()).send({ password_actual: 'x', password_nueva: 'nueva12345' })
+  assert.equal(res.status, 404)
 })
 
 test('PATCH /password: nueva contraseña corta → 400', async () => {

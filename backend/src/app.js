@@ -1,6 +1,7 @@
 // src/app.js
 import express          from 'express'
 import cors             from 'cors'
+import helmet           from 'helmet'
 import { corsOptions }  from './utils/cors.js'
 import authRoutes       from './routes/authRoutes.js'
 import ubicacionRoutes from './routes/ubicacionRoutes.js'
@@ -12,6 +13,7 @@ import paradaRoutes    from './routes/paradaRoutes.js'
 import horarioRoutes   from './routes/horarioRoutes.js'
 import notificacionRoutes from './routes/notificacionRoutes.js'
 import usuarioRoutes from './routes/usuarioRoutes.js'
+import { errorHandler, rutaNoEncontrada } from './middlewares/errorMiddleware.js'
 
 
 const app = express()
@@ -24,6 +26,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 app.use(express.static(join(__dirname, '../public')))
 
 // ── Middlewares globales ─────────────────────────────────────
+// Cabeceras de seguridad (HSTS, nosniff, sin X-Powered-By…). El frontend vive en otro origen (Cloudflare o la
+// WebView del APK) y consume esta API por CORS, así que los recursos deben poder leerse desde otros orígenes.
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }))
 app.use(cors(corsOptions))
 app.use(express.json())
 
@@ -46,9 +51,8 @@ app.use('/api/horarios',  horarioRoutes)
 app.use('/api/notificaciones', notificacionRoutes)
 app.use('/api/usuarios', usuarioRoutes)
 
-// ── Ruta no encontrada ───────────────────────────────────────
-app.use((_req, res) => {
-  res.status(404).json({ error: 'Ruta no encontrada' })
-})
+// ── Ruta no encontrada y manejo de errores (siempre al final) ─
+app.use(rutaNoEncontrada)
+app.use(errorHandler)
 
 export default app

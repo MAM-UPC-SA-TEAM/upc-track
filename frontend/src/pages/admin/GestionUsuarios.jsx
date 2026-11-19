@@ -124,6 +124,25 @@ export default function GestionUsuarios() {
     }
   }
 
+  // Aprobar una cuenta (registro público pendiente): la activa sin abrir el formulario
+  const [aprobando, setAprobando] = useState(null)
+  const [errorAprobar, setErrorAprobar] = useState('')
+  async function aprobar(u) {
+    if (aprobando) return
+    setAprobando(u.id_usuario)
+    setErrorAprobar('')
+    try {
+      await api.patch(`/api/usuarios/${u.id_usuario}`, {
+        nombre: u.nombre, nombre_usuario: u.nombre_usuario, correo: u.correo, tipo_usuario: u.tipo_usuario, activo: true,
+      })
+      cargar()
+    } catch (err) {
+      setErrorAprobar(err.message || `No se pudo aprobar a ${u.nombre}. Intenta de nuevo.`)
+    } finally {
+      setAprobando(null)
+    }
+  }
+
   const cambiar = key => ev => {
     setForm(p => ({ ...p, [key]: ev.target.value }))
     if (errores[key]) setErrores(p => ({ ...p, [key]: '' }))
@@ -146,6 +165,12 @@ export default function GestionUsuarios() {
 
   const acciones = u => (
     <>
+      {!esActivo(u) && (
+        <button type="button" className="boton-verde" aria-label={`Aprobar ${u.nombre}`}
+          disabled={aprobando === u.id_usuario} onClick={() => aprobar(u)}>
+          {aprobando === u.id_usuario ? 'Aprobando…' : 'Aprobar'}
+        </button>
+      )}
       <button type="button" className="boton-contorno" aria-label={`Editar ${u.nombre}`} onClick={() => abrirEditar(u)}>Editar</button>
       <button type="button" className="boton-contorno" aria-label={`Eliminar ${u.nombre}`}
         onClick={() => { setErrorEliminar(''); setPorEliminar(u) }}>Eliminar</button>
@@ -163,6 +188,8 @@ export default function GestionUsuarios() {
             <FontAwesomeIcon icon={faPlus} /> Agregar usuario
           </button>
         </div>
+
+        {errorAprobar && <p className="acceso-aviso" role="alert">{errorAprobar}</p>}
 
         {hayLista ? (
           <TablaAdmin etiqueta="Usuarios" columnas={columnas} filas={usuarios} idDe={u => u.id_usuario} acciones={acciones} />

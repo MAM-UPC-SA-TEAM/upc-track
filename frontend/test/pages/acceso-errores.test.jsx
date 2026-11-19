@@ -41,7 +41,7 @@ describe('Errores de acceso', () => {
     abrirApp('/registro')
     await user.type(await screen.findByLabelText('Nombre completo'), 'Ana Pérez')
     await user.type(screen.getByLabelText('Nombre de usuario'), 'ana.perez')
-    await user.type(screen.getByLabelText('Correo electrónico'), 'ana@correo.com')
+    await user.type(screen.getByLabelText('Correo electrónico'), 'ana@unicesar.edu.co')
     await user.type(screen.getByLabelText('Contraseña', { selector: 'input' }), 'clavesegura1')
     await user.type(screen.getByLabelText('Confirmar contraseña'), 'clavesegura1')
     await user.click(screen.getByRole('button', { name: /crear cuenta/i }))

@@ -1,8 +1,9 @@
 # Checklist de Validacion RF (RF1-RF15)
 
 Proyecto: Monitoreo de Buses UPCSA
-Fecha: ____/____/______
-Responsable de prueba: __________________
+Fecha: 18/11/2026
+Responsable de prueba: equipo de desarrollo
+Evidencia y resultados por requisito: [`14_validacion_rf_rnf.md`](14_validacion_rf_rnf.md) (los casilleros de abajo son la plantilla de la prueba manual; el resultado oficial está en ese informe).
 
 Instruccion: marca cada item cuando este validado y registra evidencia (captura, URL, rol, hora, resultado).
 
@@ -152,9 +153,10 @@ Resultado: [ ] Cumple  [ ] Parcial  [ ] No cumple
 
 ## Cierre de validacion
 
-- RF cumplidos: ______ / 15
-- RF parciales: ______ / 15
-- RF no cumplidos: ______ / 15
+- RF cumplidos: 10 / 15 (RF1 a RF7, RF11, RF12 y RF15)
+- RF parciales: 1 / 15 (RF8: falta probar la pérdida de red en un teléfono real)
+- RF pendientes de validación visual manual: 4 / 15 (RF9, RF10, RF13 y RF14)
+- RF no cumplidos: 0 / 15
 
 Observaciones finales:
 
