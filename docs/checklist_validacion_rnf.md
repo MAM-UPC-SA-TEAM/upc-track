@@ -181,11 +181,11 @@ Evidencia: ________________________________
 - RNF no cumplidos: 0 / 15
 
 Riesgos detectados:
-1. Producción aún sin `helmet` ni dependencias corregidas hasta la release de `develop` a `main`.
+1. ~~Producción sin `helmet` ni dependencias corregidas~~: resuelto con la release a `main` (PR #167), verificado en producción (`14_validacion_rf_rnf.md`, sección 5.1).
 2. Planes gratuitos sin garantía 24/7: arranque en frío de Render de ~17 s (excepción documentada, riesgo R4).
 3. Endpoints autenticados de la nube sin medir (producción no tiene usuarios de prueba).
 
 Plan de mejora:
-1. Hacer la release a `main` y verificar las cabeceras (Q07).
+1. ~~Hacer la release a `main` y verificar las cabeceras~~: hecho. El tag `v1.0.0` y la Release con el APK quedan para el congelamiento del 01-dic (Q07).
 2. Calentar el servicio antes de la sustentación y mantener el plan B local (Q06).
 3. Completar la guía manual de la sección 6 de `14_validacion_rf_rnf.md` y las pruebas en dispositivo (#39) y con usuarios (#42).
