@@ -9,9 +9,12 @@ import './styles/base.css'
 import './styles/mapa.css'
 import App from './App'
 import Splash from './components/shared/Splash'
-import { aplicarTema, temaInicialOscuro } from './utils/tema'
+import { aplicarTema, fijarBarraEstadoClara, temaInicialOscuro } from './utils/tema'
+import { debeMostrarSplash } from './utils/splash'
 import { esNativa } from './utils/platform'
 
+// Con splash, la barra de estado se queda clara mientras dure (lo suelta el propio splash); antes del primer aplicarTema
+fijarBarraEstadoClara(debeMostrarSplash())
 aplicarTema(temaInicialOscuro())
 
 createRoot(document.getElementById('root')).render(

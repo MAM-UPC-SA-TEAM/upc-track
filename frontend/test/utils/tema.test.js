@@ -95,3 +95,55 @@ describe('preferencia de tema (U33)', () => {
     expect(t.esOscuro('auto')).toBe(false)
   })
 })
+
+describe('fijarBarraEstadoClara (splash de arranque)', () => {
+  it('fija: barra clara con texto oscuro, y aplicarTema(oscuro) cambia la página pero no la barra', async () => {
+    const t = await cargarTema(true)
+    t.fijarBarraEstadoClara(true)
+    expect(statusBar.setStyle).toHaveBeenLastCalledWith({ style: 'LIGHT' })
+    expect(statusBar.setBackgroundColor).toHaveBeenLastCalledWith({ color: '#fbfaf4' })
+    statusBar.setStyle.mockClear()
+    statusBar.setBackgroundColor.mockClear()
+
+    t.aplicarTema(true)
+    expect(document.body.dataset.tema).toBe('oscuro') // la página sí cambia
+    expect(document.querySelector('meta[name="theme-color"]').getAttribute('content')).toBe('#111b21')
+    expect(statusBar.setStyle).not.toHaveBeenCalled() // la barra se queda clara
+    expect(statusBar.setBackgroundColor).not.toHaveBeenCalled()
+  })
+
+  it('suelta: la barra toma el tema vigente de la página', async () => {
+    const t = await cargarTema(true)
+    t.fijarBarraEstadoClara(true)
+    t.aplicarTema(true)
+    t.fijarBarraEstadoClara(false)
+    expect(statusBar.setStyle).toHaveBeenLastCalledWith({ style: 'DARK' })
+    expect(statusBar.setBackgroundColor).toHaveBeenLastCalledWith({ color: '#111b21' })
+  })
+
+  it('suelta con el tema claro: barra clara', async () => {
+    const t = await cargarTema(true)
+    t.fijarBarraEstadoClara(true)
+    t.aplicarTema(false)
+    t.fijarBarraEstadoClara(false)
+    expect(statusBar.setStyle).toHaveBeenLastCalledWith({ style: 'LIGHT' })
+    expect(statusBar.setBackgroundColor).toHaveBeenLastCalledWith({ color: '#fbfaf4' })
+  })
+
+  it('tras soltar, aplicarTema vuelve a actualizar la barra', async () => {
+    const t = await cargarTema(true)
+    t.fijarBarraEstadoClara(true)
+    t.fijarBarraEstadoClara(false)
+    statusBar.setStyle.mockClear()
+    t.aplicarTema(true)
+    expect(statusBar.setStyle).toHaveBeenCalledWith({ style: 'DARK' })
+  })
+
+  it('en el navegador no toca ninguna barra de estado', async () => {
+    const t = await cargarTema(false)
+    t.fijarBarraEstadoClara(true)
+    t.fijarBarraEstadoClara(false)
+    expect(statusBar.setStyle).not.toHaveBeenCalled()
+    expect(statusBar.setBackgroundColor).not.toHaveBeenCalled()
+  })
+})
