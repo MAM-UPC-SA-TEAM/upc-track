@@ -1,5 +1,7 @@
-/* Splash de arranque (U35). Papel, tinta y color plano: los mismos tokens que el resto de «El Talón»; claro y oscuro salen
-   de las variables del tema. Solo se animan transform y opacity. */
+/* Splash de arranque (U35). Papel, tinta y color plano de «El Talón». Solo se animan transform y opacity.
+   SIEMPRE en claro: los tokens se fijan aquí (con el tema oscuro, body[data-tema='oscuro'] los cambiaría) porque el splash
+   nativo de Android es claro y sigue al sistema, no al tema de la app; con el mismo papel el relevo no cambia de color y el
+   fundido de salida revela la interfaz, clara u oscura, sin destello. */
 
 .splash {
   position: fixed;
@@ -7,6 +9,12 @@
   z-index: 2000; /* por encima de toda la interfaz, incluidos los avisos (--z-toast) */
   display: grid;
   place-items: center;
+  /* tokens de «El Talón» en claro (valores de :root en tokens.css) */
+  --papel: #fbfaf4;
+  --tinta: #14261a;
+  --trazo: #14261a;
+  --amarillo: #f5c400;
+  color-scheme: light;
   background: var(--papel);
   opacity: 1;
 }

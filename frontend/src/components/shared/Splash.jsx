@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBus } from '@fortawesome/free-solid-svg-icons'
-import LogoTema from './LogoTema'
 import { EVENTO_SERVIDOR } from '../../services/api'
 import {
   DURACION_MAX_MS, DURACION_MIN_MS, DURACION_MIN_REDUCIDA_MS, DURACION_SALIDA_MS,
@@ -19,6 +18,9 @@ import './Splash.css'
 //    servidor» toma el relevo y no hay dos pantallas de espera seguidas.
 //  · Con prefers-reduced-motion no hay movimiento ni fundido: forma fija y salida en el acto.
 //  · En el navegador la landing (/) abre directo; el splash es de la app (APK, PWA instalada y rutas internas).
+//  · Siempre en papel claro, aunque el tema de la app sea oscuro: el splash nativo de Android es siempre claro y sigue
+//    el modo del sistema, no el tema elegido en la app. Así el relevo no cambia de color y, al terminar, el fundido
+//    de salida revela la interfaz (clara u oscura) en lugar de un destello.
 
 export default function Splash() {
   const [fase, setFase] = useState(() => (debeMostrarSplash() ? 'visible' : 'oculto'))
@@ -59,12 +61,7 @@ export default function Splash() {
   return (
     <div className="splash" data-fase={fase} role="status" aria-label="Cargando UpcTrack">
       <div className="splash-centro" aria-hidden="true">
-        <LogoTema
-          claro="/brand/upc-track-mark.png"
-          oscuro="/brand/upc-track-mark-oscuro.png"
-          alt=""
-          className="splash-marca"
-        />
+        <img src="/brand/upc-track-mark.png" alt="" className="splash-marca" />
         <div className="splash-debajo">
           <p className="splash-nombre">UpcTrack</p>
           <div className="splash-ruta">
