@@ -13,6 +13,7 @@ Primera versión entregable de UpcTrack: monitoreo en tiempo real de los buses d
 - **Conductor:** pantalla encendida durante el recorrido (Wake Lock) y aviso para mantener la app abierta (PR #155); verificación del permiso de ubicación antes de iniciar (PR #159); «Avisar» a la ruta (PR #127).
 - **ETA según la velocidad reciente del bus** (PR #134) con **patrón Strategy** intercambiable (PR #157).
 - **Rediseño móvil «El Talón»**: Inicio más corto, Perfil y Configuración separados, nombre de usuario editable, modo claro/oscuro/automático, esqueletos de carga, transiciones y pulido de interacción (PR #115 a #140).
+- **Splash de arranque animado** (web y APK): un bus recorre la línea de ruta hasta la parada; una vez por arranque, 1,1 s, cede al aviso «Despertando el servidor» y respeta `prefers-reduced-motion` (U35, #148).
 - **Simulador de conductor** (`scripts/dev/simular-recorrido.mjs`) y **calculadora de resultados de usabilidad** (`scripts/dev/usabilidad-resultados.mjs`) (PR #163, #164).
 
 ### Cambiado

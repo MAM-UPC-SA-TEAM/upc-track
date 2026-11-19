@@ -8,6 +8,7 @@ import './styles/tokens.css'
 import './styles/base.css'
 import './styles/mapa.css'
 import App from './App'
+import Splash from './components/shared/Splash'
 import { aplicarTema, temaInicialOscuro } from './utils/tema'
 import { esNativa } from './utils/platform'
 
@@ -16,6 +17,7 @@ aplicarTema(temaInicialOscuro())
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <App />
+    <Splash />
   </StrictMode>
 )
 
