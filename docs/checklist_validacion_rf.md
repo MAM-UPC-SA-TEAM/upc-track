@@ -153,8 +153,8 @@ Resultado: [ ] Cumple  [ ] Parcial  [ ] No cumple
 
 ## Cierre de validacion
 
-- RF cumplidos: 10 / 15 (RF1 a RF7, RF11, RF12 y RF15)
-- RF parciales: 1 / 15 (RF8: falta probar la pérdida de red en un teléfono real)
+- RF cumplidos: 11 / 15 (RF1 a RF8, RF11, RF12 y RF15)
+- RF parciales: 0 / 15
 - RF pendientes de validación visual manual: 4 / 15 (RF9, RF10, RF13 y RF14)
 - RF no cumplidos: 0 / 15
 
