@@ -20,7 +20,7 @@ La validación se hizo en tres frentes. Hay que leer cada resultado con su frent
 
 | | Cumple | Parcial | Pendiente de validación manual | Total |
 |---|---|---|---|---|
-| **RF** | 10 | 1 | 4 | 15 |
+| **RF** | 11 | 0 | 4 | 15 |
 | **RNF** | 10 | 4 | 1 | 15 |
 
 Todos los RF clasificados como *Must* del flujo principal (login, ubicación en tiempo real, notificaciones, rutas, administración, ETA, registro, buses) cumplen. Los pendientes son de **validación visual del mapa** y de pruebas en **dispositivo real** (#39).
@@ -36,7 +36,7 @@ Todos los RF clasificados como *Must* del flujo principal (login, ubicación en 
 | RF5 Ver rutas | **Cumple** | e2e: las rutas con sus paradas y horarios salen de la base real y «abrir en el mapa» navega al mapa. |
 | RF6 Administración | **Cumple** | Crear, editar y eliminar ruta y bus; los cambios se reflejan en la lista del estudiante; editar o eliminar algo inexistente da 404 (en las tres entidades). |
 | RF7 Gestión de usuarios | **Cumple** | El admin lista, crea y cambia el rol; el estudiante recibe 403 en `/api/usuarios`, el conductor 403 al crear buses, un estudiante 403 al transmitir y sin token 401. e2e: alta y baja de usuarios. |
-| RF8 Actualización de ubicación | **Parcial** | Se envía cada 4 s (intervalo medido entre eventos: 4,00 a 4,01 s) y el estudiante ve cambios continuos. La **pérdida y recuperación de red** se cubre con pruebas automatizadas (reconexión de salas, estado «reintentando»), pero no se probó con un teléfono real cortando la red: queda para #39. |
+| RF8 Actualización de ubicación | **Cumple** | Se envía cada 4 s (intervalo medido entre eventos: 4,00 a 4,01 s) y el estudiante ve cambios continuos. La **pérdida y recuperación de red** se cubre con pruebas automatizadas (reconexión de salas, estado «reintentando») y se verificó en un teléfono real (TECNO LG6n, Android 12, APK de la release, 18-nov): al cortar y recuperar los datos móviles la transmisión se reanudó sola (matriz de `07_pruebas_qa.md` §7). |
 | RF9 Recorrido en mapa | **Pendiente** | Hay pruebas del mapa (`mapa-bus.test.jsx`), pero la comprobación visual de varias rutas a la vez y de cruces cercanos requiere revisión manual con buses transmitiendo. |
 | RF10 Paraderos | **Pendiente** | Las paradas activas e inactivas se distinguen en la gestión de rutas (pruebas de admin); la diferencia visual en el mapa requiere revisión manual. |
 | RF11 Tiempo estimado de llegada | **Cumple** | Con el bus acercándose a una parada, el ETA calculado con la lógica del cliente bajó de 7 a 4 min al pasar de 3,0 a 1,6 km. Prueba de pantalla: una velocidad nueva por socket actualiza el ETA. |
@@ -78,7 +78,7 @@ Con un conductor transmitiendo cada 4 s: el evento llega al estudiante en **6 ms
 | 1 | **Producción no tenía `helmet` ni las dependencias corregidas.** Las cabeceras de la nube mostraban `x-powered-by: Express` y no había HSTS: Render despliega `main` y esos cambios (PR #156) estaban en `develop`. | **Resuelto**: la release a `main` (PR #167) está desplegada y verificada en producción (sección 5.1). |
 | 2 | Un origen rechazado por CORS responde **500** en lugar de 403. No afecta a los navegadores (que lo bloquean igual). | **Resuelto en #20** (B05, errores centralizados): ahora responde 403 en JSON. |
 | 3 | No garantiza 24/7 en planes gratuitos (RNF3) y el arranque en frío tarda ~17 s (RNF12). | **Excepción documentada** (riesgo R4 del charter v2): aviso «Despertando el servidor», reconexión automática y plan B local. Calentar el servicio antes de la sustentación. |
-| 4 | RF9, RF10, RF13, RF14 y RNF4 necesitan revisión visual; RF8 y RNF5 necesitan dispositivo y navegadores reales. | Se ejecutan en #39 (M11, APK en dispositivos reales) y en las pruebas de #42 (Q03). |
+| 4 | RF9, RF10, RF13, RF14 y RNF4 necesitan revisión visual, y RNF5 necesita más navegadores (Firefox, Safari). RF8 ya se verificó en un teléfono real (TECNO LG6n). | Se completan con los otros dos dispositivos de #39 (M11, matriz en `07_pruebas_qa.md` §7) y en las pruebas de #42 (Q03). |
 
 No se encontró ningún requisito en estado «No cumple».
 
