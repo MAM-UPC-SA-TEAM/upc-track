@@ -7,6 +7,12 @@ import {
   debeMostrarSplash, reiniciarSplash, DURACION_MIN_MS, DURACION_MIN_REDUCIDA_MS, DURACION_SALIDA_MS,
 } from '../../src/utils/splash'
 import { EVENTO_SERVIDOR } from '../../src/services/api'
+import { readFileSync } from 'node:fs'
+
+const css = readFileSync(`${import.meta.dirname}/../../src/components/shared/Splash.css`, 'utf8')
+const tokens = readFileSync(`${import.meta.dirname}/../../src/styles/tokens.css`, 'utf8')
+const valorToken = (nombre) => tokens.match(new RegExp(`:root\\s*\\{[\\s\\S]*?--${nombre}:\\s*(#[0-9a-fA-F]{6})`))?.[1]
+const valorSplash = (nombre) => css.match(new RegExp(`\\.splash\\s*\\{[\\s\\S]*?--${nombre}:\\s*(#[0-9a-fA-F]{6})`))?.[1]
 
 function entorno({ reducido = false, standalone = false } = {}) {
   window.matchMedia = vi.fn((query) => ({
@@ -101,6 +107,18 @@ describe('<Splash />', () => {
     expect(screen.queryByRole('status')).toBeNull()
   })
 
+  it('es siempre claro: con el tema oscuro usa solo la marca clara, no la variante para fondo oscuro', () => {
+    document.body.dataset.tema = 'oscuro'
+    try {
+      render(<Splash />)
+      const marcas = [...screen.getByRole('status').querySelectorAll('img')]
+      expect(marcas).toHaveLength(1)
+      expect(marcas[0].getAttribute('src')).toBe('/brand/upc-track-mark.png')
+    } finally {
+      delete document.body.dataset.tema
+    }
+  })
+
   it('en la PWA instalada (standalone) aparece aunque la ruta sea /', () => {
     entorno({ standalone: true })
     irA('/')
@@ -115,5 +133,16 @@ describe('<Splash />', () => {
     avanzar(5000)
     render(<Splash />)
     expect(screen.getByRole('status')).toBeInTheDocument() // no llegó a completarse: sigue sin contar como mostrado
+  })
+})
+
+describe('Splash.css: papel claro fijo', () => {
+  it('fija los tokens en claro con los mismos valores que :root, para que el tema oscuro no los cambie', () => {
+    for (const nombre of ['papel', 'tinta', 'trazo', 'amarillo']) {
+      const esperado = nombre === 'trazo' ? valorToken('tinta') : valorToken(nombre)
+      expect(esperado, `${nombre} en :root`).toMatch(/^#[0-9a-fA-F]{6}$/) // que la regex realmente lea el token
+      expect(valorSplash(nombre), nombre).toBe(esperado)
+    }
+    expect(css).toMatch(/color-scheme:\s*light/)
   })
 })

@@ -25,7 +25,7 @@
 - Avisos «Despertando el servidor» y de sin conexión, con reintento automático.
 - Conductor: botón principal grande, estado de GPS y de transmisión a la vista, «Reanudar transmisión» y confirmación en dos toques para finalizar.
 - Notificaciones por tipo (info, retraso, cambio de ruta); al conductor se le explica que debe mantener la app abierta.
-- Splash de arranque animado (un bus recorre la línea de ruta hasta la parada): 1,1 s, una vez por arranque, se retira al instante si el servidor está despertando y es estático con `prefers-reduced-motion`.
+- Splash de arranque animado (un bus recorre la línea de ruta hasta la parada): 1,1 s, una vez por arranque, se retira al instante si el servidor está despertando y es estático con `prefers-reduced-motion`. Va siempre en papel claro (como el splash nativo de Android, que sigue al sistema y no al tema de la app) y se desvanece hacia la interfaz clara u oscura.
 - Respeto de `prefers-reduced-motion`.
 
 ## 3.1 Verificación de accesibilidad y diseño móvil
