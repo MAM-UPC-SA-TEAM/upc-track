@@ -112,6 +112,7 @@ Las semanas 1 a 5 de arriba describen el proyecto heredado y su estabilización 
 - 13-nov: despliegue en Render y Cloudflare documentado y WebSockets verificados (PR #67, #68); aviso «Despertando el servidor» y reconexión automática (PR #69); frontend preparado para Capacitor (PR #70); APK firmado y publicado por GitHub Actions (PR #79).
 - 16-nov: registro solo con correo institucional y aprobación del administrador (PR #143, #144); pulido de interacción y esqueletos de carga (PR #138, #139, #140).
 - 18-nov: pirámide de pruebas con PostgreSQL real y e2e (PR #146), defectos de la auditoría corregidos (PR #147), `busService`, `usuarioService` y `rutaService` sin SQL en los controladores (PR #150, #151), `helmet` y dependencias sin vulnerabilidades (PR #156), patrón Strategy del ETA (PR #157), accesibilidad con axe-core (PR #158), permiso de ubicación del conductor (PR #159) y Project Charter v2 (PR #154).
+- 20-nov: splash de arranque animado (un bus recorre la línea de ruta hasta la parada), una vez por arranque, estático con `prefers-reduced-motion` y siempre en papel claro como el splash nativo (U35, #148; PR #170, #171, #172).
 
 ### Inconvenientes
 - Render bloquea el SMTP saliente y el consentimiento de Microsoft depende de la universidad: no se pudo verificar la titularidad del correo.
